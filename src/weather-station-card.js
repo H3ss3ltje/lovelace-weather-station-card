@@ -289,6 +289,7 @@ class WeatherStationCard extends LitElement {
           <svg
             class="sun-svg"
             viewBox="0 0 200 84"
+            preserveAspectRatio="xMidYMid meet"
             xmlns="http://www.w3.org/2000/svg"
           >
             <line
@@ -784,14 +785,16 @@ class WeatherStationCard extends LitElement {
       .sun-scene {
         position: relative;
         width: 100%;
-        max-width: 400px;
+        max-width: 460px;
         margin: 0 auto;
-        aspect-ratio: 200 / 84;
       }
+      /* height:auto lets the inline SVG take its own intrinsic height from the
+         viewBox ratio (200:84) in every browser — no reliance on aspect-ratio,
+         which was collapsing to a flat line in some HA webviews. */
       .sun-svg {
-        width: 100%;
-        height: 100%;
         display: block;
+        width: 100%;
+        height: auto;
         overflow: visible;
       }
       /* Single dotted arc; thickness changes before vs after the sun. */

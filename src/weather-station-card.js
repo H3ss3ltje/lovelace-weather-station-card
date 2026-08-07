@@ -261,17 +261,20 @@ class WeatherStationCard extends LitElement {
     const pos = sunDiagramPosition(azimuth, elevation, above);
     const isNight = pos.night;
     const seg = sunPathSegments(pos.t);
-    // At night draw the whole arc thin; by day the travelled part is thick.
+    // Day: thick solid path already travelled, thin dashed path still ahead.
+    // Night: full arc stays thin; moon sits under the horizon line.
     const beforeD = isNight ? "" : seg.beforeD;
     const afterD = isNight ? SUN_PATH_D : seg.afterD;
 
-    // Scene is a cropped viewBox (y 30→80) to remove empty space above the
-    // arch. Map path coords into that cropped window for the floating sun.
+    // viewBox y: 30 → 92 — room above the arc AND clear space under the
+    // horizon (y=68) so the moon can sit visibly below the line.
     const VB_Y = 30;
-    const VB_H = 50;
+    const VB_H = 62;
+    const HORIZON_Y = 68;
     const sunLeft = `${(pos.x / 200) * 100}%`;
     const sunTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
-    const moonTop = `${((72 - VB_Y) / VB_H) * 100}%`;
+    // Moon centered under the horizon, not on it.
+    const moonTop = `${((80 - VB_Y) / VB_H) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -283,10 +286,32 @@ class WeatherStationCard extends LitElement {
         @click=${() => this._handleClick(tapKey)}
       >
         <div class="sun-scene ${isNight ? "night" : "day"}">
-          <svg class="sun-svg" viewBox="0 30 200 50" xmlns="http://www.w3.org/2000/svg">
-            <line class="sun-horizon" x1="12" y1="68" x2="188" y2="68" />
-            <path class="sun-arc sun-arc-after" d=${afterD} fill="none" />
-            <path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />
+          <svg
+            class="sun-svg"
+            viewBox="0 30 200 62"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line
+              class="sun-horizon"
+              x1="10"
+              y1=${HORIZON_Y}
+              x2="190"
+              y2=${HORIZON_Y}
+            />
+            <path
+              class="sun-arc sun-arc-after"
+              d=${afterD}
+              fill="none"
+              stroke-width="1.2"
+            />
+            ${beforeD
+              ? html`<path
+                  class="sun-arc sun-arc-before"
+                  d=${beforeD}
+                  fill="none"
+                  stroke-width="4.8"
+                />`
+              : nothing}
           </svg>
 
           ${isNight
@@ -771,7 +796,7 @@ class WeatherStationCard extends LitElement {
         width: 100%;
         max-width: 400px;
         margin: 0 auto;
-        aspect-ratio: 200 / 50;
+        aspect-ratio: 200 / 62;
       }
       .sun-svg {
         width: 100%;
@@ -784,26 +809,31 @@ class WeatherStationCard extends LitElement {
         fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
       }
-      /* Path already travelled by the sun: thick, solid. */
+      /* Path already travelled by the sun: thick, solid orange. */
       .sun-arc-before {
-        stroke-width: 3.4;
+        stroke-width: 4.8px;
+        stroke: #e8961e;
         opacity: 1;
       }
       /* Path still to come: thin, dashed, softer. */
       .sun-arc-after {
-        stroke-width: 1.6;
-        stroke-dasharray: 4 6;
-        opacity: 0.6;
+        stroke-width: 1.2px;
+        stroke: #e8961e;
+        stroke-dasharray: 3.5 5;
+        opacity: 0.45;
       }
       .sun-scene.night .sun-arc-after {
-        opacity: 0.35;
+        opacity: 0.3;
       }
+      /* Clear horizon so "below horizon" is readable. */
       .sun-horizon {
-        stroke: var(--divider-color, rgba(0, 0, 0, 0.12));
-        stroke-width: 1;
-        stroke-dasharray: 2 4;
+        stroke: var(--primary-text-color, #3a3a3a);
+        stroke-width: 1.4px;
+        stroke-opacity: 0.35;
         stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
       }
       .sun-marker {
         position: absolute;
@@ -823,7 +853,7 @@ class WeatherStationCard extends LitElement {
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 60%;
+        top: 42%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: row;
@@ -847,8 +877,8 @@ class WeatherStationCard extends LitElement {
       }
       .sun-edge {
         position: absolute;
-        bottom: -2px;
-        font-size: 0.8rem;
+        bottom: 2px;
+        font-size: 0.75rem;
         font-weight: 500;
         color: var(--secondary-text-color);
         z-index: 1;

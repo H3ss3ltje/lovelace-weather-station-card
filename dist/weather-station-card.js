@@ -41,21 +41,41 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           ${this._renderExpand(e,n,i)}
         </div>
       </ha-card>
-    `}_renderSun(){if(!(this._config.settings||{}).show_sun)return V;const t=this._stateObj("sun_entity"),e=this._stateObj("azimuth_entity"),i=this._stateObj("elevation_entity"),n=this._stateObj("uv_entity");if(!t&&!e&&!i)return V;const s=t&&t.attributes||{},r=!t||"above_horizon"===t.state,a=wt(i)??Number(s.elevation),o=wt(e)??Number(s.azimuth),l=wt(n),d=zt(this.hass,s.next_rising),c=zt(this.hass,s.next_setting),h=function(t,e,i){let n=Number(t);Number.isFinite(n)||(n=i?180:0),n=(n%360+360)%360;let s=(n-90)/180;const r=Number(e);if(!i||Number.isFinite(r)&&r<0||s<0||s>1)return{x:(n<180?Ct.left[0]:Ct.right[3]).x,y:68,t:s<0?0:s>1?1:s,night:!0};s=Math.max(.02,Math.min(.98,s));const a=s<=.5?Ct.left:Ct.right,o=s<=.5?2*s:2*(s-.5),[l,d,c,h]=a;return{...Mt(l,d,c,h,o),t:s,night:!1}}(o,a,r),u=h.night,m=function(t){const{left:e,right:i}=Ct;let n=[],s=[];if((t=Math.max(0,Math.min(1,t)))<=.5){const[r,a]=Ot(e,t/.5);n=[r],s=[a,i]}else{const[r,a]=Ot(i,(t-.5)/.5);n=[e,r],s=[a]}return{beforeD:Tt(n),afterD:Tt(s)}}(h.t),_=u?"":m.beforeD,p=u?"M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68":m.afterD,g=h.x/200*100+"%",y=(h.y-30)/50*100+"%",f=Number.isFinite(a)?`${At(a,1)}°`:"—",b=Number.isFinite(o)?`${At(o,0)}°`:"—",v=t?"sun_entity":e?"azimuth_entity":"elevation_entity";return D`
+    `}_renderSun(){if(!(this._config.settings||{}).show_sun)return V;const t=this._stateObj("sun_entity"),e=this._stateObj("azimuth_entity"),i=this._stateObj("elevation_entity"),n=this._stateObj("uv_entity");if(!t&&!e&&!i)return V;const s=t&&t.attributes||{},r=!t||"above_horizon"===t.state,a=wt(i)??Number(s.elevation),o=wt(e)??Number(s.azimuth),l=wt(n),d=zt(this.hass,s.next_rising),c=zt(this.hass,s.next_setting),h=function(t,e,i){let n=Number(t);Number.isFinite(n)||(n=i?180:0),n=(n%360+360)%360;let s=(n-90)/180;const r=Number(e);if(!i||Number.isFinite(r)&&r<0||s<0||s>1)return{x:(n<180?Ct.left[0]:Ct.right[3]).x,y:68,t:s<0?0:s>1?1:s,night:!0};s=Math.max(.02,Math.min(.98,s));const a=s<=.5?Ct.left:Ct.right,o=s<=.5?2*s:2*(s-.5),[l,d,c,h]=a;return{...Mt(l,d,c,h,o),t:s,night:!1}}(o,a,r),u=h.night,m=function(t){const{left:e,right:i}=Ct;let n=[],s=[];if((t=Math.max(0,Math.min(1,t)))<=.5){const[r,a]=Ot(e,t/.5);n=[r],s=[a,i]}else{const[r,a]=Ot(i,(t-.5)/.5);n=[e,r],s=[a]}return{beforeD:Tt(n),afterD:Tt(s)}}(h.t),_=u?"":m.beforeD,p=u?"M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68":m.afterD,g=h.x/200*100+"%",y=(h.y-30)/62*100+"%",f=50/62*100+"%",b=Number.isFinite(a)?`${At(a,1)}°`:"—",v=Number.isFinite(o)?`${At(o,0)}°`:"—",w=t?"sun_entity":e?"azimuth_entity":"elevation_entity";return D`
       <div
-        class="sun-panel ${this._clickable(v)?"tappable":""}"
-        @click=${()=>this._handleClick(v)}
+        class="sun-panel ${this._clickable(w)?"tappable":""}"
+        @click=${()=>this._handleClick(w)}
       >
         <div class="sun-scene ${u?"night":"day"}">
-          <svg class="sun-svg" viewBox="0 30 200 50" xmlns="http://www.w3.org/2000/svg">
-            <line class="sun-horizon" x1="12" y1="68" x2="188" y2="68" />
-            <path class="sun-arc sun-arc-after" d=${p} fill="none" />
-            <path class="sun-arc sun-arc-before" d=${_} fill="none" />
+          <svg
+            class="sun-svg"
+            viewBox="0 30 200 62"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line
+              class="sun-horizon"
+              x1="10"
+              y1=${68}
+              x2="190"
+              y2=${68}
+            />
+            <path
+              class="sun-arc sun-arc-after"
+              d=${p}
+              fill="none"
+              stroke-width="1.2"
+            />
+            ${_?D`<path
+                  class="sun-arc sun-arc-before"
+                  d=${_}
+                  fill="none"
+                  stroke-width="4.8"
+                />`:V}
           </svg>
 
           ${u?D`<ha-icon
                 class="sun-marker night"
-                style="left:50%;top:${"84%"}"
+                style="left:50%;top:${f}"
                 .icon=${"mdi:weather-night"}
               ></ha-icon>`:D`<ha-icon
                 class="sun-marker day"
@@ -65,11 +85,11 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
 
           <div class="sun-center">
             <div class="sun-stat">
-              <div class="sun-stat-value">${f}</div>
+              <div class="sun-stat-value">${b}</div>
               <div class="sun-stat-label">${this._t("sun.elevation")}</div>
             </div>
             <div class="sun-stat">
-              <div class="sun-stat-value">${b}</div>
+              <div class="sun-stat-value">${v}</div>
               <div class="sun-stat-label">${this._t("sun.azimuth")}</div>
             </div>
             ${null!=l?D`
@@ -288,7 +308,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         width: 100%;
         max-width: 400px;
         margin: 0 auto;
-        aspect-ratio: 200 / 50;
+        aspect-ratio: 200 / 62;
       }
       .sun-svg {
         width: 100%;
@@ -301,26 +321,31 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
       }
-      /* Path already travelled by the sun: thick, solid. */
+      /* Path already travelled by the sun: thick, solid orange. */
       .sun-arc-before {
-        stroke-width: 3.4;
+        stroke-width: 4.8px;
+        stroke: #e8961e;
         opacity: 1;
       }
       /* Path still to come: thin, dashed, softer. */
       .sun-arc-after {
-        stroke-width: 1.6;
-        stroke-dasharray: 4 6;
-        opacity: 0.6;
+        stroke-width: 1.2px;
+        stroke: #e8961e;
+        stroke-dasharray: 3.5 5;
+        opacity: 0.45;
       }
       .sun-scene.night .sun-arc-after {
-        opacity: 0.35;
+        opacity: 0.3;
       }
+      /* Clear horizon so "below horizon" is readable. */
       .sun-horizon {
-        stroke: var(--divider-color, rgba(0, 0, 0, 0.12));
-        stroke-width: 1;
-        stroke-dasharray: 2 4;
+        stroke: var(--primary-text-color, #3a3a3a);
+        stroke-width: 1.4px;
+        stroke-opacity: 0.35;
         stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
       }
       .sun-marker {
         position: absolute;
@@ -340,7 +365,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 60%;
+        top: 42%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: row;
@@ -364,8 +389,8 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       }
       .sun-edge {
         position: absolute;
-        bottom: -2px;
-        font-size: 0.8rem;
+        bottom: 2px;
+        font-size: 0.75rem;
         font-weight: 500;
         color: var(--secondary-text-color);
         z-index: 1;
@@ -570,4 +595,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(_t)||customElements.define(_t,Ut),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===_t)||window.customCards.push({type:_t,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.3.0 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Ut as WeatherStationCard};
+    `}}customElements.get(_t)||customElements.define(_t,Ut),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===_t)||window.customCards.push({type:_t,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.3.1 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Ut as WeatherStationCard};

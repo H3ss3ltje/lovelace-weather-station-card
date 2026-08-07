@@ -27,6 +27,10 @@ import {
   toMetersPerSecond,
   beaufort,
   SUN_PATH_D,
+  SUN_TAIL_LEFT_D,
+  SUN_TAIL_RIGHT_D,
+  SUN_CROSS_LEFT_X,
+  SUN_CROSS_RIGHT_X,
 } from "./utils.js";
 import { localize } from "./localize/localize.js";
 
@@ -273,6 +277,8 @@ class WeatherStationCard extends LitElement {
     const HORIZON_Y = 60;
     const markerLeft = `${(pos.x / 200) * 100}%`;
     const markerTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
+    const crossLeft = `${(SUN_CROSS_LEFT_X / 200) * 100}%`;
+    const crossRight = `${(SUN_CROSS_RIGHT_X / 200) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -292,11 +298,13 @@ class WeatherStationCard extends LitElement {
           >
             <line
               class="sun-horizon"
-              x1="8"
+              x1="4"
               y1=${HORIZON_Y}
-              x2="192"
+              x2="196"
               y2=${HORIZON_Y}
             />
+            <path class="sun-tail" d=${SUN_TAIL_LEFT_D} fill="none" />
+            <path class="sun-tail" d=${SUN_TAIL_RIGHT_D} fill="none" />
             <path class="sun-arc sun-arc-after" d=${afterD} fill="none" />
             <path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />
           </svg>
@@ -328,8 +336,12 @@ class WeatherStationCard extends LitElement {
 
           ${sun
             ? html`
-                <div class="sun-edge sun-edge-rise">${sunrise || "—"}</div>
-                <div class="sun-edge sun-edge-set">${sunset || "—"}</div>
+                <div class="sun-edge" style="left:${crossLeft}">
+                  ${sunrise || "—"}
+                </div>
+                <div class="sun-edge" style="left:${crossRight}">
+                  ${sunset || "—"}
+                </div>
               `
             : nothing}
         </div>
@@ -809,6 +821,16 @@ class WeatherStationCard extends LitElement {
       .sun-scene.night .sun-arc-after {
         opacity: 0.4;
       }
+      /* Below-horizon night tails (before sunrise / after sunset). */
+      .sun-tail {
+        stroke: var(--wsc-night-color, #3f6fd6);
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2;
+        stroke-dasharray: 0.1 5;
+        opacity: 0.85;
+      }
       /* Horizon at 0° — solid so "below horizon" is readable. */
       .sun-horizon {
         stroke: var(--primary-text-color, #3a3a3a);
@@ -827,8 +849,8 @@ class WeatherStationCard extends LitElement {
         transition: left 0.6s ease, top 0.6s ease;
       }
       .sun-marker.night {
-        color: #cfd8e3;
-        filter: drop-shadow(0 0 5px rgba(207, 216, 227, 0.45));
+        color: var(--wsc-night-color, #3f6fd6);
+        filter: drop-shadow(0 0 6px rgba(63, 111, 214, 0.5));
         --mdc-icon-size: 22px;
       }
       .sun-center {
@@ -856,19 +878,16 @@ class WeatherStationCard extends LitElement {
         color: var(--secondary-text-color);
         line-height: 1.1;
       }
+      /* Times sit under the horizon crossings (sunrise / sunset). */
       .sun-edge {
         position: absolute;
         bottom: 2px;
+        transform: translateX(-50%);
         font-size: 0.75rem;
         font-weight: 500;
         color: var(--secondary-text-color);
+        white-space: nowrap;
         z-index: 1;
-      }
-      .sun-edge-rise {
-        left: 2%;
-      }
-      .sun-edge-set {
-        right: 2%;
       }
 
       .details-toggle {

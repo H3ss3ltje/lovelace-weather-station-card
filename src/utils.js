@@ -166,28 +166,46 @@ function cubicPoint(p0, p1, p2, p3, t) {
  * viewBox: 200×90.
  */
 export const SUN_PATH = {
-  // Left: sunrise → zenith
+  // Left: sunrise crossing → zenith
   left: [
-    { x: 16, y: 60 },
-    { x: 52, y: 60 },
-    { x: 64, y: 12 },
+    { x: 30, y: 60 },
+    { x: 44, y: 49 },
+    { x: 70, y: 12 },
     { x: 100, y: 12 },
   ],
-  // Right: zenith → sunset
+  // Right: zenith → sunset crossing
   right: [
     { x: 100, y: 12 },
-    { x: 136, y: 12 },
-    { x: 148, y: 60 },
-    { x: 184, y: 60 },
+    { x: 130, y: 12 },
+    { x: 156, y: 49 },
+    { x: 170, y: 60 },
   ],
 };
 
-/** SVG stroke path matching SUN_PATH (two cubics). */
+/** SVG stroke path for the above-horizon (orange) arch. */
 export const SUN_PATH_D =
-  "M 16 60 C 52 60, 64 12, 100 12 C 136 12, 148 60, 184 60";
+  "M 30 60 C 44 49, 70 12, 100 12 C 130 12, 156 49, 170 60";
 
-/** Horizon baseline Y in the path coordinate space. */
+/** Below-horizon night tails (blue): before sunrise and after sunset. */
+export const SUN_TAIL_LEFT = [
+  { x: 4, y: 80 },
+  { x: 13, y: 73 },
+  { x: 21, y: 66 },
+  { x: 30, y: 60 },
+];
+export const SUN_TAIL_RIGHT = [
+  { x: 170, y: 60 },
+  { x: 179, y: 66 },
+  { x: 187, y: 73 },
+  { x: 196, y: 80 },
+];
+export const SUN_TAIL_LEFT_D = "M 4 80 C 13 73, 21 66, 30 60";
+export const SUN_TAIL_RIGHT_D = "M 170 60 C 179 66, 187 73, 196 80";
+
+/** Horizon baseline Y and where the arch crosses it (sunrise / sunset). */
 export const SUN_BASELINE_Y = 60;
+export const SUN_CROSS_LEFT_X = 30;
+export const SUN_CROSS_RIGHT_X = 170;
 
 function lerpPt(a, b, u) {
   return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
@@ -281,12 +299,13 @@ export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
   const below = hasEl ? el < 0 : !aboveHorizon;
 
   if (below) {
-    // Dip under the horizon, deeper for more negative elevation, on the
-    // side where the sun set / will rise. Inset from the ends so it does
-    // not collide with the sunrise/sunset labels.
-    const depth = hasEl ? Math.min(14, (-el / SUN_MAX_ELEVATION) * amp) : 8;
-    const x = rising ? 44 : 156;
-    return { x, y: SUN_BASELINE_Y + depth, t: rising ? 0 : 1, night: true };
+    // Ride the blue tail below the horizon; deeper for more negative
+    // elevation. -12° reaches the far end of the tail.
+    const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
+    const targetY = SUN_BASELINE_Y + depthFrac * (80 - SUN_BASELINE_Y);
+    const tail = rising ? SUN_TAIL_LEFT : SUN_TAIL_RIGHT;
+    const { p } = pointOnHalfByY(tail, targetY);
+    return { x: p.x, y: p.y, t: rising ? 0 : 1, night: true };
   }
 
   const frac = hasEl ? Math.max(0, Math.min(1, el / SUN_MAX_ELEVATION)) : 0.5;

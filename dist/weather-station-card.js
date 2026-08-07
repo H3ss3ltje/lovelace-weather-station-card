@@ -39,7 +39,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           </div>
         </div>
       </ha-card>
-    `}_renderSun(){if(!(this._config.settings||{}).show_sun)return V;const t=this._stateObj("sun_entity"),e=this._stateObj("azimuth_entity"),i=this._stateObj("elevation_entity"),n=this._stateObj("uv_entity");if(!t&&!e&&!i)return V;const s=t&&t.attributes||{},r=!t||"above_horizon"===t.state,o=wt(i)??Number(s.elevation),a=wt(e)??Number(s.azimuth),l=wt(n),c=Et(this.hass,s.next_rising),d=Et(this.hass,s.next_setting),h=function(t,e,i){let n=Number(t);Number.isFinite(n)||(n=i?180:0),n=(n%360+360)%360;let s=180-(n-90);const r=Number(e);s=!i||Number.isFinite(r)&&r<0?n<180?198:-18:Math.max(8,Math.min(172,s));const o=s*Math.PI/180;return{x:100+92*Math.cos(o),y:102-40*Math.sin(o),arcDeg:s}}(a,o,r),u=h.x/200*100+"%",_=h.y/120*100+"%",p=Number.isFinite(o)?`${St(o,1)}°`:"—",m=Number.isFinite(a)?`${St(a,0)}°`:"—",g=t?"sun_entity":e?"azimuth_entity":"elevation_entity",y=r?"mdi:white-balance-sunny":"mdi:weather-night";return B`
+    `}_renderSun(){if(!(this._config.settings||{}).show_sun)return V;const t=this._stateObj("sun_entity"),e=this._stateObj("azimuth_entity"),i=this._stateObj("elevation_entity"),n=this._stateObj("uv_entity");if(!t&&!e&&!i)return V;const s=t&&t.attributes||{},r=!t||"above_horizon"===t.state,o=wt(i)??Number(s.elevation),a=wt(e)??Number(s.azimuth),l=wt(n),c=Et(this.hass,s.next_rising),d=Et(this.hass,s.next_setting),h=function(t,e,i){let n=Number(t);Number.isFinite(n)||(n=i?180:0),n=(n%360+360)%360;let s=180-(n-90);const r=Number(e);s=!i||Number.isFinite(r)&&r<0?n<180?198:-18:Math.max(8,Math.min(172,s));const o=s*Math.PI/180;return{x:100+96*Math.cos(o),y:72-24*Math.sin(o),arcDeg:s}}(a,o,r),u=h.x/200*100+"%",_=h.y/90*100+"%",p=Number.isFinite(o)?`${St(o,1)}°`:"—",m=Number.isFinite(a)?`${St(a,0)}°`:"—",g=t?"sun_entity":e?"azimuth_entity":"elevation_entity",y=r?"mdi:white-balance-sunny":"mdi:weather-night";return B`
       <div
         class="sun-panel ${this._clickable(g)?"tappable":""}"
         @click=${()=>this._handleClick(g)}
@@ -47,10 +47,10 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         <div class="sun-scene">
           <ha-icon class="sun-moon" .icon=${"mdi:moon-waning-crescent"}></ha-icon>
 
-          <svg class="sun-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <svg class="sun-svg" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
             <path
               class="sun-arc"
-              d="M 8 102 A 92 40 0 0 1 192 102"
+              d="M 4 72 A 96 24 0 0 1 196 72"
               fill="none"
             />
           </svg>
@@ -220,9 +220,9 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         opacity: 0.8;
       }
 
-      /* Sun path panel — arc style inspired by weather-station displays */
+      /* Sun path panel — shallow arc, compact height */
       .sun-panel {
-        padding: 8px 10px 12px;
+        padding: 2px 6px 4px;
         border-radius: var(--wsc-radius);
         background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
         overflow: hidden;
@@ -230,9 +230,9 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .sun-scene {
         position: relative;
         width: 100%;
-        max-width: 340px;
+        max-width: 360px;
         margin: 0 auto;
-        aspect-ratio: 200 / 120;
+        aspect-ratio: 200 / 90;
       }
       .sun-svg {
         width: 100%;
@@ -248,17 +248,17 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       }
       .sun-moon {
         position: absolute;
-        top: 2%;
-        right: 6%;
-        --mdc-icon-size: 18px;
+        top: 0;
+        right: 4%;
+        --mdc-icon-size: 14px;
         color: var(--primary-text-color);
-        opacity: 0.55;
+        opacity: 0.5;
         z-index: 1;
       }
       .sun-marker {
         position: absolute;
         transform: translate(-50%, -50%);
-        --mdc-icon-size: 34px;
+        --mdc-icon-size: 28px;
         color: #ffc107;
         filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
         z-index: 2;
@@ -268,45 +268,46 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .sun-marker.night {
         color: var(--disabled-text-color, #b0b0b0);
         filter: none;
-        --mdc-icon-size: 28px;
+        --mdc-icon-size: 24px;
       }
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 58%;
-        transform: translate(-50%, -40%);
+        top: 78%;
+        transform: translate(-50%, -50%);
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        gap: 18px;
         text-align: center;
         z-index: 1;
         pointer-events: none;
       }
       .sun-stat-value {
-        font-size: 1.35rem;
+        font-size: 1.05rem;
         font-weight: 600;
         line-height: 1.1;
         color: var(--primary-text-color);
       }
       .sun-stat-label {
-        font-size: 0.72rem;
+        font-size: 0.65rem;
         color: var(--secondary-text-color);
         line-height: 1.1;
       }
       .sun-edge {
         position: absolute;
-        bottom: 2%;
-        font-size: 0.95rem;
+        bottom: 4%;
+        font-size: 0.85rem;
         font-weight: 500;
         color: var(--primary-text-color);
         z-index: 1;
       }
       .sun-edge-rise {
-        left: 4%;
+        left: 2%;
       }
       .sun-edge-set {
-        right: 4%;
+        right: 2%;
       }
 
       .grid {
@@ -450,4 +451,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(pt)||customElements.define(pt,Mt),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===pt)||window.customCards.push({type:pt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.2.3 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Mt as WeatherStationCard};
+    `}}customElements.get(pt)||customElements.define(pt,Mt),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===pt)||window.customCards.push({type:pt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.2.4 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Mt as WeatherStationCard};

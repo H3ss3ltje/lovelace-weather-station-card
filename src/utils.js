@@ -148,20 +148,19 @@ export function formatSunTime(hass, iso) {
 /**
  * Place the sun on a flattened elliptical arc for the diagram.
  * East (az 90°) → left, South (180°) → top, West (270°) → right.
- * Returns SVG coordinates in a 200×120 viewBox matching the scene.
+ * Returns SVG coordinates in a 200×90 viewBox matching the scene.
  */
 export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
   const cx = 100;
-  const cy = 102;
-  const rx = 92;
-  const ry = 40; // flatter than a semicircle (was circular r≈78)
+  const cy = 72;
+  const rx = 96;
+  const ry = 24; // shallow arc — peak sits just above the center stats
 
   let az = Number(azimuth);
   if (!Number.isFinite(az)) az = aboveHorizon ? 180 : 0;
   az = ((az % 360) + 360) % 360;
 
-  // Map azimuth onto the day arc (east→west).
-  let arcDeg = 180 - (az - 90); // 90→180, 180→90, 270→0
+  let arcDeg = 180 - (az - 90);
 
   const elev = Number(elevation);
   if (!aboveHorizon || (Number.isFinite(elev) && elev < 0)) {

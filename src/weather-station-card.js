@@ -232,9 +232,9 @@ class WeatherStationCard extends LitElement {
     const sunset = formatSunTime(this.hass, attrs.next_setting);
     const pos = sunDiagramPosition(azimuth, elevation, above);
 
-    // Convert SVG viewBox coords (200×120) to % for the floating sun icon.
+    // Convert SVG viewBox coords (200×90) to % for the floating sun icon.
     const sunLeft = `${(pos.x / 200) * 100}%`;
-    const sunTop = `${(pos.y / 120) * 100}%`;
+    const sunTop = `${(pos.y / 90) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -249,10 +249,10 @@ class WeatherStationCard extends LitElement {
         <div class="sun-scene">
           <ha-icon class="sun-moon" .icon=${"mdi:moon-waning-crescent"}></ha-icon>
 
-          <svg class="sun-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <svg class="sun-svg" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
             <path
               class="sun-arc"
-              d="M 8 102 A 92 40 0 0 1 192 102"
+              d="M 4 72 A 96 24 0 0 1 196 72"
               fill="none"
             />
           </svg>
@@ -568,9 +568,9 @@ class WeatherStationCard extends LitElement {
         opacity: 0.8;
       }
 
-      /* Sun path panel — arc style inspired by weather-station displays */
+      /* Sun path panel — shallow arc, compact height */
       .sun-panel {
-        padding: 8px 10px 12px;
+        padding: 2px 6px 4px;
         border-radius: var(--wsc-radius);
         background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
         overflow: hidden;
@@ -578,9 +578,9 @@ class WeatherStationCard extends LitElement {
       .sun-scene {
         position: relative;
         width: 100%;
-        max-width: 340px;
+        max-width: 360px;
         margin: 0 auto;
-        aspect-ratio: 200 / 120;
+        aspect-ratio: 200 / 90;
       }
       .sun-svg {
         width: 100%;
@@ -596,17 +596,17 @@ class WeatherStationCard extends LitElement {
       }
       .sun-moon {
         position: absolute;
-        top: 2%;
-        right: 6%;
-        --mdc-icon-size: 18px;
+        top: 0;
+        right: 4%;
+        --mdc-icon-size: 14px;
         color: var(--primary-text-color);
-        opacity: 0.55;
+        opacity: 0.5;
         z-index: 1;
       }
       .sun-marker {
         position: absolute;
         transform: translate(-50%, -50%);
-        --mdc-icon-size: 34px;
+        --mdc-icon-size: 28px;
         color: #ffc107;
         filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
         z-index: 2;
@@ -616,45 +616,46 @@ class WeatherStationCard extends LitElement {
       .sun-marker.night {
         color: var(--disabled-text-color, #b0b0b0);
         filter: none;
-        --mdc-icon-size: 28px;
+        --mdc-icon-size: 24px;
       }
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 58%;
-        transform: translate(-50%, -40%);
+        top: 78%;
+        transform: translate(-50%, -50%);
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        gap: 18px;
         text-align: center;
         z-index: 1;
         pointer-events: none;
       }
       .sun-stat-value {
-        font-size: 1.35rem;
+        font-size: 1.05rem;
         font-weight: 600;
         line-height: 1.1;
         color: var(--primary-text-color);
       }
       .sun-stat-label {
-        font-size: 0.72rem;
+        font-size: 0.65rem;
         color: var(--secondary-text-color);
         line-height: 1.1;
       }
       .sun-edge {
         position: absolute;
-        bottom: 2%;
-        font-size: 0.95rem;
+        bottom: 4%;
+        font-size: 0.85rem;
         font-weight: 500;
         color: var(--primary-text-color);
         z-index: 1;
       }
       .sun-edge-rise {
-        left: 4%;
+        left: 2%;
       }
       .sun-edge-set {
-        right: 4%;
+        right: 2%;
       }
 
       .grid {

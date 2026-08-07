@@ -300,9 +300,7 @@ class WeatherStationCard extends LitElement {
               y2=${HORIZON_Y}
             />
             <path class="sun-arc sun-arc-after" d=${afterD} fill="none" />
-            ${beforeD
-              ? html`<path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />`
-              : nothing}
+            <path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />
           </svg>
 
           ${isNight

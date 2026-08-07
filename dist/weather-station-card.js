@@ -61,7 +61,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
               y2=${60}
             />
             <path class="sun-arc sun-arc-after" d=${p} fill="none" />
-            ${_?D`<path class="sun-arc sun-arc-before" d=${_} fill="none" />`:V}
+            <path class="sun-arc sun-arc-before" d=${_} fill="none" />
           </svg>
 
           ${u?D`<ha-icon
@@ -586,4 +586,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(_t)||customElements.define(_t,Ut),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===_t)||window.customCards.push({type:_t,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.3.3 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Ut as WeatherStationCard};
+    `}}customElements.get(_t)||customElements.define(_t,Ut),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===_t)||window.customCards.push({type:_t,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.3.4 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Ut as WeatherStationCard};

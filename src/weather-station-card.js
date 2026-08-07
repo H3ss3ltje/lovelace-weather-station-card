@@ -550,11 +550,20 @@ class WeatherStationCard extends LitElement {
           <div class="tile-value">
             ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
           </div>
-          ${compass ? html`<div class="tile-sub">${compass}</div>` : nothing}
+          ${compass || bft
+            ? html`<div class="tile-sub wind-meta">
+                ${compass ? html`<span>${compass}</span>` : nothing}
+                ${compass && bft ? html`<span class="dot">·</span>` : nothing}
+                ${bft
+                  ? html`<span
+                      >${this._t("wind.beaufort", { value: bft.n })}</span
+                    >`
+                  : nothing}
+              </div>`
+            : nothing}
           ${bft
-            ? html`<div class="tile-sub">
-                ${this._t("wind.beaufort", { value: bft.n })}
-                <span class="dot">·</span> ${this._t(`beaufort.${bft.key}`)}
+            ? html`<div class="tile-sub wind-desc">
+                ${this._t(`beaufort.${bft.key}`)}
               </div>`
             : nothing}
           ${s.show_wind_gust && gust != null
@@ -766,28 +775,60 @@ class WeatherStationCard extends LitElement {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
-        padding: 2px 0 2px 4px;
+        gap: 6px;
+        padding: 2px 0 2px 8px;
         border-radius: 12px;
         align-self: stretch;
       }
       .hero-wind .compass {
-        width: 58px;
-        height: 58px;
+        width: 76px;
+        height: 76px;
+        font-size: 0.72rem;
       }
-      .hero-wind .compass .c-n { top: 9px; }
-      .hero-wind .compass .c-s { top: 49px; }
-      .hero-wind .compass .c-e { left: 49px; }
-      .hero-wind .compass .c-w { left: 9px; }
+      .hero-wind .compass .c-n { top: 11px; }
+      .hero-wind .compass .c-s { top: 65px; }
+      .hero-wind .compass .c-e { left: 65px; }
+      .hero-wind .compass .c-w { left: 11px; }
       .hero-wind .compass .needle ha-icon {
-        --mdc-icon-size: 24px;
+        --mdc-icon-size: 30px;
       }
       .hero-wind-speed {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 600;
         line-height: 1.1;
         color: var(--primary-text-color);
         white-space: nowrap;
+      }
+      @container wsc (max-width: 380px) {
+        .hero {
+          gap: 4px 10px;
+          padding: 12px;
+        }
+        .hero-icon {
+          --mdc-icon-size: 38px;
+        }
+        .hero-temp {
+          font-size: 1.65rem;
+        }
+        .hero-wind {
+          padding-left: 2px;
+          gap: 4px;
+        }
+        .hero-wind .compass {
+          width: 60px;
+          height: 60px;
+          font-size: 0.62rem;
+        }
+        .hero-wind .compass .c-n { top: 9px; }
+        .hero-wind .compass .c-s { top: 51px; }
+        .hero-wind .compass .c-e { left: 51px; }
+        .hero-wind .compass .c-w { left: 9px; }
+        .hero-wind .compass .needle ha-icon {
+          --mdc-icon-size: 24px;
+        }
+        .hero-wind-speed {
+          font-size: 0.82rem;
+        }
       }
       .hero-condition {
         font-size: 0.95rem;
@@ -1003,6 +1044,9 @@ class WeatherStationCard extends LitElement {
         .grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
+        .wind {
+          grid-column: span 2;
+        }
       }
       /* Fallback when container queries are unavailable */
       @supports not (container-type: inline-size) {
@@ -1014,6 +1058,15 @@ class WeatherStationCard extends LitElement {
         @media (min-width: 520px) {
           .grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+          .wind {
+            grid-column: span 2;
+          }
+        }
+        @media (max-width: 400px) {
+          .hero-wind .compass {
+            width: 60px;
+            height: 60px;
           }
         }
       }
@@ -1069,6 +1122,18 @@ class WeatherStationCard extends LitElement {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .wind .tile-body {
+        overflow: visible;
+      }
+      .wind .wind-meta {
+        flex-wrap: wrap;
+      }
+      .wind .wind-desc {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        line-height: 1.25;
       }
       .mini-icon {
         --mdc-icon-size: 15px;

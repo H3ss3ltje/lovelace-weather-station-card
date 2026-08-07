@@ -218,8 +218,8 @@ class WeatherStationCard extends LitElement {
     const sun = this._stateObj("sun_entity");
     const azObj = this._stateObj("azimuth_entity");
     const elObj = this._stateObj("elevation_entity");
+    const uvObj = this._stateObj("uv_entity");
 
-    // Need at least the sun entity (for times + diagram) or az/el sensors.
     if (!sun && !azObj && !elObj) return nothing;
 
     const attrs = (sun && sun.attributes) || {};
@@ -227,65 +227,67 @@ class WeatherStationCard extends LitElement {
 
     const elevation = numericState(elObj) ?? Number(attrs.elevation);
     const azimuth = numericState(azObj) ?? Number(attrs.azimuth);
+    const uv = numericState(uvObj);
     const sunrise = formatSunTime(this.hass, attrs.next_rising);
     const sunset = formatSunTime(this.hass, attrs.next_setting);
     const pos = sunDiagramPosition(azimuth, elevation, above);
+
+    // Convert SVG viewBox coords (200×120) to % for the floating sun icon.
+    const sunLeft = `${(pos.x / 200) * 100}%`;
+    const sunTop = `${(pos.y / 120) * 100}%`;
+
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
     const tapKey = sun ? "sun_entity" : azObj ? "azimuth_entity" : "elevation_entity";
+    const sunIcon = above ? "mdi:white-balance-sunny" : "mdi:weather-night";
 
     return html`
       <div
         class="sun-panel ${this._clickable(tapKey) ? "tappable" : ""}"
         @click=${() => this._handleClick(tapKey)}
       >
-        <div class="sun-diagram" aria-hidden="true">
-          <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+        <div class="sun-scene">
+          <ha-icon class="sun-moon" .icon=${"mdi:moon-waning-crescent"}></ha-icon>
+
+          <svg class="sun-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
             <path
               class="sun-arc"
-              d="M 28 88 A 72 72 0 0 1 172 88"
+              d="M 22 96 A 78 78 0 0 1 178 96"
               fill="none"
             />
-            <line class="sun-horizon" x1="16" y1="88" x2="184" y2="88" />
-            <circle
-              class="sun-disc ${above ? "day" : "night"}"
-              cx="${pos.x}"
-              cy="${pos.y}"
-              r="9"
-            />
           </svg>
-        </div>
 
-        ${sun
-          ? html`
-              <div class="sun-times">
-                <div class="sun-time">
-                  <ha-icon .icon=${"mdi:weather-sunset-up"}></ha-icon>
-                  <div>
-                    <div class="sun-time-label">${this._t("sun.sunrise")}</div>
-                    <div class="sun-time-value">${sunrise || "—"}</div>
-                  </div>
-                </div>
-                <div class="sun-time">
-                  <ha-icon .icon=${"mdi:weather-sunset-down"}></ha-icon>
-                  <div>
-                    <div class="sun-time-label">${this._t("sun.sunset")}</div>
-                    <div class="sun-time-value">${sunset || "—"}</div>
-                  </div>
-                </div>
-              </div>
-            `
-          : nothing}
+          <ha-icon
+            class="sun-marker ${above ? "day" : "night"}"
+            style="left:${sunLeft};top:${sunTop}"
+            .icon=${sunIcon}
+          ></ha-icon>
 
-        <div class="sun-meta">
-          <div class="sun-meta-item">
-            <span class="sun-meta-label">${this._t("sun.azimuth")}</span>
-            <span class="sun-meta-value">${azLabel}</span>
+          <div class="sun-center">
+            <div class="sun-stat">
+              <div class="sun-stat-value">${elevLabel}</div>
+              <div class="sun-stat-label">${this._t("sun.elevation")}</div>
+            </div>
+            <div class="sun-stat">
+              <div class="sun-stat-value">${azLabel}</div>
+              <div class="sun-stat-label">${this._t("sun.azimuth")}</div>
+            </div>
+            ${uv != null
+              ? html`
+                  <div class="sun-stat">
+                    <div class="sun-stat-value">${round(uv, 0)}</div>
+                    <div class="sun-stat-label">${this._t("sections.uv")}</div>
+                  </div>
+                `
+              : nothing}
           </div>
-          <div class="sun-meta-item">
-            <span class="sun-meta-label">${this._t("sun.elevation")}</span>
-            <span class="sun-meta-value">${elevLabel}</span>
-          </div>
+
+          ${sun
+            ? html`
+                <div class="sun-edge sun-edge-rise">${sunrise || "—"}</div>
+                <div class="sun-edge sun-edge-set">${sunset || "—"}</div>
+              `
+            : nothing}
         </div>
       </div>
     `;
@@ -566,94 +568,93 @@ class WeatherStationCard extends LitElement {
         opacity: 0.8;
       }
 
-      /* Sun path panel */
+      /* Sun path panel — arc style inspired by weather-station displays */
       .sun-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 12px 14px 14px;
+        padding: 8px 10px 12px;
         border-radius: var(--wsc-radius);
         background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+        overflow: hidden;
       }
-      .sun-diagram {
+      .sun-scene {
+        position: relative;
         width: 100%;
-        max-width: 280px;
+        max-width: 340px;
         margin: 0 auto;
+        aspect-ratio: 200 / 120;
       }
-      .sun-diagram svg {
+      .sun-svg {
         width: 100%;
-        height: auto;
+        height: 100%;
         display: block;
       }
       .sun-arc {
-        stroke: var(--divider-color, rgba(127, 127, 127, 0.45));
-        stroke-width: 2;
-        stroke-dasharray: 4 5;
+        stroke: #e09a4a;
+        stroke-width: 2.2;
+        stroke-dasharray: 5 6;
         stroke-linecap: round;
+        opacity: 0.95;
       }
-      .sun-horizon {
-        stroke: var(--secondary-text-color);
-        stroke-width: 1.5;
+      .sun-moon {
+        position: absolute;
+        top: 2%;
+        right: 6%;
+        --mdc-icon-size: 18px;
+        color: var(--primary-text-color);
         opacity: 0.55;
+        z-index: 1;
       }
-      .sun-disc {
-        fill: var(--amber-color, #ffb300);
-        stroke: var(--ha-card-background, var(--card-background-color, #fff));
-        stroke-width: 2;
+      .sun-marker {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        --mdc-icon-size: 34px;
+        color: #ffc107;
+        filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
+        z-index: 2;
+        pointer-events: none;
+        transition: left 0.6s ease, top 0.6s ease;
       }
-      .sun-disc.night {
-        fill: var(--disabled-text-color, #9e9e9e);
-        opacity: 0.85;
+      .sun-marker.night {
+        color: var(--disabled-text-color, #b0b0b0);
+        filter: none;
+        --mdc-icon-size: 28px;
       }
-      .sun-times {
+      .sun-center {
+        position: absolute;
+        left: 50%;
+        top: 52%;
+        transform: translate(-50%, -40%);
         display: flex;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .sun-time {
-        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        min-width: 0;
+        gap: 6px;
+        text-align: center;
+        z-index: 1;
+        pointer-events: none;
       }
-      .sun-time ha-icon {
-        --mdc-icon-size: 22px;
-        color: var(--state-icon-color, var(--primary-color));
-      }
-      .sun-time-label {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--secondary-text-color);
-      }
-      .sun-time-value {
-        font-size: 1.05rem;
+      .sun-stat-value {
+        font-size: 1.35rem;
         font-weight: 600;
+        line-height: 1.1;
         color: var(--primary-text-color);
       }
-      .sun-meta {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .sun-meta-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 8px;
-        padding: 6px 10px;
-        border-radius: 12px;
-        background: var(--ha-card-background, var(--card-background-color, transparent));
-        box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.06));
-      }
-      .sun-meta-label {
-        font-size: 0.75rem;
+      .sun-stat-label {
+        font-size: 0.72rem;
         color: var(--secondary-text-color);
+        line-height: 1.1;
       }
-      .sun-meta-value {
+      .sun-edge {
+        position: absolute;
+        bottom: 2%;
         font-size: 0.95rem;
-        font-weight: 600;
+        font-weight: 500;
         color: var(--primary-text-color);
+        z-index: 1;
+      }
+      .sun-edge-rise {
+        left: 4%;
+      }
+      .sun-edge-set {
+        right: 4%;
       }
 
       .grid {

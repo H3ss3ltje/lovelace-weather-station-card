@@ -1,11 +1,13 @@
 import { LitElement, html, css, nothing } from "lit";
-import {
-  handleAction,
-  hasAction,
-  hasConfigOrEntityChanged,
-} from "custom-card-helpers";
+import { handleAction, hasAction } from "custom-card-helpers";
 
-import { CARD_VERSION, CARD_NAME, EDITOR_NAME, DEFAULT_SETTINGS } from "./const.js";
+import {
+  CARD_VERSION,
+  CARD_NAME,
+  EDITOR_NAME,
+  DEFAULT_SETTINGS,
+  ENTITY_FIELDS,
+} from "./const.js";
 import {
   numericState,
   calcDewPoint,
@@ -66,7 +68,19 @@ class WeatherStationCard extends LitElement {
 
   shouldUpdate(changedProps) {
     if (!this._config) return false;
-    return hasConfigOrEntityChanged(this, changedProps, false);
+    // custom-card-helpers only watches a single `config.entity`, but this
+    // card uses many `*_entity` keys — so we do our own change detection.
+    if (changedProps.has("_config")) return true;
+    if (!changedProps.has("hass")) return true;
+
+    const oldHass = changedProps.get("hass");
+    if (!oldHass) return true;
+
+    return ENTITY_FIELDS.some(({ key }) => {
+      const entity = this._config[key];
+      if (!entity) return false;
+      return oldHass.states[entity] !== this.hass.states[entity];
+    });
   }
 
   // ---- helpers -----------------------------------------------------------

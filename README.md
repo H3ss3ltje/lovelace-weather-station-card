@@ -190,10 +190,10 @@ Supported actions: `more-info`, `navigate`, `url`, `call-service`, `toggle`, `no
 ```bash
 npm install
 npm run build      # outputs dist/weather-station-card.js
-npm run watch      # dev server on :5000 with live rebuild
+npm run watch      # dev server on :5500 with live rebuild
 ```
 
-Point a dashboard resource at `http://<your-ip>:5000/weather-station-card.js` (type: `module`) while developing.
+Point a dashboard resource at `http://<your-ip>:5500/weather-station-card.js` (type: `module`) while developing.
 
 Project layout:
 

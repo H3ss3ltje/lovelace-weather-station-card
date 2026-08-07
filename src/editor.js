@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { fireEvent } from "custom-card-helpers";
 
 import { EDITOR_NAME, DEFAULT_SETTINGS } from "./const.js";
+import { localize } from "./localize/localize.js";
 
 class WeatherStationCardEditor extends LitElement {
   static get properties() {
@@ -18,8 +19,10 @@ class WeatherStationCardEditor extends LitElement {
     };
   }
 
-  // ha-form schema. Entities live at the top level, options are grouped
-  // under a nested `settings` object (like Power Flow Card Plus).
+  _t(key, replace) {
+    return localize(this.hass, key, replace);
+  }
+
   _schema() {
     const showTrend = this._config?.settings?.show_pressure_trend;
     const dayNightOff = this._config?.settings?.show_daynight === false;
@@ -29,7 +32,7 @@ class WeatherStationCardEditor extends LitElement {
       {
         type: "expandable",
         name: "",
-        title: "Entities",
+        title: this._t("editor.entities"),
         icon: "mdi:format-list-bulleted",
         schema: [
           { name: "temperature_entity", selector: { entity: {} } },
@@ -54,7 +57,7 @@ class WeatherStationCardEditor extends LitElement {
       {
         type: "expandable",
         name: "settings",
-        title: "Settings",
+        title: this._t("editor.settings"),
         icon: "mdi:cog",
         schema: [
           {
@@ -77,11 +80,11 @@ class WeatherStationCardEditor extends LitElement {
                     select: {
                       mode: "dropdown",
                       options: [
-                        { value: "", label: "Automatic" },
-                        { value: "sunny", label: "Sunny" },
-                        { value: "cloudy", label: "Cloudy" },
-                        { value: "rainy", label: "Rainy" },
-                        { value: "night", label: "Night" },
+                        { value: "", label: this._t("editor.automatic") },
+                        { value: "sunny", label: this._t("editor.sunny") },
+                        { value: "cloudy", label: this._t("editor.cloudy") },
+                        { value: "rainy", label: this._t("editor.rainy") },
+                        { value: "night", label: this._t("editor.night") },
                       ],
                     },
                   },
@@ -110,29 +113,8 @@ class WeatherStationCardEditor extends LitElement {
   }
 
   _computeLabel = (schema) => {
-    const labels = {
-      title: "Card title",
-      temperature_entity: "Temperature",
-      humidity_entity: "Humidity",
-      lux_entity: "Light / Lux",
-      uv_entity: "UV Index",
-      rain_entity: "Rain",
-      wind_speed_entity: "Wind speed",
-      wind_direction_entity: "Wind direction",
-      wind_gust_entity: "Wind gust",
-      pressure_entity: "Pressure",
-      battery_entity: "Battery",
-      sun_entity: "Sun (day/night)",
-      show_daynight: "Day / night mode",
-      show_dewpoint: "Dew point",
-      show_wind_gust: "Wind gust",
-      show_battery: "Battery",
-      show_pressure_trend: "Pressure trend",
-      show_interactions: "Interactions",
-      manual_condition: "Manual condition",
-      pressure_trend_threshold: "Trend threshold",
-    };
-    return labels[schema.name] || schema.title || schema.name;
+    if (!schema.name) return schema.title || "";
+    return this._t(`editor.${schema.name}`) || schema.title || schema.name;
   };
 
   _valueChanged(ev) {
@@ -142,7 +124,6 @@ class WeatherStationCardEditor extends LitElement {
       ...value,
       settings: { ...DEFAULT_SETTINGS, ...(value.settings || {}) },
     };
-    // Drop empty entity strings so hidden sections stay hidden.
     Object.keys(config).forEach((k) => {
       if (config[k] === "" && k.endsWith("_entity")) delete config[k];
     });
@@ -159,11 +140,7 @@ class WeatherStationCardEditor extends LitElement {
         .computeLabel=${this._computeLabel}
         @value-changed=${this._valueChanged}
       ></ha-form>
-      <div class="hint">
-        Tip: set individual tap / hold actions in YAML, e.g.
-        <code>temperature_action:</code>, <code>wind_action:</code>. Sections are
-        hidden automatically when their entity is not configured.
-      </div>
+      <div class="hint">${this._t("editor.hint")}</div>
     `;
   }
 

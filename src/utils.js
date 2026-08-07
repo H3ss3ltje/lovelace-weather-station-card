@@ -24,20 +24,21 @@ export function calcDewPoint(tempC, humidity) {
 }
 
 /**
- * A friendly "feels like" description derived from temp + humidity.
+ * A friendly "feels like" key derived from temp + humidity.
+ * Resolve via localize(hass, `comfort.${key}`).
  */
-export function comfortLabel(tempC, humidity) {
-  if (tempC == null) return "";
-  if (tempC < 0) return "Feels freezing";
-  if (tempC < 10) return "Feels cold";
-  if (tempC > 27 && humidity != null && humidity > 60) return "Feels humid";
-  if (tempC > 30) return "Feels hot";
-  if (tempC >= 18 && tempC <= 26) return "Feels comfortable";
-  return "Feels mild";
+export function comfortKey(tempC, humidity) {
+  if (tempC == null) return null;
+  if (tempC < 0) return "freezing";
+  if (tempC < 10) return "cold";
+  if (tempC > 27 && humidity != null && humidity > 60) return "humid";
+  if (tempC > 30) return "hot";
+  if (tempC >= 18 && tempC <= 26) return "comfortable";
+  return "mild";
 }
 
 /**
- * Convert wind degrees (0-360) into an 8-point compass label.
+ * Convert wind degrees (0-360) into an 8-point compass key (N, NE, …).
  */
 export function degToCompass(deg) {
   if (deg == null) return null;
@@ -46,7 +47,7 @@ export function degToCompass(deg) {
 }
 
 /**
- * Interpret a lux value into a human label + icon.
+ * Interpret a lux value into a human label key + icon.
  */
 export function luxLevel(lux) {
   if (lux == null) return null;
@@ -83,24 +84,24 @@ export function batteryIcon(pct) {
 }
 
 /**
- * Determine the weather condition icon + label.
+ * Determine the weather condition icon + translation key.
  * Priority: rain > cloud (lux/uv low during day) > sun/night.
  */
 export function deriveCondition({ isDay, rainMm, rainOn, lux, uv }) {
   if (rainOn || (rainMm != null && rainMm > 0)) {
-    return { icon: "mdi:weather-rainy", label: "Rain" };
+    return { icon: "mdi:weather-rainy", labelKey: "rain" };
   }
   const bright = (lux != null && lux > 8000) || (uv != null && uv >= 3);
   if (!isDay) {
-    return { icon: "mdi:weather-night", label: "Clear night" };
+    return { icon: "mdi:weather-night", labelKey: "clear_night" };
   }
   if (lux != null && lux < 4000 && !bright) {
-    return { icon: "mdi:weather-cloudy", label: "Cloudy" };
+    return { icon: "mdi:weather-cloudy", labelKey: "cloudy" };
   }
   if (bright) {
-    return { icon: "mdi:weather-sunny", label: "Clear sky" };
+    return { icon: "mdi:weather-sunny", labelKey: "clear_sky" };
   }
-  return { icon: "mdi:weather-partly-cloudy", label: "Partly cloudy" };
+  return { icon: "mdi:weather-partly-cloudy", labelKey: "partly_cloudy" };
 }
 
 /**

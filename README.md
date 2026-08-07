@@ -25,6 +25,7 @@ Everything is configurable through the UI or YAML — no entity IDs are hardcode
 - **Visual editor** with entity pickers and toggles, similar to Power Flow Card Plus.
 - Uses **Home Assistant theme variables** — adapts to light & dark mode.
 - Built with **LitElement**, no external UI frameworks. Only built-in **MDI icons**.
+- **Multi-language**: English, Dutch, Spanish, and German (follows Home Assistant language).
 
 ---
 

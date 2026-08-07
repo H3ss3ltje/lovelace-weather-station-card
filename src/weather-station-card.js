@@ -11,7 +11,7 @@ import {
 import {
   numericState,
   calcDewPoint,
-  comfortLabel,
+  comfortKey,
   degToCompass,
   luxLevel,
   formatLux,
@@ -22,6 +22,7 @@ import {
   round,
   unit,
 } from "./utils.js";
+import { localize } from "./localize/localize.js";
 
 import "./editor.js";
 
@@ -33,16 +34,13 @@ class WeatherStationCard extends LitElement {
     };
   }
 
-  // Home Assistant calls this to build the visual editor.
   static async getConfigElement() {
     return document.createElement(EDITOR_NAME);
   }
 
-  // Used by the "add card" picker to prefill a stub config.
   static getStubConfig() {
     return {
       type: `custom:${CARD_NAME}`,
-      title: "Weather Station",
       temperature_entity: "",
       humidity_entity: "",
       settings: { ...DEFAULT_SETTINGS },
@@ -54,11 +52,9 @@ class WeatherStationCard extends LitElement {
       throw new Error("Invalid configuration");
     }
     this._config = {
-      title: "Weather Station",
       ...config,
       settings: { ...DEFAULT_SETTINGS, ...(config.settings || {}) },
     };
-    // In-memory pressure buffer for the optional trend indicator.
     this._pressureHistory = this._pressureHistory || [];
   }
 
@@ -66,15 +62,23 @@ class WeatherStationCard extends LitElement {
     return 6;
   }
 
+  _t(key, replace) {
+    return localize(this.hass, key, replace);
+  }
+
   shouldUpdate(changedProps) {
     if (!this._config) return false;
-    // custom-card-helpers only watches a single `config.entity`, but this
-    // card uses many `*_entity` keys — so we do our own change detection.
     if (changedProps.has("_config")) return true;
     if (!changedProps.has("hass")) return true;
 
     const oldHass = changedProps.get("hass");
     if (!oldHass) return true;
+
+    const lang =
+      this.hass?.locale?.language || this.hass?.language || this.hass?.selectedLanguage;
+    const oldLang =
+      oldHass.locale?.language || oldHass.language || oldHass.selectedLanguage;
+    if (lang !== oldLang) return true;
 
     return ENTITY_FIELDS.some(({ key }) => {
       const entity = this._config[key];
@@ -82,8 +86,6 @@ class WeatherStationCard extends LitElement {
       return oldHass.states[entity] !== this.hass.states[entity];
     });
   }
-
-  // ---- helpers -----------------------------------------------------------
 
   _stateObj(key) {
     const entity = this._config[key];
@@ -96,7 +98,6 @@ class WeatherStationCard extends LitElement {
     if (!s.show_daynight) return true;
     const sun = this._stateObj("sun_entity");
     if (sun) return sun.state === "above_horizon";
-    // No sun entity: fall back to a lux threshold if present, else assume day.
     const lux = numericState(this._stateObj("lux_entity"));
     if (lux != null) return lux > 50;
     return true;
@@ -106,7 +107,6 @@ class WeatherStationCard extends LitElement {
     if (value == null) return;
     const now = Date.now();
     this._pressureHistory.push({ t: now, v: value });
-    // keep last ~3 hours
     const cutoff = now - 3 * 60 * 60 * 1000;
     this._pressureHistory = this._pressureHistory.filter((p) => p.t >= cutoff);
   }
@@ -114,16 +114,14 @@ class WeatherStationCard extends LitElement {
   _pressureTrend(value) {
     const threshold = Number(this._config.settings.pressure_trend_threshold) || 1;
     if (this._pressureHistory.length < 2 || value == null) {
-      return { icon: "mdi:trending-neutral", label: "Steady" };
+      return { icon: "mdi:trending-neutral", labelKey: "steady" };
     }
     const oldest = this._pressureHistory[0].v;
     const pct = ((value - oldest) / oldest) * 100;
-    if (pct >= threshold) return { icon: "mdi:arrow-up", label: "Rising" };
-    if (pct <= -threshold) return { icon: "mdi:arrow-down", label: "Falling" };
-    return { icon: "mdi:trending-neutral", label: "Steady" };
+    if (pct >= threshold) return { icon: "mdi:arrow-up", labelKey: "rising" };
+    if (pct <= -threshold) return { icon: "mdi:arrow-down", labelKey: "falling" };
+    return { icon: "mdi:trending-neutral", labelKey: "steady" };
   }
-
-  // ---- interactions ------------------------------------------------------
 
   _actionConfig(key) {
     const settings = this._config.settings || {};
@@ -149,8 +147,6 @@ class WeatherStationCard extends LitElement {
     return !!(cfg && cfg.entity && (hasAction(cfg.tap_action) || cfg.tap_action));
   }
 
-  // ---- render ------------------------------------------------------------
-
   render() {
     if (!this._config || !this.hass) return nothing;
 
@@ -169,22 +165,31 @@ class WeatherStationCard extends LitElement {
     let condition;
     if (!s.show_daynight && this._config.settings.manual_condition) {
       const map = {
-        sunny: { icon: "mdi:weather-sunny", label: "Clear sky" },
-        cloudy: { icon: "mdi:weather-cloudy", label: "Cloudy" },
-        rainy: { icon: "mdi:weather-rainy", label: "Rain" },
-        night: { icon: "mdi:weather-night", label: "Clear night" },
+        sunny: { icon: "mdi:weather-sunny", labelKey: "clear_sky" },
+        cloudy: { icon: "mdi:weather-cloudy", labelKey: "cloudy" },
+        rainy: { icon: "mdi:weather-rainy", labelKey: "rain" },
+        night: { icon: "mdi:weather-night", labelKey: "clear_night" },
       };
-      condition = map[this._config.settings.manual_condition] || deriveCondition({ isDay, rainMm, rainOn, lux, uv });
+      condition =
+        map[this._config.settings.manual_condition] ||
+        deriveCondition({ isDay, rainMm, rainOn, lux, uv });
     } else {
       condition = deriveCondition({ isDay, rainMm, rainOn, lux, uv });
     }
 
+    // Empty string hides the title. Missing / English default uses the
+    // localized card name so existing YAML still follows HA language.
+    const title =
+      this._config.title === ""
+        ? ""
+        : !this._config.title || this._config.title === "Weather Station"
+          ? this._t("common.card_title")
+          : this._config.title;
+
     return html`
       <ha-card>
         <div class="wsc">
-          ${this._config.title
-            ? html`<div class="title">${this._config.title}</div>`
-            : nothing}
+          ${title ? html`<div class="title">${title}</div>` : nothing}
 
           ${this._renderHero(condition, temp, tempUnit, humidity)}
 
@@ -206,6 +211,7 @@ class WeatherStationCard extends LitElement {
   _renderHero(condition, temp, tempUnit, humidity) {
     const s = this._config.settings || {};
     const dew = s.show_dewpoint ? calcDewPoint(temp, humidity) : null;
+    const comfort = comfortKey(temp, humidity);
     return html`
       <div
         class="hero ${this._clickable("temperature_entity") ? "tappable" : ""}"
@@ -213,16 +219,22 @@ class WeatherStationCard extends LitElement {
       >
         <ha-icon class="hero-icon" .icon=${condition.icon}></ha-icon>
         <div class="hero-main">
-          <div class="hero-condition">${condition.label}</div>
+          <div class="hero-condition">
+            ${this._t(`condition.${condition.labelKey}`)}
+          </div>
           <div class="hero-temp">
             ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
           </div>
         </div>
         ${temp != null
           ? html`<div class="hero-sub">
-              <span>${comfortLabel(temp, humidity)}</span>
+              ${comfort
+                ? html`<span>${this._t(`comfort.${comfort}`)}</span>`
+                : nothing}
               ${dew != null
-                ? html`<span class="muted">Dewpoint ${dew} ${tempUnit}</span>`
+                ? html`<span class="muted"
+                    >${this._t("dewpoint", { value: dew, unit: tempUnit })}</span
+                  >`
                 : nothing}
             </div>`
           : nothing}
@@ -256,9 +268,9 @@ class WeatherStationCard extends LitElement {
     const level = luxLevel(lux);
     return this._tile({
       icon: level ? level.icon : "mdi:brightness-7",
-      label: "Light",
+      label: this._t("sections.light"),
       value: formatLux(lux),
-      sub: level ? level.label : "",
+      sub: level ? this._t(`lux.${level.labelKey}`) : "",
       key: "lux_entity",
     });
   }
@@ -267,7 +279,7 @@ class WeatherStationCard extends LitElement {
     if (!this._stateObj("temperature_entity")) return nothing;
     return this._tile({
       icon: "mdi:thermometer",
-      label: "Temperature",
+      label: this._t("sections.temperature"),
       value: temp != null ? `${round(temp, 1)} ${tempUnit}` : "—",
       key: "temperature_entity",
     });
@@ -277,7 +289,7 @@ class WeatherStationCard extends LitElement {
     if (!this._stateObj("humidity_entity")) return nothing;
     return this._tile({
       icon: "mdi:water-percent",
-      label: "Humidity",
+      label: this._t("sections.humidity"),
       value: humidity != null ? `${round(humidity, 0)}%` : "—",
       key: "humidity_entity",
     });
@@ -288,8 +300,8 @@ class WeatherStationCard extends LitElement {
     const unitStr = unit(rainObj, "mm/h");
     return this._tile({
       icon: rainOn ? "mdi:weather-rainy" : "mdi:weather-partly-rainy",
-      label: "Rain",
-      value: rainOn ? "Rain detected" : "Dry",
+      label: this._t("sections.rain"),
+      value: rainOn ? this._t("rain.detected") : this._t("rain.dry"),
       sub: rainMm != null ? `${round(rainMm, 1)} ${unitStr}` : "",
       key: "rain_entity",
       accent: rainOn ? "var(--info-color, #2196f3)" : undefined,
@@ -303,7 +315,8 @@ class WeatherStationCard extends LitElement {
     const speed = numericState(speedObj);
     const speedUnit = unit(speedObj, "m/s");
     const dirDeg = numericState(this._stateObj("wind_direction_entity"));
-    const compass = degToCompass(dirDeg);
+    const compassKey = degToCompass(dirDeg);
+    const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
     const gustObj = this._stateObj("wind_gust_entity");
     const gust = numericState(gustObj);
     const gustUnit = unit(gustObj, speedUnit);
@@ -316,7 +329,7 @@ class WeatherStationCard extends LitElement {
         <div class="wind-info">
           <ha-icon class="tile-icon" .icon=${"mdi:weather-windy"}></ha-icon>
           <div class="tile-body">
-            <div class="tile-label">Wind</div>
+            <div class="tile-label">${this._t("sections.wind")}</div>
             <div class="tile-value">
               ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
             </div>
@@ -324,7 +337,10 @@ class WeatherStationCard extends LitElement {
             ${s.show_wind_gust && gust != null
               ? html`<div class="tile-sub">
                   <ha-icon class="mini-icon" .icon=${"mdi:weather-windy-variant"}></ha-icon>
-                  Gust ${round(gust, 0)} ${gustUnit}
+                  ${this._t("wind.gust", {
+                    value: round(gust, 0),
+                    unit: gustUnit,
+                  })}
                 </div>`
               : nothing}
           </div>
@@ -337,10 +353,10 @@ class WeatherStationCard extends LitElement {
   _renderCompass(deg, compass) {
     return html`
       <div class="compass" title="${compass || ""} (${round(deg, 0)}°)">
-        <span class="c-n">N</span>
-        <span class="c-e">E</span>
-        <span class="c-s">S</span>
-        <span class="c-w">W</span>
+        <span class="c-n">${this._t("compass.N")}</span>
+        <span class="c-e">${this._t("compass.E")}</span>
+        <span class="c-s">${this._t("compass.S")}</span>
+        <span class="c-w">${this._t("compass.W")}</span>
         <div class="needle" style="transform: rotate(${deg}deg)">
           <ha-icon .icon=${"mdi:navigation"}></ha-icon>
         </div>
@@ -353,9 +369,9 @@ class WeatherStationCard extends LitElement {
     const level = uvLevel(uv);
     return this._tile({
       icon: "mdi:sun-wireless",
-      label: "UV Index",
+      label: this._t("sections.uv"),
       value: uv != null ? `${round(uv, 0)}` : "—",
-      sub: level ? level.label : "",
+      sub: level ? this._t(`uv.${level.labelKey}`) : "",
       key: "uv_entity",
       accent: level ? level.color : undefined,
     });
@@ -371,10 +387,11 @@ class WeatherStationCard extends LitElement {
     const trend = s.show_pressure_trend ? this._pressureTrend(value) : null;
     return this._tile({
       icon: "mdi:gauge",
-      label: "Pressure",
+      label: this._t("sections.pressure"),
       value: value != null ? `${round(value, 0)} ${unitStr}` : "—",
       sub: trend
-        ? html`<ha-icon class="mini-icon" .icon=${trend.icon}></ha-icon> ${trend.label}`
+        ? html`<ha-icon class="mini-icon" .icon=${trend.icon}></ha-icon>
+            ${this._t(`pressure.${trend.labelKey}`)}`
         : "",
       key: "pressure_entity",
     });
@@ -391,7 +408,7 @@ class WeatherStationCard extends LitElement {
     else if (pct != null && pct < 40) accent = "var(--warning-color, #ffa726)";
     return this._tile({
       icon: batteryIcon(pct),
-      label: "Battery",
+      label: this._t("sections.battery"),
       value: pct != null ? `${round(pct, 0)}%` : "—",
       key: "battery_entity",
       accent,
@@ -420,7 +437,6 @@ class WeatherStationCard extends LitElement {
         color: var(--primary-text-color);
       }
 
-      /* Hero */
       .hero {
         display: grid;
         grid-template-columns: auto 1fr;
@@ -463,7 +479,6 @@ class WeatherStationCard extends LitElement {
         opacity: 0.8;
       }
 
-      /* Grid of tiles */
       .grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -517,7 +532,6 @@ class WeatherStationCard extends LitElement {
         --mdc-icon-size: 15px;
       }
 
-      /* Wind + compass */
       .wind {
         justify-content: space-between;
       }
@@ -558,7 +572,6 @@ class WeatherStationCard extends LitElement {
         color: var(--primary-color);
       }
 
-      /* Interactions */
       .tappable {
         cursor: pointer;
         transition: background 0.15s ease;
@@ -574,7 +587,6 @@ if (!customElements.get(CARD_NAME)) {
   customElements.define(CARD_NAME, WeatherStationCard);
 }
 
-// Register with the Lovelace card picker.
 window.customCards = window.customCards || [];
 if (!window.customCards.find((c) => c.type === CARD_NAME)) {
   window.customCards.push({
@@ -583,7 +595,7 @@ if (!window.customCards.find((c) => c.type === CARD_NAME)) {
     description: "A modern, Mushroom-inspired weather station card.",
     preview: true,
     documentationURL:
-      "https://github.com/your-username/lovelace-weather-station-card",
+      "https://github.com/H3ss3ltje/lovelace-weather-station-card",
   });
 }
 

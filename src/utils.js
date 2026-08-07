@@ -168,26 +168,26 @@ function cubicPoint(p0, p1, p2, p3, t) {
 export const SUN_PATH = {
   // Left: sunrise → zenith
   left: [
-    { x: 16, y: 68 },
-    { x: 58, y: 68 },
-    { x: 70, y: 47 },
-    { x: 100, y: 47 },
+    { x: 16, y: 60 },
+    { x: 52, y: 60 },
+    { x: 64, y: 12 },
+    { x: 100, y: 12 },
   ],
   // Right: zenith → sunset
   right: [
-    { x: 100, y: 47 },
-    { x: 130, y: 47 },
-    { x: 142, y: 68 },
-    { x: 184, y: 68 },
+    { x: 100, y: 12 },
+    { x: 136, y: 12 },
+    { x: 148, y: 60 },
+    { x: 184, y: 60 },
   ],
 };
 
 /** SVG stroke path matching SUN_PATH (two cubics). */
 export const SUN_PATH_D =
-  "M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68";
+  "M 16 60 C 52 60, 64 12, 100 12 C 136 12, 148 60, 184 60";
 
 /** Horizon baseline Y in the path coordinate space. */
-export const SUN_BASELINE_Y = 68;
+export const SUN_BASELINE_Y = 60;
 
 function lerpPt(a, b, u) {
   return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };

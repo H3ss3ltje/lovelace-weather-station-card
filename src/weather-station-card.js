@@ -266,15 +266,15 @@ class WeatherStationCard extends LitElement {
     const beforeD = isNight ? "" : seg.beforeD;
     const afterD = isNight ? SUN_PATH_D : seg.afterD;
 
-    // viewBox y: 30 → 92 — room above the arc AND clear space under the
-    // horizon (y=68) so the moon can sit visibly below the line.
-    const VB_Y = 30;
-    const VB_H = 62;
-    const HORIZON_Y = 68;
+    // Full-height scene: tall dome above the horizon (y=60) with clear space
+    // below it so the night moon reads as "under the horizon".
+    const VB_Y = 0;
+    const VB_H = 84;
+    const HORIZON_Y = 60;
     const sunLeft = `${(pos.x / 200) * 100}%`;
     const sunTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
     // Moon centered under the horizon, not on it.
-    const moonTop = `${((80 - VB_Y) / VB_H) * 100}%`;
+    const moonTop = `${((72 - VB_Y) / VB_H) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -288,29 +288,19 @@ class WeatherStationCard extends LitElement {
         <div class="sun-scene ${isNight ? "night" : "day"}">
           <svg
             class="sun-svg"
-            viewBox="0 30 200 62"
+            viewBox="0 0 200 84"
             xmlns="http://www.w3.org/2000/svg"
           >
             <line
               class="sun-horizon"
-              x1="10"
+              x1="8"
               y1=${HORIZON_Y}
-              x2="190"
+              x2="192"
               y2=${HORIZON_Y}
             />
-            <path
-              class="sun-arc sun-arc-after"
-              d=${afterD}
-              fill="none"
-              stroke-width="1.2"
-            />
+            <path class="sun-arc sun-arc-after" d=${afterD} fill="none" />
             ${beforeD
-              ? html`<path
-                  class="sun-arc sun-arc-before"
-                  d=${beforeD}
-                  fill="none"
-                  stroke-width="4.8"
-                />`
+              ? html`<path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />`
               : nothing}
           </svg>
 
@@ -796,7 +786,7 @@ class WeatherStationCard extends LitElement {
         width: 100%;
         max-width: 400px;
         margin: 0 auto;
-        aspect-ratio: 200 / 62;
+        aspect-ratio: 200 / 84;
       }
       .sun-svg {
         width: 100%;
@@ -804,36 +794,34 @@ class WeatherStationCard extends LitElement {
         display: block;
         overflow: visible;
       }
+      /* Single dotted arc; thickness changes before vs after the sun. */
       .sun-arc {
         stroke: #e8961e;
         fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
-        vector-effect: non-scaling-stroke;
       }
-      /* Path already travelled by the sun: thick, solid orange. */
+      /* Path already travelled by the sun: thick dots. */
       .sun-arc-before {
-        stroke-width: 4.8px;
-        stroke: #e8961e;
+        stroke-width: 2.6;
+        stroke-dasharray: 0.1 5;
         opacity: 1;
       }
-      /* Path still to come: thin, dashed, softer. */
+      /* Path still to come: thin dots, softer. */
       .sun-arc-after {
-        stroke-width: 1.2px;
-        stroke: #e8961e;
-        stroke-dasharray: 3.5 5;
-        opacity: 0.45;
+        stroke-width: 1.4;
+        stroke-dasharray: 0.1 5.5;
+        opacity: 0.5;
       }
       .sun-scene.night .sun-arc-after {
-        opacity: 0.3;
+        opacity: 0.4;
       }
-      /* Clear horizon so "below horizon" is readable. */
+      /* Horizon at 0° — solid so "below horizon" is readable. */
       .sun-horizon {
         stroke: var(--primary-text-color, #3a3a3a);
-        stroke-width: 1.4px;
-        stroke-opacity: 0.35;
+        stroke-width: 0.8;
+        stroke-opacity: 0.4;
         stroke-linecap: round;
-        vector-effect: non-scaling-stroke;
       }
       .sun-marker {
         position: absolute;

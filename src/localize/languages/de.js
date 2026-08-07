@@ -61,15 +61,6 @@ export default {
     violent_storm: "Orkanartiger Sturm",
     hurricane: "Orkan",
   },
-  details: {
-    more: "Mehr Details",
-    less: "Weniger",
-    min_today: "Min heute",
-    max_today: "Max heute",
-    rain_today: "Regen heute",
-    wind_gust: "Windböe",
-    beaufort: "Windstärke",
-  },
   lux: {
     dark: "Dunkel",
     low_light: "Wenig Licht",
@@ -124,7 +115,6 @@ export default {
     show_minmax: "Heute Min / Max",
     show_rain_today: "Regenmenge heute",
     show_beaufort: "Beaufort-Skala",
-    show_expand: "Ausklappbare Details",
     show_wind_gust: "Windböe",
     show_battery: "Batterie",
     show_pressure_trend: "Luftdrucktrend",

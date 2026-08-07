@@ -38,7 +38,6 @@ class WeatherStationCard extends LitElement {
     return {
       hass: { attribute: false },
       _config: { state: true },
-      _expanded: { state: true },
     };
   }
 
@@ -65,7 +64,6 @@ class WeatherStationCard extends LitElement {
     };
     this._pressureHistory = this._pressureHistory || [];
     this._tempStats = this._tempStats || null;
-    if (this._expanded === undefined) this._expanded = false;
   }
 
   getCardSize() {
@@ -74,11 +72,6 @@ class WeatherStationCard extends LitElement {
 
   _t(key, replace) {
     return localize(this.hass, key, replace);
-  }
-
-  _toggleExpanded(ev) {
-    ev.stopPropagation();
-    this._expanded = !this._expanded;
   }
 
   // Track today's min/max in memory (reset at local midnight). Used only when
@@ -233,8 +226,6 @@ class WeatherStationCard extends LitElement {
             ${this._renderPressure()}
             ${this._renderBattery()}
           </div>
-
-          ${this._renderExpand(temp, tempUnit, humidity)}
         </div>
       </ha-card>
     `;
@@ -645,79 +636,6 @@ class WeatherStationCard extends LitElement {
     });
   }
 
-  _renderExpand(temp, tempUnit, humidity) {
-    const s = this._config.settings || {};
-    if (!s.show_expand) return nothing;
-
-    const rows = [];
-    const dew = calcDewPoint(temp, humidity);
-    if (dew != null)
-      rows.push({ label: this._t("sections.dewpoint"), value: `${round(dew, 1)} ${tempUnit}` });
-
-    const mm = this._todayMinMax();
-    if (mm) {
-      rows.push({ label: this._t("details.min_today"), value: `${round(mm.min, 1)} ${tempUnit}` });
-      rows.push({ label: this._t("details.max_today"), value: `${round(mm.max, 1)} ${tempUnit}` });
-    }
-
-    const todayObj = this._stateObj("rain_today_entity");
-    const rainToday = numericState(todayObj);
-    if (rainToday != null)
-      rows.push({
-        label: this._t("details.rain_today"),
-        value: `${round(rainToday, 1)} ${unit(todayObj, "mm")}`,
-      });
-
-    const speedObj = this._stateObj("wind_speed_entity");
-    const bft = beaufort(
-      toMetersPerSecond(numericState(speedObj), unit(speedObj, "m/s"))
-    );
-    if (bft)
-      rows.push({
-        label: this._t("details.beaufort"),
-        value: `${this._t("wind.beaufort", { value: bft.n })} · ${this._t(
-          `beaufort.${bft.key}`
-        )}`,
-      });
-
-    const gustObj = this._stateObj("wind_gust_entity");
-    const gust = numericState(gustObj);
-    if (gust != null)
-      rows.push({
-        label: this._t("details.wind_gust"),
-        value: `${round(gust, 0)} ${unit(gustObj, "m/s")}`,
-      });
-
-    const sunObj = this._stateObj("sun_entity");
-    if (sunObj) {
-      const rise = formatSunTime(this.hass, sunObj.attributes?.next_rising);
-      const set = formatSunTime(this.hass, sunObj.attributes?.next_setting);
-      if (rise) rows.push({ label: this._t("sun.sunrise"), value: rise });
-      if (set) rows.push({ label: this._t("sun.sunset"), value: set });
-    }
-
-    if (!rows.length) return nothing;
-
-    return html`
-      <button class="details-toggle" @click=${this._toggleExpanded}>
-        <span>${this._t(this._expanded ? "details.less" : "details.more")}</span>
-        <ha-icon
-          .icon=${this._expanded ? "mdi:chevron-up" : "mdi:chevron-down"}
-        ></ha-icon>
-      </button>
-      ${this._expanded
-        ? html`<div class="details">
-            ${rows.map(
-              (r) => html`<div class="detail">
-                <span class="detail-label">${r.label}</span>
-                <span class="detail-value">${r.value}</span>
-              </div>`
-            )}
-          </div>`
-        : nothing}
-    `;
-  }
-
   static get styles() {
     return css`
       :host {
@@ -975,57 +893,6 @@ class WeatherStationCard extends LitElement {
         color: var(--primary-text-color);
         white-space: nowrap;
         z-index: 3;
-      }
-
-      .details-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        width: 100%;
-        padding: 6px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        font: inherit;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--secondary-text-color);
-        border-radius: 10px;
-      }
-      .details-toggle:hover {
-        background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
-        color: var(--primary-text-color);
-      }
-      .details-toggle ha-icon {
-        --mdc-icon-size: 18px;
-      }
-      .details {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px 16px;
-        padding: 4px 6px 6px;
-      }
-      @container wsc (max-width: 320px) {
-        .details {
-          grid-template-columns: 1fr;
-        }
-      }
-      .detail {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        font-size: 0.85rem;
-        padding: 3px 0;
-        border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.06));
-      }
-      .detail-label {
-        color: var(--secondary-text-color);
-      }
-      .detail-value {
-        color: var(--primary-text-color);
-        font-weight: 500;
-        text-align: right;
       }
 
       .grid {

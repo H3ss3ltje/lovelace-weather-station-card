@@ -87,7 +87,6 @@ class WeatherStationCardEditor extends LitElement {
               { name: "show_minmax", selector: { boolean: {} } },
               { name: "show_rain_today", selector: { boolean: {} } },
               { name: "show_beaufort", selector: { boolean: {} } },
-              { name: "show_expand", selector: { boolean: {} } },
               { name: "show_wind_gust", selector: { boolean: {} } },
               { name: "show_battery", selector: { boolean: {} } },
               { name: "show_pressure_trend", selector: { boolean: {} } },

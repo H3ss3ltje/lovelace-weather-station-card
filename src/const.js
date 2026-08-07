@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.4.2";
+export const CARD_VERSION = "1.4.3";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -41,7 +41,6 @@ export const DEFAULT_SETTINGS = {
   show_minmax: true, // today's min/max temperature
   show_rain_today: true, // rain total today (needs rain_today_entity)
   show_beaufort: true, // Beaufort scale + description on wind
-  show_expand: true, // "More details" expander
   pressure_trend_threshold: 1, // percent change to flag rising/falling
   manual_condition: "", // used when no sun entity + user wants a fixed icon
 };

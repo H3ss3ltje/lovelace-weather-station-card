@@ -61,15 +61,6 @@ export default {
     violent_storm: "Violent storm",
     hurricane: "Hurricane",
   },
-  details: {
-    more: "More details",
-    less: "Less",
-    min_today: "Min today",
-    max_today: "Max today",
-    rain_today: "Rain today",
-    wind_gust: "Wind gust",
-    beaufort: "Wind force",
-  },
   lux: {
     dark: "Dark",
     low_light: "Low light",
@@ -124,7 +115,6 @@ export default {
     show_minmax: "Today min / max",
     show_rain_today: "Rain total today",
     show_beaufort: "Beaufort scale",
-    show_expand: "Expandable details",
     show_wind_gust: "Wind gust",
     show_battery: "Battery",
     show_pressure_trend: "Pressure trend",

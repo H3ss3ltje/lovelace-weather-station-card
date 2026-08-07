@@ -61,15 +61,6 @@ export default {
     violent_storm: "Temporal muy duro",
     hurricane: "Huracán",
   },
-  details: {
-    more: "Más detalles",
-    less: "Menos",
-    min_today: "Mín hoy",
-    max_today: "Máx hoy",
-    rain_today: "Lluvia hoy",
-    wind_gust: "Ráfaga de viento",
-    beaufort: "Fuerza del viento",
-  },
   lux: {
     dark: "Oscuro",
     low_light: "Poca luz",
@@ -124,7 +115,6 @@ export default {
     show_minmax: "Mín / máx de hoy",
     show_rain_today: "Lluvia total hoy",
     show_beaufort: "Escala de Beaufort",
-    show_expand: "Detalles desplegables",
     show_wind_gust: "Ráfaga de viento",
     show_battery: "Batería",
     show_pressure_trend: "Tendencia de presión",

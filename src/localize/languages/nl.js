@@ -61,15 +61,6 @@ export default {
     violent_storm: "Zeer zware storm",
     hurricane: "Orkaan",
   },
-  details: {
-    more: "Meer details",
-    less: "Minder",
-    min_today: "Min vandaag",
-    max_today: "Max vandaag",
-    rain_today: "Regen vandaag",
-    wind_gust: "Windstoot",
-    beaufort: "Windkracht",
-  },
   lux: {
     dark: "Donker",
     low_light: "Weinig licht",
@@ -124,7 +115,6 @@ export default {
     show_minmax: "Vandaag min / max",
     show_rain_today: "Regen totaal vandaag",
     show_beaufort: "Beaufortschaal",
-    show_expand: "Uitklapbare details",
     show_wind_gust: "Windstoot",
     show_battery: "Batterij",
     show_pressure_trend: "Luchtdruktrend",

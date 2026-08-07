@@ -24,7 +24,6 @@ import {
   formatSunTime,
   sunDiagramPosition,
   SUN_PATH_D,
-  SUN_PATH_FILL_D,
 } from "./utils.js";
 import { localize } from "./localize/localize.js";
 
@@ -234,9 +233,12 @@ class WeatherStationCard extends LitElement {
     const sunset = formatSunTime(this.hass, attrs.next_setting);
     const pos = sunDiagramPosition(azimuth, elevation, above);
 
-    // Convert SVG viewBox coords (200×90) to % for the floating sun icon.
+    // Scene is a cropped viewBox (y 30→80) to remove empty space above the
+    // arch. Map path coords into that cropped window for the floating sun.
+    const VB_Y = 30;
+    const VB_H = 50;
     const sunLeft = `${(pos.x / 200) * 100}%`;
-    const sunTop = `${(pos.y / 90) * 100}%`;
+    const sunTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -251,8 +253,7 @@ class WeatherStationCard extends LitElement {
         <div class="sun-scene">
           <ha-icon class="sun-moon" .icon=${"mdi:moon-waning-crescent"}></ha-icon>
 
-          <svg class="sun-svg" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
-            <path class="sun-arc-fill" d=${SUN_PATH_FILL_D} />
+          <svg class="sun-svg" viewBox="0 30 200 50" xmlns="http://www.w3.org/2000/svg">
             <path class="sun-arc" d=${SUN_PATH_D} fill="none" />
           </svg>
 
@@ -567,29 +568,26 @@ class WeatherStationCard extends LitElement {
         opacity: 0.8;
       }
 
-      /* Sun path panel — shallow arc, compact height */
+      /* Sun path panel — matches the hero box (card bg + subtle border) */
       .sun-panel {
-        padding: 2px 6px 4px;
+        padding: 6px 12px 8px;
         border-radius: var(--wsc-radius);
-        background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
         overflow: hidden;
       }
       .sun-scene {
         position: relative;
         width: 100%;
-        max-width: 360px;
+        max-width: 400px;
         margin: 0 auto;
-        aspect-ratio: 200 / 90;
+        aspect-ratio: 200 / 50;
       }
       .sun-svg {
         width: 100%;
         height: 100%;
         display: block;
         overflow: visible;
-      }
-      .sun-arc-fill {
-        fill: rgba(224, 154, 74, 0.18);
-        stroke: none;
       }
       .sun-arc {
         stroke: #e09a4a;
@@ -602,8 +600,8 @@ class WeatherStationCard extends LitElement {
       }
       .sun-moon {
         position: absolute;
-        top: 0;
-        right: 4%;
+        top: -2px;
+        right: 2%;
         --mdc-icon-size: 14px;
         color: var(--primary-text-color);
         opacity: 0.5;
@@ -612,7 +610,7 @@ class WeatherStationCard extends LitElement {
       .sun-marker {
         position: absolute;
         transform: translate(-50%, -50%);
-        --mdc-icon-size: 28px;
+        --mdc-icon-size: 26px;
         color: #ffc107;
         filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
         z-index: 2;
@@ -622,12 +620,12 @@ class WeatherStationCard extends LitElement {
       .sun-marker.night {
         color: var(--disabled-text-color, #b0b0b0);
         filter: none;
-        --mdc-icon-size: 24px;
+        --mdc-icon-size: 22px;
       }
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 72%;
+        top: 60%;
         transform: translate(-50%, -50%);
         display: flex;
         flex-direction: row;
@@ -639,22 +637,22 @@ class WeatherStationCard extends LitElement {
         pointer-events: none;
       }
       .sun-stat-value {
-        font-size: 1.05rem;
+        font-size: 1rem;
         font-weight: 600;
         line-height: 1.1;
         color: var(--primary-text-color);
       }
       .sun-stat-label {
-        font-size: 0.65rem;
+        font-size: 0.62rem;
         color: var(--secondary-text-color);
         line-height: 1.1;
       }
       .sun-edge {
         position: absolute;
-        bottom: 4%;
-        font-size: 0.85rem;
+        bottom: -2px;
+        font-size: 0.8rem;
         font-weight: 500;
-        color: var(--primary-text-color);
+        color: var(--secondary-text-color);
         z-index: 1;
       }
       .sun-edge-rise {
@@ -701,7 +699,8 @@ class WeatherStationCard extends LitElement {
         gap: 10px;
         padding: 12px;
         border-radius: var(--wsc-radius);
-        background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
         min-height: 56px;
         min-width: 0;
         overflow: hidden;

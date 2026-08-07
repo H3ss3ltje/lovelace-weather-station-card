@@ -239,30 +239,62 @@ export function sunPathSegments(t) {
   return { beforeD: cubicsToD(before), afterD: cubicsToD(after) };
 }
 
+/** Peak Y of the arch and the maximum elevation it represents. */
+const SUN_PEAK_Y = 12;
+const SUN_MAX_ELEVATION = 90;
+
+/** Find the point on a half-cubic whose Y best matches a target Y. */
+function pointOnHalfByY([p0, p1, p2, p3], targetY) {
+  const STEPS = 120;
+  let best = cubicPoint(p0, p1, p2, p3, 0);
+  let bestU = 0;
+  let bestErr = Infinity;
+  for (let i = 0; i <= STEPS; i++) {
+    const u = i / STEPS;
+    const p = cubicPoint(p0, p1, p2, p3, u);
+    const err = Math.abs(p.y - targetY);
+    if (err < bestErr) {
+      bestErr = err;
+      best = p;
+      bestU = u;
+    }
+  }
+  return { p: best, u: bestU };
+}
+
 /**
- * Place the sun on the smooth path and report its fractional progress `t`.
- * East (az 90°) → left (sunrise), South (180°) → top, West (270°) → right (sunset).
+ * Place the sun on the arch so its HEIGHT reflects the real elevation and its
+ * SIDE reflects the azimuth (morning = left/rising, afternoon = right/setting).
+ * When the elevation is below 0 the marker dips under the horizon line.
+ * Returns { x, y, t (progress for splitting the arch), night }.
  */
 export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
+  const amp = SUN_BASELINE_Y - SUN_PEAK_Y; // horizon → peak span
   let az = Number(azimuth);
-  if (!Number.isFinite(az)) az = aboveHorizon ? 180 : 0;
-  az = ((az % 360) + 360) % 360;
+  const hasAz = Number.isFinite(az);
+  if (hasAz) az = ((az % 360) + 360) % 360;
+  const el = Number(elevation);
+  const hasEl = Number.isFinite(el);
 
-  // 0 at east/sunrise → 1 at west/sunset
-  let t = (az - 90) / 180;
+  // Morning/rising sits on the left half, afternoon/setting on the right.
+  const rising = hasAz ? az <= 180 : true;
+  const below = hasEl ? el < 0 : !aboveHorizon;
 
-  const elev = Number(elevation);
-  const night = !aboveHorizon || (Number.isFinite(elev) && elev < 0) || t < 0 || t > 1;
-  if (night) {
-    const side = az < 180 ? SUN_PATH.left[0] : SUN_PATH.right[3];
-    return { x: side.x, y: SUN_BASELINE_Y, t: t < 0 ? 0 : t > 1 ? 1 : t, night: true };
+  if (below) {
+    // Dip under the horizon, deeper for more negative elevation, on the
+    // side where the sun set / will rise. Inset from the ends so it does
+    // not collide with the sunrise/sunset labels.
+    const depth = hasEl ? Math.min(14, (-el / SUN_MAX_ELEVATION) * amp) : 8;
+    const x = rising ? 44 : 156;
+    return { x, y: SUN_BASELINE_Y + depth, t: rising ? 0 : 1, night: true };
   }
 
-  t = Math.max(0.02, Math.min(0.98, t));
-  const cubic = t <= 0.5 ? SUN_PATH.left : SUN_PATH.right;
-  const u = t <= 0.5 ? t * 2 : (t - 0.5) * 2;
-  const [p0, p1, p2, p3] = cubic;
-  return { ...cubicPoint(p0, p1, p2, p3, u), t, night: false };
+  const frac = hasEl ? Math.max(0, Math.min(1, el / SUN_MAX_ELEVATION)) : 0.5;
+  const targetY = SUN_BASELINE_Y - frac * amp;
+  const half = rising ? SUN_PATH.left : SUN_PATH.right;
+  const { p, u } = pointOnHalfByY(half, targetY);
+  const t = rising ? u * 0.5 : 0.5 + u * 0.5;
+  return { x: p.x, y: p.y, t, night: false };
 }
 
 /**

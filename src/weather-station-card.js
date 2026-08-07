@@ -267,14 +267,12 @@ class WeatherStationCard extends LitElement {
     const afterD = isNight ? SUN_PATH_D : seg.afterD;
 
     // Full-height scene: tall dome above the horizon (y=60) with clear space
-    // below it so the night moon reads as "under the horizon".
+    // below it so a negative-elevation sun/moon reads as "under the horizon".
     const VB_Y = 0;
     const VB_H = 84;
     const HORIZON_Y = 60;
-    const sunLeft = `${(pos.x / 200) * 100}%`;
-    const sunTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
-    // Moon centered under the horizon, not on it.
-    const moonTop = `${((72 - VB_Y) / VB_H) * 100}%`;
+    const markerLeft = `${(pos.x / 200) * 100}%`;
+    const markerTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -303,17 +301,11 @@ class WeatherStationCard extends LitElement {
             <path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />
           </svg>
 
-          ${isNight
-            ? html`<ha-icon
-                class="sun-marker night"
-                style="left:50%;top:${moonTop}"
-                .icon=${"mdi:weather-night"}
-              ></ha-icon>`
-            : html`<ha-icon
-                class="sun-marker day"
-                style="left:${sunLeft};top:${sunTop}"
-                .icon=${"mdi:white-balance-sunny"}
-              ></ha-icon>`}
+          <ha-icon
+            class="sun-marker ${isNight ? "night" : "day"}"
+            style="left:${markerLeft};top:${markerTop}"
+            .icon=${isNight ? "mdi:weather-night" : "mdi:white-balance-sunny"}
+          ></ha-icon>
 
           <div class="sun-center">
             <div class="sun-stat">

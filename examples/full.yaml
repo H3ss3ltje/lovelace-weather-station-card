@@ -32,6 +32,18 @@ settings:
   show_minmax: true # today's min / max temperature in the hero
   show_rain_today: true # rain total today (needs rain_today_entity)
   show_beaufort: true # Beaufort number + description under wind
+  compact_mode: false # true = hero + sun only (hide tile grid)
+  night_palette: true # stronger moon / night path after sunset
+  # Optional tile order for the full-station grid:
+  # tile_order:
+  #   - lux
+  #   - temperature
+  #   - humidity
+  #   - rain
+  #   - wind
+  #   - uv
+  #   - pressure
+  #   - battery
 
 # Optional per-section tap / hold / double-tap actions.
 # Any Home Assistant action is supported: more-info, navigate, url,

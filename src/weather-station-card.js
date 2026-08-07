@@ -6,6 +6,7 @@ import {
   CARD_NAME,
   EDITOR_NAME,
   DEFAULT_SETTINGS,
+  DEFAULT_TILE_ORDER,
   ENTITY_FIELDS,
 } from "./const.js";
 import {
@@ -58,15 +59,35 @@ class WeatherStationCard extends LitElement {
     if (!config) {
       throw new Error("Invalid configuration");
     }
+    const settings = { ...DEFAULT_SETTINGS, ...(config.settings || {}) };
+    settings.tile_order = this._normalizeTileOrder(settings.tile_order);
     this._config = {
       ...config,
-      settings: { ...DEFAULT_SETTINGS, ...(config.settings || {}) },
+      settings,
     };
     this._pressureHistory = this._pressureHistory || [];
     this._tempStats = this._tempStats || null;
   }
 
+  _normalizeTileOrder(order) {
+    const known = new Set(DEFAULT_TILE_ORDER);
+    const seen = new Set();
+    const result = [];
+    for (const key of Array.isArray(order) ? order : []) {
+      if (known.has(key) && !seen.has(key)) {
+        result.push(key);
+        seen.add(key);
+      }
+    }
+    for (const key of DEFAULT_TILE_ORDER) {
+      if (!seen.has(key)) result.push(key);
+    }
+    return result;
+  }
+
   getCardSize() {
+    const s = this._config?.settings || {};
+    if (s.compact_mode) return s.show_sun === false ? 2 : 3;
     return 6;
   }
 
@@ -210,25 +231,35 @@ class WeatherStationCard extends LitElement {
 
     return html`
       <ha-card>
-        <div class="wsc">
+        <div class="wsc ${s.compact_mode ? "compact" : "full"}">
           ${title ? html`<div class="title">${title}</div>` : nothing}
 
           ${this._renderHero(condition, temp, tempUnit, humidity)}
           ${this._renderSun()}
 
-          <div class="grid">
-            ${this._renderLux(lux)}
-            ${this._renderTemperature(temp, tempUnit)}
-            ${this._renderHumidity(humidity)}
-            ${this._renderRain(rainObj, rainOn, rainMm)}
-            ${this._renderWind()}
-            ${this._renderUv(uv)}
-            ${this._renderPressure()}
-            ${this._renderBattery()}
-          </div>
+          ${s.compact_mode
+            ? nothing
+            : html`<div class="grid">
+                ${this._renderTiles(lux, temp, tempUnit, humidity, rainObj, rainOn, rainMm, uv)}
+              </div>`}
         </div>
       </ha-card>
     `;
+  }
+
+  _renderTiles(lux, temp, tempUnit, humidity, rainObj, rainOn, rainMm, uv) {
+    const order = this._normalizeTileOrder(this._config.settings?.tile_order);
+    const renderers = {
+      lux: () => this._renderLux(lux),
+      temperature: () => this._renderTemperature(temp, tempUnit),
+      humidity: () => this._renderHumidity(humidity),
+      rain: () => this._renderRain(rainObj, rainOn, rainMm),
+      wind: () => this._renderWind(),
+      uv: () => this._renderUv(uv),
+      pressure: () => this._renderPressure(),
+      battery: () => this._renderBattery(),
+    };
+    return order.map((key) => (renderers[key] ? renderers[key]() : nothing));
   }
 
   _renderSun() {
@@ -275,9 +306,11 @@ class WeatherStationCard extends LitElement {
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
     const tapKey = sun ? "sun_entity" : azObj ? "azimuth_entity" : "elevation_entity";
 
+    const nightPalette = (s.night_palette !== false) && isNight;
+
     return html`
       <div
-        class="sun-panel ${this._clickable(tapKey) ? "tappable" : ""}"
+        class="sun-panel ${nightPalette ? "night-palette" : ""} ${this._clickable(tapKey) ? "tappable" : ""}"
         @click=${() => this._handleClick(tapKey)}
       >
         <div class="sun-scene ${isNight ? "night" : "day"}">
@@ -649,11 +682,24 @@ class WeatherStationCard extends LitElement {
         overflow: hidden;
       }
       .wsc {
-        padding: 14px;
+        padding: 12px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         min-width: 0;
+      }
+      .wsc.full {
+        gap: 10px;
+      }
+      .wsc.compact {
+        gap: 8px;
+        padding: 12px;
+      }
+      @container wsc (min-width: 520px) {
+        .wsc.full {
+          padding: 14px;
+          gap: 12px;
+        }
       }
       .title {
         font-size: 1.1rem;
@@ -803,10 +849,24 @@ class WeatherStationCard extends LitElement {
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
         overflow: hidden;
       }
+      .sun-panel.night-palette {
+        background: #152038;
+        box-shadow: inset 0 0 0 1px rgba(123, 156, 255, 0.22);
+      }
+      @supports (background: color-mix(in srgb, red, blue)) {
+        .sun-panel.night-palette {
+          background: linear-gradient(
+            180deg,
+            color-mix(in srgb, #1a2744 55%, var(--ha-card-background, var(--card-background-color, #121212))) 0%,
+            var(--ha-card-background, var(--card-background-color, #121212)) 100%
+          );
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, #6b8cff 22%, var(--divider-color, transparent));
+        }
+      }
       .sun-scene {
         position: relative;
         width: 100%;
-        max-width: 460px;
+        max-width: 520px;
         margin: 0 auto;
       }
       /* height:auto lets the inline SVG take its own intrinsic height from the
@@ -834,6 +894,38 @@ class WeatherStationCard extends LitElement {
       }
       .dot.night.future {
         opacity: 0.35;
+      }
+      /* Night palette: cooler moon path, muted unused day arc, soft horizon. */
+      .sun-panel.night-palette {
+        --wsc-night-color: #7b9cff;
+      }
+      .sun-panel.night-palette .dot.day {
+        fill: #9a7340;
+      }
+      .sun-panel.night-palette .dot.day.past {
+        opacity: 0.55;
+      }
+      .sun-panel.night-palette .dot.day.future {
+        opacity: 0.22;
+      }
+      .sun-panel.night-palette .dot.night.past {
+        opacity: 1;
+      }
+      .sun-panel.night-palette .dot.night.future {
+        opacity: 0.45;
+      }
+      .sun-panel.night-palette .sun-horizon {
+        stroke: #9bb0ff;
+        stroke-opacity: 0.45;
+      }
+      .sun-panel.night-palette .sun-marker.night {
+        color: #a8c0ff;
+        filter: drop-shadow(0 0 10px rgba(123, 156, 255, 0.75));
+        --mdc-icon-size: 24px;
+      }
+      .sun-panel.night-palette .sun-stat-value,
+      .sun-panel.night-palette .sun-edge {
+        color: var(--primary-text-color);
       }
       /* Horizon at 0° — solid so "below horizon" is readable. */
       .sun-horizon {
@@ -912,6 +1004,15 @@ class WeatherStationCard extends LitElement {
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
       }
+      /* Full-station dashboard: 4 columns on wide cards (desktop / tablet landscape) */
+      @container wsc (min-width: 720px) {
+        .grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .tile {
+          padding: 11px 12px;
+        }
+      }
       /* Fallback when container queries are unavailable */
       @supports not (container-type: inline-size) {
         @media (max-width: 360px) {
@@ -922,6 +1023,11 @@ class WeatherStationCard extends LitElement {
         @media (min-width: 520px) {
           .grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+        @media (min-width: 780px) {
+          .grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
           }
         }
         @media (max-width: 400px) {
@@ -936,11 +1042,11 @@ class WeatherStationCard extends LitElement {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 12px;
+        padding: 11px;
         border-radius: var(--wsc-radius);
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
-        min-height: 56px;
+        min-height: 54px;
         min-width: 0;
         overflow: hidden;
         box-sizing: border-box;

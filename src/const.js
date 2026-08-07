@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.4.3";
+export const CARD_VERSION = "1.5.0";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -25,6 +25,18 @@ export const ENTITY_FIELDS = [
   { key: "rain_today_entity", icon: "mdi:weather-pouring" },
 ];
 
+/** Default order of sensor tiles in the grid (full-station layout). */
+export const DEFAULT_TILE_ORDER = [
+  "lux",
+  "temperature",
+  "humidity",
+  "rain",
+  "wind",
+  "uv",
+  "pressure",
+  "battery",
+];
+
 /**
  * Default values for the `settings` object. Everything that is potentially
  * "extra" is disabled by default per the design brief (dew point, pressure
@@ -41,6 +53,9 @@ export const DEFAULT_SETTINGS = {
   show_minmax: true, // today's min/max temperature
   show_rain_today: true, // rain total today (needs rain_today_entity)
   show_beaufort: true, // Beaufort scale + description on wind
+  compact_mode: false, // hero + sun only (hide tile grid)
+  night_palette: true, // stronger moon / night path colours after sunset
+  tile_order: [...DEFAULT_TILE_ORDER],
   pressure_trend_threshold: 1, // percent change to flag rising/falling
   manual_condition: "", // used when no sun entity + user wants a fixed icon
 };

@@ -126,7 +126,14 @@ All entities are optional. A section is only rendered when its entity is set.
 | ---------------------------- | ------- | ------- | -------------------------------------------------------- |
 | `show_daynight`              | boolean | `true`  | Use the sun entity (or lux) for day/night condition.     |
 | `manual_condition`           | string  | `""`    | When day/night is off: `sunny`/`cloudy`/`rainy`/`night`. |
+| `show_sun`                   | boolean | `true`  | Show the sunrise / sunset path diagram.                  |
+| `night_palette`              | boolean | `true`  | Stronger moon / night colours on the sun diagram.        |
+| `compact_mode`               | boolean | `false` | Hero + sun only (hide the sensor tile grid).             |
+| `tile_order`                 | list    | see below | Order of tiles: `lux`, `temperature`, `humidity`, `rain`, `wind`, `uv`, `pressure`, `battery`. |
 | `show_dewpoint`              | boolean | `false` | Calculate & show dew point from temperature + humidity.  |
+| `show_minmax`                | boolean | `true`  | Show today's min / max temperature in the hero.          |
+| `show_rain_today`            | boolean | `true`  | Show rain total today when configured.                   |
+| `show_beaufort`              | boolean | `true`  | Show Beaufort number + description on the wind tile.     |
 | `show_wind_gust`             | boolean | `true`  | Show wind gust in the wind tile.                         |
 | `show_battery`               | boolean | `true`  | Show the battery tile.                                   |
 | `show_pressure_trend`        | boolean | `false` | Show a rising/steady/falling pressure trend.             |

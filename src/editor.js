@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { fireEvent } from "custom-card-helpers";
 
-import { EDITOR_NAME, DEFAULT_SETTINGS } from "./const.js";
+import { EDITOR_NAME, DEFAULT_SETTINGS, DEFAULT_TILE_ORDER } from "./const.js";
 import { localize } from "./localize/localize.js";
 
 class WeatherStationCardEditor extends LitElement {
@@ -13,14 +13,32 @@ class WeatherStationCardEditor extends LitElement {
   }
 
   setConfig(config) {
+    const settings = { ...DEFAULT_SETTINGS, ...(config.settings || {}) };
+    settings.tile_order = this._normalizeTileOrder(settings.tile_order);
     this._config = {
       ...config,
-      settings: { ...DEFAULT_SETTINGS, ...(config.settings || {}) },
+      settings,
     };
   }
 
   _t(key, replace) {
     return localize(this.hass, key, replace);
+  }
+
+  _normalizeTileOrder(order) {
+    const known = new Set(DEFAULT_TILE_ORDER);
+    const seen = new Set();
+    const result = [];
+    for (const key of Array.isArray(order) ? order : []) {
+      if (known.has(key) && !seen.has(key)) {
+        result.push(key);
+        seen.add(key);
+      }
+    }
+    for (const key of DEFAULT_TILE_ORDER) {
+      if (!seen.has(key)) result.push(key);
+    }
+    return result;
   }
 
   _schema() {
@@ -83,6 +101,8 @@ class WeatherStationCardEditor extends LitElement {
             schema: [
               { name: "show_daynight", selector: { boolean: {} } },
               { name: "show_sun", selector: { boolean: {} } },
+              { name: "night_palette", selector: { boolean: {} } },
+              { name: "compact_mode", selector: { boolean: {} } },
               { name: "show_dewpoint", selector: { boolean: {} } },
               { name: "show_minmax", selector: { boolean: {} } },
               { name: "show_rain_today", selector: { boolean: {} } },
@@ -141,14 +161,97 @@ class WeatherStationCardEditor extends LitElement {
   _valueChanged(ev) {
     if (!this._config) return;
     const value = ev.detail.value;
+    const prevOrder = this._config.settings?.tile_order;
     const config = {
       ...value,
-      settings: { ...DEFAULT_SETTINGS, ...(value.settings || {}) },
+      settings: {
+        ...DEFAULT_SETTINGS,
+        ...(value.settings || {}),
+        tile_order: this._normalizeTileOrder(
+          value.settings?.tile_order || prevOrder
+        ),
+      },
     };
     Object.keys(config).forEach((k) => {
       if (config[k] === "" && k.endsWith("_entity")) delete config[k];
     });
+    this._config = config;
     fireEvent(this, "config-changed", { config });
+  }
+
+  _moveTile(index, delta) {
+    const order = [...this._normalizeTileOrder(this._config.settings?.tile_order)];
+    const next = index + delta;
+    if (next < 0 || next >= order.length) return;
+    const tmp = order[index];
+    order[index] = order[next];
+    order[next] = tmp;
+    const config = {
+      ...this._config,
+      settings: {
+        ...this._config.settings,
+        tile_order: order,
+      },
+    };
+    this._config = config;
+    fireEvent(this, "config-changed", { config });
+  }
+
+  _resetTileOrder() {
+    const config = {
+      ...this._config,
+      settings: {
+        ...this._config.settings,
+        tile_order: [...DEFAULT_TILE_ORDER],
+      },
+    };
+    this._config = config;
+    fireEvent(this, "config-changed", { config });
+  }
+
+  _renderTileOrder() {
+    if (this._config?.settings?.compact_mode) return nothing;
+    const order = this._normalizeTileOrder(this._config.settings?.tile_order);
+    return html`
+      <div class="tile-order">
+        <div class="tile-order-header">
+          <div class="tile-order-title">${this._t("editor.tile_order")}</div>
+          <button type="button" class="reset" @click=${this._resetTileOrder}>
+            ${this._t("editor.tile_order_reset")}
+          </button>
+        </div>
+        <div class="tile-order-hint">${this._t("editor.tile_order_hint")}</div>
+        <div class="tile-order-list">
+          ${order.map(
+            (key, index) => html`
+              <div class="tile-order-row">
+                <span class="tile-order-label"
+                  >${this._t(`editor.tile_${key}`)}</span
+                >
+                <div class="tile-order-actions">
+                  <button
+                    type="button"
+                    ?disabled=${index === 0}
+                    @click=${() => this._moveTile(index, -1)}
+                    title="Up"
+                  >
+                    <ha-icon .icon=${"mdi:chevron-up"}></ha-icon>
+                  </button>
+                  <button
+                    type="button"
+                    ?disabled=${index === order.length - 1}
+                    @click=${() => this._moveTile(index, 1)}
+                    title="Down"
+                  >
+                    <ha-icon .icon=${"mdi:chevron-down"}></ha-icon>
+                  </button>
+                </div>
+              </div>
+            `
+          )}
+        </div>
+      </div>
+    `;
   }
 
   render() {
@@ -161,6 +264,7 @@ class WeatherStationCardEditor extends LitElement {
         .computeLabel=${this._computeLabel}
         @value-changed=${this._valueChanged}
       ></ha-form>
+      ${this._renderTileOrder()}
       <div class="hint">${this._t("editor.hint")}</div>
     `;
   }
@@ -173,10 +277,72 @@ class WeatherStationCardEditor extends LitElement {
         color: var(--secondary-text-color);
         line-height: 1.4;
       }
-      code {
-        background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
-        padding: 1px 5px;
+      .tile-order {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+      }
+      .tile-order-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .tile-order-title {
+        font-weight: 600;
+        color: var(--primary-text-color);
+      }
+      .tile-order-hint {
+        margin: 4px 0 10px;
+        font-size: 0.75rem;
+        color: var(--secondary-text-color);
+        line-height: 1.35;
+      }
+      .tile-order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .tile-order-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: var(--card-background-color, #fff);
+        box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
+      }
+      .tile-order-label {
+        font-size: 0.9rem;
+        color: var(--primary-text-color);
+      }
+      .tile-order-actions {
+        display: flex;
+        gap: 2px;
+      }
+      .tile-order-actions button,
+      .reset {
+        border: none;
+        background: transparent;
+        color: var(--primary-color);
+        cursor: pointer;
+        padding: 2px 4px;
         border-radius: 6px;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+      .tile-order-actions button:hover:not(:disabled),
+      .reset:hover {
+        background: var(--divider-color, rgba(0, 0, 0, 0.08));
+      }
+      .tile-order-actions button:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .tile-order-actions ha-icon {
+        --mdc-icon-size: 20px;
       }
     `;
   }

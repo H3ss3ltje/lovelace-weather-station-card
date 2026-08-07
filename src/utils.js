@@ -261,6 +261,66 @@ export function sunPathSegments(t) {
 const SUN_PEAK_Y = 12;
 const SUN_MAX_ELEVATION = 90;
 
+/**
+ * The full day curve, in travel order:
+ * pre-dawn tail → morning arch → afternoon arch → post-sunset tail.
+ */
+const SUN_CURVE = [SUN_TAIL_LEFT, SUN_PATH.left, SUN_PATH.right, SUN_TAIL_RIGHT];
+
+function cubicLength([p0, p1, p2, p3]) {
+  let len = 0;
+  let prev = cubicPoint(p0, p1, p2, p3, 0);
+  for (let i = 1; i <= 24; i++) {
+    const p = cubicPoint(p0, p1, p2, p3, i / 24);
+    len += Math.hypot(p.x - prev.x, p.y - prev.y);
+    prev = p;
+  }
+  return len;
+}
+
+let _segLens = null;
+let _cum = null;
+let _total = 0;
+function ensureCurveMetrics() {
+  if (_segLens) return;
+  _segLens = SUN_CURVE.map(cubicLength);
+  _total = _segLens.reduce((a, b) => a + b, 0);
+  _cum = [];
+  let s = 0;
+  for (const l of _segLens) {
+    _cum.push(s);
+    s += l;
+  }
+}
+
+/** Global progress (0..1) along the whole day curve for a segment + local u. */
+function curveProgress(segIndex, u) {
+  ensureCurveMetrics();
+  return (_cum[segIndex] + u * _segLens[segIndex]) / _total;
+}
+
+/**
+ * Evenly spaced dots along the whole day curve. Each dot carries its position,
+ * whether it is above the horizon, and its global progress g (0..1) so callers
+ * can style traveled vs upcoming.
+ */
+export function sunCurveDots(spacing = 4.6) {
+  ensureCurveMetrics();
+  const dots = [];
+  const count = Math.max(12, Math.round(_total / spacing));
+  const step = _total / count;
+  for (let k = 0; k <= count; k++) {
+    const d = k * step;
+    let si = 0;
+    while (si < SUN_CURVE.length - 1 && d > _cum[si] + _segLens[si]) si++;
+    const u = Math.min(1, (d - _cum[si]) / _segLens[si]);
+    const [p0, p1, p2, p3] = SUN_CURVE[si];
+    const p = cubicPoint(p0, p1, p2, p3, u);
+    dots.push({ x: p.x, y: p.y, above: p.y <= SUN_BASELINE_Y + 0.001, g: d / _total });
+  }
+  return dots;
+}
+
 /** Find the point on a half-cubic whose Y best matches a target Y. */
 function pointOnHalfByY([p0, p1, p2, p3], targetY) {
   const STEPS = 120;
@@ -304,8 +364,10 @@ export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
     const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
     const targetY = SUN_BASELINE_Y + depthFrac * (80 - SUN_BASELINE_Y);
     const tail = rising ? SUN_TAIL_LEFT : SUN_TAIL_RIGHT;
-    const { p } = pointOnHalfByY(tail, targetY);
-    return { x: p.x, y: p.y, t: rising ? 0 : 1, night: true };
+    const { p, u } = pointOnHalfByY(tail, targetY);
+    // Segment 0 = left tail (curve start), segment 3 = right tail (curve end).
+    const g = rising ? curveProgress(0, u) : curveProgress(3, u);
+    return { x: p.x, y: p.y, t: rising ? 0 : 1, g, night: true };
   }
 
   const frac = hasEl ? Math.max(0, Math.min(1, el / SUN_MAX_ELEVATION)) : 0.5;
@@ -313,7 +375,9 @@ export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
   const half = rising ? SUN_PATH.left : SUN_PATH.right;
   const { p, u } = pointOnHalfByY(half, targetY);
   const t = rising ? u * 0.5 : 0.5 + u * 0.5;
-  return { x: p.x, y: p.y, t, night: false };
+  // Segment 1 = morning arch, segment 2 = afternoon arch.
+  const g = rising ? curveProgress(1, u) : curveProgress(2, u);
+  return { x: p.x, y: p.y, t, g, night: false };
 }
 
 /**

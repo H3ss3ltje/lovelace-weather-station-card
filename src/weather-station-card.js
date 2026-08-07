@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, css, svg, nothing } from "lit";
 import { handleAction, hasAction } from "custom-card-helpers";
 
 import {
@@ -23,12 +23,9 @@ import {
   unit,
   formatSunTime,
   sunDiagramPosition,
-  sunPathSegments,
+  sunCurveDots,
   toMetersPerSecond,
   beaufort,
-  SUN_PATH_D,
-  SUN_TAIL_LEFT_D,
-  SUN_TAIL_RIGHT_D,
   SUN_CROSS_LEFT_X,
   SUN_CROSS_RIGHT_X,
 } from "./utils.js";
@@ -264,11 +261,11 @@ class WeatherStationCard extends LitElement {
     const sunset = formatSunTime(this.hass, attrs.next_setting);
     const pos = sunDiagramPosition(azimuth, elevation, above);
     const isNight = pos.night;
-    const seg = sunPathSegments(pos.t);
-    // Day: thick solid path already travelled, thin dashed path still ahead.
-    // Night: full arc stays thin; moon sits under the horizon line.
-    const beforeD = isNight ? "" : seg.beforeD;
-    const afterD = isNight ? SUN_PATH_D : seg.afterD;
+    // Evenly spaced dots along the whole day curve. Each dot is coloured by
+    // above/below the horizon and weighted by whether the sun has passed it
+    // yet (traveled = bold, upcoming = light) so the not-yet-reached tail is
+    // faint rather than heavy.
+    const dots = sunCurveDots();
 
     // Full-height scene: tall dome above the horizon (y=60) with clear space
     // below it so a negative-elevation sun/moon reads as "under the horizon".
@@ -303,10 +300,12 @@ class WeatherStationCard extends LitElement {
               x2="196"
               y2=${HORIZON_Y}
             />
-            <path class="sun-tail" d=${SUN_TAIL_LEFT_D} fill="none" />
-            <path class="sun-tail" d=${SUN_TAIL_RIGHT_D} fill="none" />
-            <path class="sun-arc sun-arc-after" d=${afterD} fill="none" />
-            <path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />
+            ${dots.map((d) => {
+              const past = d.g <= pos.g;
+              const cls = `dot ${d.above ? "day" : "night"} ${past ? "past" : "future"}`;
+              const r = d.above ? (past ? 2.2 : 1.5) : past ? 1.9 : 1.3;
+              return svg`<circle class=${cls} cx=${d.x} cy=${d.y} r=${r} />`;
+            })}
           </svg>
 
           <ha-icon
@@ -799,37 +798,22 @@ class WeatherStationCard extends LitElement {
         height: auto;
         overflow: visible;
       }
-      /* Single dotted arc; thickness changes before vs after the sun. */
-      .sun-arc {
-        stroke: #e8961e;
-        fill: none;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+      /* Evenly spaced day-curve dots. Orange above the horizon, blue below.
+         Traveled dots are bold; upcoming dots are faint. */
+      .dot.day {
+        fill: #e8961e;
       }
-      /* Path already travelled by the sun: thick dots. */
-      .sun-arc-before {
-        stroke-width: 2.6;
-        stroke-dasharray: 0.1 5;
+      .dot.night {
+        fill: var(--wsc-night-color, #3f6fd6);
+      }
+      .dot.past {
         opacity: 1;
       }
-      /* Path still to come: thin dots, softer. */
-      .sun-arc-after {
-        stroke-width: 1.4;
-        stroke-dasharray: 0.1 5.5;
-        opacity: 0.5;
-      }
-      .sun-scene.night .sun-arc-after {
+      .dot.future {
         opacity: 0.4;
       }
-      /* Below-horizon night tails (before sunrise / after sunset). */
-      .sun-tail {
-        stroke: var(--wsc-night-color, #3f6fd6);
-        fill: none;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke-width: 2;
-        stroke-dasharray: 0.1 5;
-        opacity: 0.85;
+      .dot.night.future {
+        opacity: 0.35;
       }
       /* Horizon at 0° — solid so "below horizon" is readable. */
       .sun-horizon {

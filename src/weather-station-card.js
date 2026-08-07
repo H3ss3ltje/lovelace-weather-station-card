@@ -365,9 +365,18 @@ class WeatherStationCard extends LitElement {
     const dew = s.show_dewpoint ? calcDewPoint(temp, humidity) : null;
     const comfort = comfortKey(temp, humidity);
     const minmax = s.show_minmax ? this._todayMinMax() : null;
+
+    const speedObj = this._stateObj("wind_speed_entity");
+    const dirDeg = numericState(this._stateObj("wind_direction_entity"));
+    const speed = numericState(speedObj);
+    const speedUnit = unit(speedObj, "m/s");
+    const compassKey = degToCompass(dirDeg);
+    const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
+    const showWind = speedObj || dirDeg != null;
+
     return html`
       <div
-        class="hero ${this._clickable("temperature_entity") ? "tappable" : ""}"
+        class="hero ${showWind ? "has-wind" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
         <ha-icon class="hero-icon" .icon=${condition.icon}></ha-icon>
@@ -391,6 +400,24 @@ class WeatherStationCard extends LitElement {
               </div>`
             : nothing}
         </div>
+        ${showWind
+          ? html`
+              <div
+                class="hero-wind ${this._clickable("wind_speed_entity") ? "tappable" : ""}"
+                @click=${(e) => {
+                  e.stopPropagation();
+                  this._handleClick("wind_speed_entity");
+                }}
+              >
+                ${dirDeg != null ? this._renderCompass(dirDeg, compass) : nothing}
+                ${speed != null
+                  ? html`<div class="hero-wind-speed">
+                      ${round(speed, 1)} ${speedUnit}
+                    </div>`
+                  : nothing}
+              </div>
+            `
+          : nothing}
         ${temp != null
           ? html`<div class="hero-sub">
               ${comfort
@@ -517,32 +544,29 @@ class WeatherStationCard extends LitElement {
         class="tile wind ${this._clickable("wind_speed_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("wind_speed_entity")}
       >
-        <div class="wind-info">
-          <ha-icon class="tile-icon" .icon=${"mdi:weather-windy"}></ha-icon>
-          <div class="tile-body">
-            <div class="tile-label">${this._t("sections.wind")}</div>
-            <div class="tile-value">
-              ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
-            </div>
-            ${compass ? html`<div class="tile-sub">${compass}</div>` : nothing}
-            ${bft
-              ? html`<div class="tile-sub">
-                  ${this._t("wind.beaufort", { value: bft.n })}
-                  <span class="dot">·</span> ${this._t(`beaufort.${bft.key}`)}
-                </div>`
-              : nothing}
-            ${s.show_wind_gust && gust != null
-              ? html`<div class="tile-sub">
-                  <ha-icon class="mini-icon" .icon=${"mdi:weather-windy-variant"}></ha-icon>
-                  ${this._t("wind.gust", {
-                    value: round(gust, 0),
-                    unit: gustUnit,
-                  })}
-                </div>`
-              : nothing}
+        <ha-icon class="tile-icon" .icon=${"mdi:weather-windy"}></ha-icon>
+        <div class="tile-body">
+          <div class="tile-label">${this._t("sections.wind")}</div>
+          <div class="tile-value">
+            ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
           </div>
+          ${compass ? html`<div class="tile-sub">${compass}</div>` : nothing}
+          ${bft
+            ? html`<div class="tile-sub">
+                ${this._t("wind.beaufort", { value: bft.n })}
+                <span class="dot">·</span> ${this._t(`beaufort.${bft.key}`)}
+              </div>`
+            : nothing}
+          ${s.show_wind_gust && gust != null
+            ? html`<div class="tile-sub">
+                <ha-icon class="mini-icon" .icon=${"mdi:weather-windy-variant"}></ha-icon>
+                ${this._t("wind.gust", {
+                  value: round(gust, 0),
+                  unit: gustUnit,
+                })}
+              </div>`
+            : nothing}
         </div>
-        ${dirDeg != null ? this._renderCompass(dirDeg, compass) : nothing}
       </div>
     `;
   }
@@ -722,6 +746,9 @@ class WeatherStationCard extends LitElement {
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
       }
+      .hero.has-wind {
+        grid-template-columns: auto 1fr auto;
+      }
       .hero-icon {
         grid-row: 1 / 3;
         --mdc-icon-size: 46px;
@@ -730,6 +757,37 @@ class WeatherStationCard extends LitElement {
       .hero-main {
         display: flex;
         flex-direction: column;
+        min-width: 0;
+      }
+      .hero-wind {
+        grid-column: 3;
+        grid-row: 1 / 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 2px 0 2px 4px;
+        border-radius: 12px;
+        align-self: stretch;
+      }
+      .hero-wind .compass {
+        width: 58px;
+        height: 58px;
+      }
+      .hero-wind .compass .c-n { top: 9px; }
+      .hero-wind .compass .c-s { top: 49px; }
+      .hero-wind .compass .c-e { left: 49px; }
+      .hero-wind .compass .c-w { left: 9px; }
+      .hero-wind .compass .needle ha-icon {
+        --mdc-icon-size: 24px;
+      }
+      .hero-wind-speed {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.1;
+        color: var(--primary-text-color);
+        white-space: nowrap;
       }
       .hero-condition {
         font-size: 0.95rem;
@@ -1016,23 +1074,6 @@ class WeatherStationCard extends LitElement {
         --mdc-icon-size: 15px;
       }
 
-      .wind {
-        justify-content: space-between;
-        grid-column: span 1;
-      }
-      @container wsc (min-width: 480px) {
-        .wind:has(.compass) {
-          grid-column: span 2;
-        }
-      }
-      .wind-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-        flex: 1 1 auto;
-        overflow: hidden;
-      }
       .compass {
         position: relative;
         width: 52px;

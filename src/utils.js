@@ -146,47 +146,76 @@ export function formatSunTime(hass, iso) {
 }
 
 /**
- * Flat semi-ellipse sun path (wide, low arch on a baseline).
- * viewBox: 200×90 — ratio ~4.5:1 so the peak stays modest.
+ * Point on a cubic Bezier at t ∈ [0, 1].
  */
-export const SUN_PATH = {
-  cx: 100,
-  cy: 70,
-  rx: 92,
-  ry: 20,
-};
-
-/** SVG stroke path — upper half of the ellipse. */
-export const SUN_PATH_D = "M 8 70 A 92 20 0 0 1 192 70";
-
-/** Closed path for a soft fill under the arc. */
-export const SUN_PATH_FILL_D = "M 8 70 A 92 20 0 0 1 192 70 Z";
+function cubicPoint(p0, p1, p2, p3, t) {
+  const u = 1 - t;
+  const tt = t * t;
+  const uu = u * u;
+  return {
+    x: uu * u * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + tt * t * p3.x,
+    y: uu * u * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + tt * t * p3.y,
+  };
+}
 
 /**
- * Place the sun on the flat elliptical arc.
- * East (az 90°) → left, South (180°) → top, West (270°) → right.
+ * Smooth, wide, LOW sun-path made of two symmetric cubics.
+ * The first control point of each end shares the endpoint's Y, giving a
+ * horizontal tangent at sunrise/sunset — so the ends ease in with no sharp
+ * downward hook (an ellipse would be near-vertical there).
+ * viewBox: 200×90.
+ */
+export const SUN_PATH = {
+  // Left: sunrise → zenith
+  left: [
+    { x: 16, y: 68 },
+    { x: 58, y: 68 },
+    { x: 70, y: 47 },
+    { x: 100, y: 47 },
+  ],
+  // Right: zenith → sunset
+  right: [
+    { x: 100, y: 47 },
+    { x: 130, y: 47 },
+    { x: 142, y: 68 },
+    { x: 184, y: 68 },
+  ],
+};
+
+/** SVG stroke path matching SUN_PATH (two cubics). */
+export const SUN_PATH_D =
+  "M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68";
+
+/** Closed path for a soft fill under the arc (down to the baseline). */
+export const SUN_PATH_FILL_D =
+  "M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68 L 184 74 L 16 74 Z";
+
+/**
+ * Place the sun on the smooth path.
+ * East (az 90°) → left (sunrise), South (180°) → top, West (270°) → right (sunset).
  */
 export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
-  const { cx, cy, rx, ry } = SUN_PATH;
-
   let az = Number(azimuth);
   if (!Number.isFinite(az)) az = aboveHorizon ? 180 : 0;
   az = ((az % 360) + 360) % 360;
 
-  // Angle on the ellipse: π at east/left → 0 at west/right
-  let arcDeg = 180 - (az - 90);
+  // 0 at east/sunrise → 1 at west/sunset
+  let t = (az - 90) / 180;
 
   const elev = Number(elevation);
-  if (!aboveHorizon || (Number.isFinite(elev) && elev < 0)) {
-    const x = az < 180 ? cx - rx : cx + rx;
-    return { x, y: cy + 8, arcDeg: az < 180 ? 180 : 0 };
+  if (!aboveHorizon || (Number.isFinite(elev) && elev < 0) || t < 0 || t > 1) {
+    const side = az < 180 ? SUN_PATH.left[0] : SUN_PATH.right[3];
+    return { x: side.x, y: side.y + 8, arcDeg: 0 };
   }
 
-  arcDeg = Math.max(6, Math.min(174, arcDeg));
-  const rad = (arcDeg * Math.PI) / 180;
-  return {
-    x: cx + rx * Math.cos(rad),
-    y: cy - ry * Math.sin(rad),
-    arcDeg,
-  };
+  t = Math.max(0.02, Math.min(0.98, t));
+
+  if (t <= 0.5) {
+    const u = t * 2;
+    const [p0, p1, p2, p3] = SUN_PATH.left;
+    return { ...cubicPoint(p0, p1, p2, p3, u), arcDeg: (1 - t) * 180 };
+  }
+  const u = (t - 0.5) * 2;
+  const [p0, p1, p2, p3] = SUN_PATH.right;
+  return { ...cubicPoint(p0, p1, p2, p3, u), arcDeg: (1 - t) * 180 };
 }

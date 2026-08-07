@@ -1008,24 +1008,25 @@ class WeatherStationCard extends LitElement {
       .dot.night.future {
         opacity: 0.35;
       }
-      /* Night palette: cooler moon path, muted unused day arc, soft horizon. */
+      /* Night palette: cooler moon path + soft panel. Traveled dots stay
+         fully highlighted (orange above, blue below); only upcoming stay faint. */
       .sun-panel.night-palette {
         --wsc-night-color: #7b9cff;
       }
-      .sun-panel.night-palette .dot.day {
-        fill: #9a7340;
-      }
       .sun-panel.night-palette .dot.day.past {
-        opacity: 0.55;
+        fill: #ffb14a;
+        opacity: 1;
       }
       .sun-panel.night-palette .dot.day.future {
-        opacity: 0.22;
+        fill: #9a7340;
+        opacity: 0.28;
       }
       .sun-panel.night-palette .dot.night.past {
+        fill: #9bb4ff;
         opacity: 1;
       }
       .sun-panel.night-palette .dot.night.future {
-        opacity: 0.45;
+        opacity: 0.4;
       }
       .sun-panel.night-palette .sun-horizon {
         stroke: #9bb0ff;

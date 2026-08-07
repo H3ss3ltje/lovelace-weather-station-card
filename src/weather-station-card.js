@@ -274,8 +274,11 @@ class WeatherStationCard extends LitElement {
     const HORIZON_Y = 60;
     const markerLeft = `${(pos.x / 200) * 100}%`;
     const markerTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
-    const crossLeft = `${(SUN_CROSS_LEFT_X / 200) * 100}%`;
-    const crossRight = `${(SUN_CROSS_RIGHT_X / 200) * 100}%`;
+    // Nudge times slightly inward from the horizon crossings so they sit
+    // closer to the sun↔moon transition (sunrise right, sunset left).
+    const TIME_INSET = 10;
+    const crossLeft = `${((SUN_CROSS_LEFT_X + TIME_INSET) / 200) * 100}%`;
+    const crossRight = `${((SUN_CROSS_RIGHT_X - TIME_INSET) / 200) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
@@ -862,15 +865,15 @@ class WeatherStationCard extends LitElement {
         color: var(--secondary-text-color);
         line-height: 1.1;
       }
-      /* Times sit just below the horizon line, at the sunrise / sunset
-         crossings (where the sun/moon transitions). */
+      /* Times sit just below the horizon line; font matches elev/az values. */
       .sun-edge {
         position: absolute;
         top: 75%;
         transform: translate(-50%, 0);
-        font-size: 0.72rem;
-        font-weight: 500;
-        color: var(--secondary-text-color);
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.1;
+        color: var(--primary-text-color);
         white-space: nowrap;
         z-index: 3;
       }

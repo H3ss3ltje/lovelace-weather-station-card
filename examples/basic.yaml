@@ -1,0 +1,5 @@
+# Minimal configuration — only the sensors you have.
+type: custom:weather-station-card
+title: Weather Station
+temperature_entity: sensor.temperature
+humidity_entity: sensor.humidity

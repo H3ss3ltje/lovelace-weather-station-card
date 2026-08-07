@@ -1,0 +1,13 @@
+# No sun entity — day/night disabled, condition set manually.
+type: custom:weather-station-card
+title: Greenhouse
+temperature_entity: sensor.greenhouse_temperature
+humidity_entity: sensor.greenhouse_humidity
+lux_entity: sensor.greenhouse_lux
+
+settings:
+  show_daynight: false
+  manual_condition: sunny
+  show_dewpoint: true
+  show_battery: false
+  show_interactions: false

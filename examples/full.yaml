@@ -1,0 +1,41 @@
+# Full configuration with every entity and all optional features enabled.
+type: custom:weather-station-card
+title: Weather Station
+temperature_entity: sensor.temperature
+humidity_entity: sensor.humidity
+lux_entity: sensor.lux
+uv_entity: sensor.uv
+rain_entity: sensor.rain
+wind_speed_entity: sensor.wind_speed
+wind_direction_entity: sensor.wind_direction
+wind_gust_entity: sensor.wind_gust
+pressure_entity: sensor.pressure
+battery_entity: sensor.battery
+sun_entity: sun.sun
+
+settings:
+  show_dewpoint: true
+  show_pressure_trend: true
+  pressure_trend_threshold: 0.5
+  show_battery: true
+  show_wind_gust: true
+  show_interactions: true
+  show_daynight: true
+
+# Optional per-section tap / hold / double-tap actions.
+# Any Home Assistant action is supported: more-info, navigate, url,
+# call-service, toggle, none.
+temperature_action:
+  tap_action:
+    action: more-info
+humidity_action:
+  tap_action:
+    action: more-info
+wind_action:
+  tap_action:
+    action: navigate
+    navigation_path: /lovelace/wind
+rain_action:
+  tap_action:
+    action: url
+    url_path: https://www.buienradar.nl

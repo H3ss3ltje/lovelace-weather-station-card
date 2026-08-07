@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.2.8";
+export const CARD_VERSION = "1.3.0";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -20,6 +20,9 @@ export const ENTITY_FIELDS = [
   { key: "sun_entity", icon: "mdi:weather-sunny" },
   { key: "azimuth_entity", icon: "mdi:compass-outline" },
   { key: "elevation_entity", icon: "mdi:angle-acute" },
+  { key: "temperature_min_entity", icon: "mdi:thermometer-low" },
+  { key: "temperature_max_entity", icon: "mdi:thermometer-high" },
+  { key: "rain_today_entity", icon: "mdi:weather-pouring" },
 ];
 
 /**
@@ -35,6 +38,10 @@ export const DEFAULT_SETTINGS = {
   show_interactions: true,
   show_daynight: true,
   show_sun: true,
+  show_minmax: true, // today's min/max temperature
+  show_rain_today: true, // rain total today (needs rain_today_entity)
+  show_beaufort: true, // Beaufort scale + description on wind
+  show_expand: true, // "More details" expander
   pressure_trend_threshold: 1, // percent change to flag rising/falling
   manual_condition: "", // used when no sun entity + user wants a fixed icon
 };

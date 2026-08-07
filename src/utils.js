@@ -186,12 +186,61 @@ export const SUN_PATH = {
 export const SUN_PATH_D =
   "M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68";
 
-/** Closed path for a soft fill under the arc (down to the baseline). */
-export const SUN_PATH_FILL_D =
-  "M 16 68 C 58 68, 70 47, 100 47 C 130 47, 142 68, 184 68 L 184 74 L 16 74 Z";
+/** Horizon baseline Y in the path coordinate space. */
+export const SUN_BASELINE_Y = 68;
+
+function lerpPt(a, b, u) {
+  return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
+}
+
+/** De Casteljau split of a cubic at u → [firstHalf, secondHalf]. */
+function splitCubic([p0, p1, p2, p3], u) {
+  const a = lerpPt(p0, p1, u);
+  const b = lerpPt(p1, p2, u);
+  const c = lerpPt(p2, p3, u);
+  const d = lerpPt(a, b, u);
+  const e = lerpPt(b, c, u);
+  const f = lerpPt(d, e, u);
+  return [
+    [p0, a, d, f],
+    [f, e, c, p3],
+  ];
+}
+
+/** Build an SVG path `d` from a list of cubic segments. */
+function cubicsToD(cubics) {
+  if (!cubics.length) return "";
+  const start = cubics[0][0];
+  let d = `M ${start.x} ${start.y}`;
+  for (const [, c1, c2, c3] of cubics) {
+    d += ` C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${c3.x} ${c3.y}`;
+  }
+  return d;
+}
 
 /**
- * Place the sun on the smooth path.
+ * Split the full sun path at global position t ∈ [0, 1] into the part the
+ * sun has already travelled (before) and the part still to come (after).
+ */
+export function sunPathSegments(t) {
+  const { left, right } = SUN_PATH;
+  t = Math.max(0, Math.min(1, t));
+  let before = [];
+  let after = [];
+  if (t <= 0.5) {
+    const [l1, l2] = splitCubic(left, t / 0.5);
+    before = [l1];
+    after = [l2, right];
+  } else {
+    const [r1, r2] = splitCubic(right, (t - 0.5) / 0.5);
+    before = [left, r1];
+    after = [r2];
+  }
+  return { beforeD: cubicsToD(before), afterD: cubicsToD(after) };
+}
+
+/**
+ * Place the sun on the smooth path and report its fractional progress `t`.
  * East (az 90°) → left (sunrise), South (180°) → top, West (270°) → right (sunset).
  */
 export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
@@ -203,19 +252,51 @@ export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
   let t = (az - 90) / 180;
 
   const elev = Number(elevation);
-  if (!aboveHorizon || (Number.isFinite(elev) && elev < 0) || t < 0 || t > 1) {
+  const night = !aboveHorizon || (Number.isFinite(elev) && elev < 0) || t < 0 || t > 1;
+  if (night) {
     const side = az < 180 ? SUN_PATH.left[0] : SUN_PATH.right[3];
-    return { x: side.x, y: side.y + 8, arcDeg: 0 };
+    return { x: side.x, y: SUN_BASELINE_Y, t: t < 0 ? 0 : t > 1 ? 1 : t, night: true };
   }
 
   t = Math.max(0.02, Math.min(0.98, t));
+  const cubic = t <= 0.5 ? SUN_PATH.left : SUN_PATH.right;
+  const u = t <= 0.5 ? t * 2 : (t - 0.5) * 2;
+  const [p0, p1, p2, p3] = cubic;
+  return { ...cubicPoint(p0, p1, p2, p3, u), t, night: false };
+}
 
-  if (t <= 0.5) {
-    const u = t * 2;
-    const [p0, p1, p2, p3] = SUN_PATH.left;
-    return { ...cubicPoint(p0, p1, p2, p3, u), arcDeg: (1 - t) * 180 };
-  }
-  const u = (t - 0.5) * 2;
-  const [p0, p1, p2, p3] = SUN_PATH.right;
-  return { ...cubicPoint(p0, p1, p2, p3, u), arcDeg: (1 - t) * 180 };
+/**
+ * Convert a wind speed to m/s from common unit strings.
+ */
+export function toMetersPerSecond(value, unitStr) {
+  if (value == null || !Number.isFinite(Number(value))) return null;
+  const v = Number(value);
+  const u = String(unitStr || "").toLowerCase();
+  if (u.includes("km/h") || u.includes("kmh") || u.includes("kph")) return v / 3.6;
+  if (u.includes("mph")) return v * 0.44704;
+  if (u.includes("kn") || u.includes("kt")) return v * 0.514444;
+  return v; // assume m/s
+}
+
+/**
+ * Beaufort band for a wind speed in m/s → { n, key } (key under `beaufort.*`).
+ */
+export function beaufort(speedMs) {
+  if (speedMs == null || !Number.isFinite(speedMs)) return null;
+  const bands = [
+    { max: 0.5, n: 0, key: "calm" },
+    { max: 1.6, n: 1, key: "light_air" },
+    { max: 3.4, n: 2, key: "light_breeze" },
+    { max: 5.5, n: 3, key: "gentle_breeze" },
+    { max: 8.0, n: 4, key: "moderate_breeze" },
+    { max: 10.8, n: 5, key: "fresh_breeze" },
+    { max: 13.9, n: 6, key: "strong_breeze" },
+    { max: 17.2, n: 7, key: "near_gale" },
+    { max: 20.8, n: 8, key: "gale" },
+    { max: 24.5, n: 9, key: "strong_gale" },
+    { max: 28.5, n: 10, key: "storm" },
+    { max: 32.7, n: 11, key: "violent_storm" },
+    { max: Infinity, n: 12, key: "hurricane" },
+  ];
+  return bands.find((b) => speedMs < b.max);
 }

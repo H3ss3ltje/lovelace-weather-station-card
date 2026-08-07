@@ -60,6 +60,15 @@ class WeatherStationCardEditor extends LitElement {
               { name: "elevation_entity", selector: { entity: {} } },
             ],
           },
+          {
+            name: "",
+            type: "grid",
+            schema: [
+              { name: "temperature_min_entity", selector: { entity: {} } },
+              { name: "temperature_max_entity", selector: { entity: {} } },
+            ],
+          },
+          { name: "rain_today_entity", selector: { entity: {} } },
         ],
       },
       {
@@ -75,6 +84,10 @@ class WeatherStationCardEditor extends LitElement {
               { name: "show_daynight", selector: { boolean: {} } },
               { name: "show_sun", selector: { boolean: {} } },
               { name: "show_dewpoint", selector: { boolean: {} } },
+              { name: "show_minmax", selector: { boolean: {} } },
+              { name: "show_rain_today", selector: { boolean: {} } },
+              { name: "show_beaufort", selector: { boolean: {} } },
+              { name: "show_expand", selector: { boolean: {} } },
               { name: "show_wind_gust", selector: { boolean: {} } },
               { name: "show_battery", selector: { boolean: {} } },
               { name: "show_pressure_trend", selector: { boolean: {} } },

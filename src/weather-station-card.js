@@ -23,6 +23,9 @@ import {
   unit,
   formatSunTime,
   sunDiagramPosition,
+  sunPathSegments,
+  toMetersPerSecond,
+  beaufort,
   SUN_PATH_D,
 } from "./utils.js";
 import { localize } from "./localize/localize.js";
@@ -34,6 +37,7 @@ class WeatherStationCard extends LitElement {
     return {
       hass: { attribute: false },
       _config: { state: true },
+      _expanded: { state: true },
     };
   }
 
@@ -59,6 +63,8 @@ class WeatherStationCard extends LitElement {
       settings: { ...DEFAULT_SETTINGS, ...(config.settings || {}) },
     };
     this._pressureHistory = this._pressureHistory || [];
+    this._tempStats = this._tempStats || null;
+    if (this._expanded === undefined) this._expanded = false;
   }
 
   getCardSize() {
@@ -67,6 +73,24 @@ class WeatherStationCard extends LitElement {
 
   _t(key, replace) {
     return localize(this.hass, key, replace);
+  }
+
+  _toggleExpanded(ev) {
+    ev.stopPropagation();
+    this._expanded = !this._expanded;
+  }
+
+  // Track today's min/max in memory (reset at local midnight). Used only when
+  // dedicated min/max entities are not configured.
+  _recordTemp(temp) {
+    if (temp == null) return;
+    const day = new Date().toDateString();
+    if (!this._tempStats || this._tempStats.day !== day) {
+      this._tempStats = { day, min: temp, max: temp };
+    } else {
+      this._tempStats.min = Math.min(this._tempStats.min, temp);
+      this._tempStats.max = Math.max(this._tempStats.max, temp);
+    }
   }
 
   shouldUpdate(changedProps) {
@@ -157,6 +181,7 @@ class WeatherStationCard extends LitElement {
     const temp = numericState(this._stateObj("temperature_entity"));
     const humidity = numericState(this._stateObj("humidity_entity"));
     const tempUnit = unit(this._stateObj("temperature_entity"), "°C");
+    this._recordTemp(temp);
 
     const isDay = this._isDay();
     const rainObj = this._stateObj("rain_entity");
@@ -207,6 +232,8 @@ class WeatherStationCard extends LitElement {
             ${this._renderPressure()}
             ${this._renderBattery()}
           </div>
+
+          ${this._renderExpand(temp, tempUnit, humidity)}
         </div>
       </ha-card>
     `;
@@ -232,6 +259,11 @@ class WeatherStationCard extends LitElement {
     const sunrise = formatSunTime(this.hass, attrs.next_rising);
     const sunset = formatSunTime(this.hass, attrs.next_setting);
     const pos = sunDiagramPosition(azimuth, elevation, above);
+    const isNight = pos.night;
+    const seg = sunPathSegments(pos.t);
+    // At night draw the whole arc thin; by day the travelled part is thick.
+    const beforeD = isNight ? "" : seg.beforeD;
+    const afterD = isNight ? SUN_PATH_D : seg.afterD;
 
     // Scene is a cropped viewBox (y 30→80) to remove empty space above the
     // arch. Map path coords into that cropped window for the floating sun.
@@ -239,29 +271,35 @@ class WeatherStationCard extends LitElement {
     const VB_H = 50;
     const sunLeft = `${(pos.x / 200) * 100}%`;
     const sunTop = `${((pos.y - VB_Y) / VB_H) * 100}%`;
+    const moonTop = `${((72 - VB_Y) / VB_H) * 100}%`;
 
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
     const tapKey = sun ? "sun_entity" : azObj ? "azimuth_entity" : "elevation_entity";
-    const sunIcon = above ? "mdi:white-balance-sunny" : "mdi:weather-night";
 
     return html`
       <div
         class="sun-panel ${this._clickable(tapKey) ? "tappable" : ""}"
         @click=${() => this._handleClick(tapKey)}
       >
-        <div class="sun-scene">
-          <ha-icon class="sun-moon" .icon=${"mdi:moon-waning-crescent"}></ha-icon>
-
+        <div class="sun-scene ${isNight ? "night" : "day"}">
           <svg class="sun-svg" viewBox="0 30 200 50" xmlns="http://www.w3.org/2000/svg">
-            <path class="sun-arc" d=${SUN_PATH_D} fill="none" />
+            <line class="sun-horizon" x1="12" y1="68" x2="188" y2="68" />
+            <path class="sun-arc sun-arc-after" d=${afterD} fill="none" />
+            <path class="sun-arc sun-arc-before" d=${beforeD} fill="none" />
           </svg>
 
-          <ha-icon
-            class="sun-marker ${above ? "day" : "night"}"
-            style="left:${sunLeft};top:${sunTop}"
-            .icon=${sunIcon}
-          ></ha-icon>
+          ${isNight
+            ? html`<ha-icon
+                class="sun-marker night"
+                style="left:50%;top:${moonTop}"
+                .icon=${"mdi:weather-night"}
+              ></ha-icon>`
+            : html`<ha-icon
+                class="sun-marker day"
+                style="left:${sunLeft};top:${sunTop}"
+                .icon=${"mdi:white-balance-sunny"}
+              ></ha-icon>`}
 
           <div class="sun-center">
             <div class="sun-stat">
@@ -293,10 +331,20 @@ class WeatherStationCard extends LitElement {
     `;
   }
 
+  _todayMinMax() {
+    const minEnt = numericState(this._stateObj("temperature_min_entity"));
+    const maxEnt = numericState(this._stateObj("temperature_max_entity"));
+    const min = minEnt != null ? minEnt : this._tempStats ? this._tempStats.min : null;
+    const max = maxEnt != null ? maxEnt : this._tempStats ? this._tempStats.max : null;
+    if (min == null || max == null) return null;
+    return { min, max };
+  }
+
   _renderHero(condition, temp, tempUnit, humidity) {
     const s = this._config.settings || {};
     const dew = s.show_dewpoint ? calcDewPoint(temp, humidity) : null;
     const comfort = comfortKey(temp, humidity);
+    const minmax = s.show_minmax ? this._todayMinMax() : null;
     return html`
       <div
         class="hero ${this._clickable("temperature_entity") ? "tappable" : ""}"
@@ -310,6 +358,18 @@ class WeatherStationCard extends LitElement {
           <div class="hero-temp">
             ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
           </div>
+          ${minmax
+            ? html`<div class="hero-minmax">
+                <span class="mm mm-min">
+                  <ha-icon .icon=${"mdi:arrow-down-thin"}></ha-icon>
+                  ${round(minmax.min, 1)}°
+                </span>
+                <span class="mm mm-max">
+                  <ha-icon .icon=${"mdi:arrow-up-thin"}></ha-icon>
+                  ${round(minmax.max, 1)}°
+                </span>
+              </div>`
+            : nothing}
         </div>
         ${temp != null
           ? html`<div class="hero-sub">
@@ -381,14 +441,39 @@ class WeatherStationCard extends LitElement {
   }
 
   _renderRain(rainObj, rainOn, rainMm) {
-    if (!rainObj) return nothing;
+    const s = this._config.settings || {};
+    const todayObj = this._stateObj("rain_today_entity");
+    const today = s.show_rain_today ? numericState(todayObj) : null;
+    if (!rainObj && today == null) return nothing;
+
     const unitStr = unit(rainObj, "mm/h");
+    const todayUnit = unit(todayObj, "mm");
+    const rateSub = rainMm != null ? `${round(rainMm, 1)} ${unitStr}` : "";
+    const todayText =
+      today != null ? `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}` : "";
+
+    let sub;
+    if (rainObj && todayText) {
+      sub = html`<span>${rateSub || this._t("rain.today")}</span
+        ><span class="dot">·</span><span>${todayText}</span>`;
+    } else if (rainObj) {
+      sub = rateSub;
+    } else {
+      sub = todayText;
+    }
+
     return this._tile({
       icon: rainOn ? "mdi:weather-rainy" : "mdi:weather-partly-rainy",
       label: this._t("sections.rain"),
-      value: rainOn ? this._t("rain.detected") : this._t("rain.dry"),
-      sub: rainMm != null ? `${round(rainMm, 1)} ${unitStr}` : "",
-      key: "rain_entity",
+      value: rainObj
+        ? rainOn
+          ? this._t("rain.detected")
+          : this._t("rain.dry")
+        : today != null
+          ? `${round(today, 1)} ${todayUnit}`
+          : "—",
+      sub: rainObj ? sub : todayText && today != null ? this._t("rain.today") : sub,
+      key: rainObj ? "rain_entity" : "rain_today_entity",
       accent: rainOn ? "var(--info-color, #2196f3)" : undefined,
     });
   }
@@ -405,6 +490,7 @@ class WeatherStationCard extends LitElement {
     const gustObj = this._stateObj("wind_gust_entity");
     const gust = numericState(gustObj);
     const gustUnit = unit(gustObj, speedUnit);
+    const bft = s.show_beaufort ? beaufort(toMetersPerSecond(speed, speedUnit)) : null;
 
     return html`
       <div
@@ -419,6 +505,12 @@ class WeatherStationCard extends LitElement {
               ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
             </div>
             ${compass ? html`<div class="tile-sub">${compass}</div>` : nothing}
+            ${bft
+              ? html`<div class="tile-sub">
+                  ${this._t("wind.beaufort", { value: bft.n })}
+                  <span class="dot">·</span> ${this._t(`beaufort.${bft.key}`)}
+                </div>`
+              : nothing}
             ${s.show_wind_gust && gust != null
               ? html`<div class="tile-sub">
                   <ha-icon class="mini-icon" .icon=${"mdi:weather-windy-variant"}></ha-icon>
@@ -500,6 +592,79 @@ class WeatherStationCard extends LitElement {
     });
   }
 
+  _renderExpand(temp, tempUnit, humidity) {
+    const s = this._config.settings || {};
+    if (!s.show_expand) return nothing;
+
+    const rows = [];
+    const dew = calcDewPoint(temp, humidity);
+    if (dew != null)
+      rows.push({ label: this._t("sections.dewpoint"), value: `${round(dew, 1)} ${tempUnit}` });
+
+    const mm = this._todayMinMax();
+    if (mm) {
+      rows.push({ label: this._t("details.min_today"), value: `${round(mm.min, 1)} ${tempUnit}` });
+      rows.push({ label: this._t("details.max_today"), value: `${round(mm.max, 1)} ${tempUnit}` });
+    }
+
+    const todayObj = this._stateObj("rain_today_entity");
+    const rainToday = numericState(todayObj);
+    if (rainToday != null)
+      rows.push({
+        label: this._t("details.rain_today"),
+        value: `${round(rainToday, 1)} ${unit(todayObj, "mm")}`,
+      });
+
+    const speedObj = this._stateObj("wind_speed_entity");
+    const bft = beaufort(
+      toMetersPerSecond(numericState(speedObj), unit(speedObj, "m/s"))
+    );
+    if (bft)
+      rows.push({
+        label: this._t("details.beaufort"),
+        value: `${this._t("wind.beaufort", { value: bft.n })} · ${this._t(
+          `beaufort.${bft.key}`
+        )}`,
+      });
+
+    const gustObj = this._stateObj("wind_gust_entity");
+    const gust = numericState(gustObj);
+    if (gust != null)
+      rows.push({
+        label: this._t("details.wind_gust"),
+        value: `${round(gust, 0)} ${unit(gustObj, "m/s")}`,
+      });
+
+    const sunObj = this._stateObj("sun_entity");
+    if (sunObj) {
+      const rise = formatSunTime(this.hass, sunObj.attributes?.next_rising);
+      const set = formatSunTime(this.hass, sunObj.attributes?.next_setting);
+      if (rise) rows.push({ label: this._t("sun.sunrise"), value: rise });
+      if (set) rows.push({ label: this._t("sun.sunset"), value: set });
+    }
+
+    if (!rows.length) return nothing;
+
+    return html`
+      <button class="details-toggle" @click=${this._toggleExpanded}>
+        <span>${this._t(this._expanded ? "details.less" : "details.more")}</span>
+        <ha-icon
+          .icon=${this._expanded ? "mdi:chevron-up" : "mdi:chevron-down"}
+        ></ha-icon>
+      </button>
+      ${this._expanded
+        ? html`<div class="details">
+            ${rows.map(
+              (r) => html`<div class="detail">
+                <span class="detail-label">${r.label}</span>
+                <span class="detail-value">${r.value}</span>
+              </div>`
+            )}
+          </div>`
+        : nothing}
+    `;
+  }
+
   static get styles() {
     return css`
       :host {
@@ -567,6 +732,31 @@ class WeatherStationCard extends LitElement {
       .hero-sub .muted {
         opacity: 0.8;
       }
+      .hero-minmax {
+        display: flex;
+        gap: 10px;
+        margin-top: 2px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .hero-minmax .mm {
+        display: inline-flex;
+        align-items: center;
+        gap: 1px;
+      }
+      .hero-minmax .mm ha-icon {
+        --mdc-icon-size: 15px;
+      }
+      .hero-minmax .mm-min {
+        color: var(--info-color, #2196f3);
+      }
+      .hero-minmax .mm-max {
+        color: var(--warning-color, #ff9800);
+      }
+      .dot {
+        margin: 0 3px;
+        opacity: 0.6;
+      }
 
       /* Sun path panel — matches the hero box (card bg + subtle border) */
       .sun-panel {
@@ -590,22 +780,30 @@ class WeatherStationCard extends LitElement {
         overflow: visible;
       }
       .sun-arc {
-        stroke: #e09a4a;
-        stroke-width: 2.4;
-        stroke-dasharray: 5 6;
+        stroke: #e8961e;
+        fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
-        fill: none;
-        opacity: 0.95;
       }
-      .sun-moon {
-        position: absolute;
-        top: -2px;
-        right: 2%;
-        --mdc-icon-size: 14px;
-        color: var(--primary-text-color);
-        opacity: 0.5;
-        z-index: 1;
+      /* Path already travelled by the sun: thick, solid. */
+      .sun-arc-before {
+        stroke-width: 3.4;
+        opacity: 1;
+      }
+      /* Path still to come: thin, dashed, softer. */
+      .sun-arc-after {
+        stroke-width: 1.6;
+        stroke-dasharray: 4 6;
+        opacity: 0.6;
+      }
+      .sun-scene.night .sun-arc-after {
+        opacity: 0.35;
+      }
+      .sun-horizon {
+        stroke: var(--divider-color, rgba(0, 0, 0, 0.12));
+        stroke-width: 1;
+        stroke-dasharray: 2 4;
+        stroke-linecap: round;
       }
       .sun-marker {
         position: absolute;
@@ -618,8 +816,8 @@ class WeatherStationCard extends LitElement {
         transition: left 0.6s ease, top 0.6s ease;
       }
       .sun-marker.night {
-        color: var(--disabled-text-color, #b0b0b0);
-        filter: none;
+        color: #cfd8e3;
+        filter: drop-shadow(0 0 5px rgba(207, 216, 227, 0.45));
         --mdc-icon-size: 22px;
       }
       .sun-center {
@@ -660,6 +858,57 @@ class WeatherStationCard extends LitElement {
       }
       .sun-edge-set {
         right: 2%;
+      }
+
+      .details-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 100%;
+        padding: 6px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+        border-radius: 10px;
+      }
+      .details-toggle:hover {
+        background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+        color: var(--primary-text-color);
+      }
+      .details-toggle ha-icon {
+        --mdc-icon-size: 18px;
+      }
+      .details {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 16px;
+        padding: 4px 6px 6px;
+      }
+      @container wsc (max-width: 320px) {
+        .details {
+          grid-template-columns: 1fr;
+        }
+      }
+      .detail {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.85rem;
+        padding: 3px 0;
+        border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.06));
+      }
+      .detail-label {
+        color: var(--secondary-text-color);
+      }
+      .detail-value {
+        color: var(--primary-text-color);
+        font-weight: 500;
+        text-align: right;
       }
 
       .grid {

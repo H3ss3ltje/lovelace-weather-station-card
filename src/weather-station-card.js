@@ -23,6 +23,7 @@ import {
   unit,
   formatSunTime,
   sunDiagramPosition,
+  SUN_PATH_D,
 } from "./utils.js";
 import { localize } from "./localize/localize.js";
 
@@ -250,11 +251,7 @@ class WeatherStationCard extends LitElement {
           <ha-icon class="sun-moon" .icon=${"mdi:moon-waning-crescent"}></ha-icon>
 
           <svg class="sun-svg" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
-            <path
-              class="sun-arc"
-              d="M 4 72 A 96 24 0 0 1 196 72"
-              fill="none"
-            />
+            <path class="sun-arc" d=${SUN_PATH_D} fill="none" />
           </svg>
 
           <ha-icon
@@ -592,6 +589,7 @@ class WeatherStationCard extends LitElement {
         stroke-width: 2.2;
         stroke-dasharray: 5 6;
         stroke-linecap: round;
+        stroke-linejoin: round;
         opacity: 0.95;
       }
       .sun-moon {

@@ -1044,9 +1044,6 @@ class WeatherStationCard extends LitElement {
         .grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
-        .wind {
-          grid-column: span 2;
-        }
       }
       /* Fallback when container queries are unavailable */
       @supports not (container-type: inline-size) {
@@ -1058,9 +1055,6 @@ class WeatherStationCard extends LitElement {
         @media (min-width: 520px) {
           .grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-          .wind {
-            grid-column: span 2;
           }
         }
         @media (max-width: 400px) {

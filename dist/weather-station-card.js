@@ -531,9 +531,6 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         .grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
-        .wind {
-          grid-column: span 2;
-        }
       }
       /* Fallback when container queries are unavailable */
       @supports not (container-type: inline-size) {
@@ -545,9 +542,6 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         @media (min-width: 520px) {
           .grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-          .wind {
-            grid-column: span 2;
           }
         }
         @media (max-width: 400px) {
@@ -664,4 +658,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(gt)||customElements.define(gt,Yt),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===gt)||window.customCards.push({type:gt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.4.1 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Yt as WeatherStationCard};
+    `}}customElements.get(gt)||customElements.define(gt,Yt),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===gt)||window.customCards.push({type:gt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.4.2 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Yt as WeatherStationCard};

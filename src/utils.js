@@ -188,19 +188,20 @@ export const SUN_PATH_D =
 
 /** Below-horizon night tails (blue): before sunrise and after sunset. */
 export const SUN_TAIL_LEFT = [
-  { x: 4, y: 80 },
-  { x: 13, y: 73 },
-  { x: 21, y: 66 },
+  { x: 3, y: 78 },
+  { x: 14, y: 78 },
+  { x: 24, y: 66 },
   { x: 30, y: 60 },
 ];
 export const SUN_TAIL_RIGHT = [
   { x: 170, y: 60 },
-  { x: 179, y: 66 },
-  { x: 187, y: 73 },
-  { x: 196, y: 80 },
+  { x: 176, y: 66 },
+  { x: 186, y: 78 },
+  { x: 197, y: 78 },
 ];
-export const SUN_TAIL_LEFT_D = "M 4 80 C 13 73, 21 66, 30 60";
-export const SUN_TAIL_RIGHT_D = "M 170 60 C 179 66, 187 73, 196 80";
+export const SUN_TAIL_LEFT_D = "M 3 78 C 14 78, 24 66, 30 60";
+export const SUN_TAIL_RIGHT_D = "M 170 60 C 176 66, 186 78, 197 78";
+export const SUN_TAIL_END_Y = 78;
 
 /** Horizon baseline Y and where the arch crosses it (sunrise / sunset). */
 export const SUN_BASELINE_Y = 60;
@@ -362,7 +363,7 @@ export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
     // Ride the blue tail below the horizon; deeper for more negative
     // elevation. -12° reaches the far end of the tail.
     const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
-    const targetY = SUN_BASELINE_Y + depthFrac * (80 - SUN_BASELINE_Y);
+    const targetY = SUN_BASELINE_Y + depthFrac * (SUN_TAIL_END_Y - SUN_BASELINE_Y);
     const tail = rising ? SUN_TAIL_LEFT : SUN_TAIL_RIGHT;
     const { p, u } = pointOnHalfByY(tail, targetY);
     // Segment 0 = left tail (curve start), segment 3 = right tail (curve end).

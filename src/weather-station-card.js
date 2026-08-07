@@ -303,7 +303,7 @@ class WeatherStationCard extends LitElement {
             ${dots.map((d) => {
               const past = d.g <= pos.g;
               const cls = `dot ${d.above ? "day" : "night"} ${past ? "past" : "future"}`;
-              const r = d.above ? (past ? 2.2 : 1.5) : past ? 1.9 : 1.3;
+              const r = d.above ? (past ? 1.6 : 1.3) : past ? 1.5 : 1.2;
               return svg`<circle class=${cls} cx=${d.x} cy=${d.y} r=${r} />`;
             })}
           </svg>
@@ -862,16 +862,17 @@ class WeatherStationCard extends LitElement {
         color: var(--secondary-text-color);
         line-height: 1.1;
       }
-      /* Times sit under the horizon crossings (sunrise / sunset). */
+      /* Times sit just below the horizon line, at the sunrise / sunset
+         crossings (where the sun/moon transitions). */
       .sun-edge {
         position: absolute;
-        bottom: 2px;
-        transform: translateX(-50%);
-        font-size: 0.75rem;
+        top: 75%;
+        transform: translate(-50%, 0);
+        font-size: 0.72rem;
         font-weight: 500;
         color: var(--secondary-text-color);
         white-space: nowrap;
-        z-index: 1;
+        z-index: 3;
       }
 
       .details-toggle {

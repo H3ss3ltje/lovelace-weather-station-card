@@ -132,3 +132,48 @@ export function round(value, decimals = 1) {
 export function unit(stateObj, fallback = "") {
   return (stateObj && stateObj.attributes && stateObj.attributes.unit_of_measurement) || fallback;
 }
+
+/**
+ * Format an ISO timestamp as a short localized time (sunrise / sunset).
+ */
+export function formatSunTime(hass, iso) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const lang =
+    hass?.locale?.language || hass?.language || hass?.selectedLanguage || undefined;
+  return date.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
+}
+
+/**
+ * Place the sun on a semicircle arc for the diagram.
+ * East (az 90°) → left, South (180°) → top, West (270°) → right.
+ * Returns SVG coordinates in a 200×110 viewBox.
+ */
+export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
+  const cx = 100;
+  const cy = 88;
+  const r = 72;
+
+  let az = Number(azimuth);
+  if (!Number.isFinite(az)) az = aboveHorizon ? 180 : 0;
+  az = ((az % 360) + 360) % 360;
+
+  // Map azimuth onto the day arc (east→west).
+  let arcDeg = 180 - (az - 90); // 90→180, 180→90, 270→0
+
+  const elev = Number(elevation);
+  if (!aboveHorizon || (Number.isFinite(elev) && elev < 0)) {
+    // Tuck the sun slightly under the horizon on the correct side.
+    arcDeg = az < 180 ? 195 : -15;
+  } else {
+    arcDeg = Math.max(0, Math.min(180, arcDeg));
+  }
+
+  const rad = (arcDeg * Math.PI) / 180;
+  return {
+    x: cx + r * Math.cos(rad),
+    y: cy - r * Math.sin(rad),
+    arcDeg,
+  };
+}

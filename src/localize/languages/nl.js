@@ -30,6 +30,12 @@ export default {
     pressure: "Luchtdruk",
     battery: "Batterij",
   },
+  sun: {
+    sunrise: "Zonsopkomst",
+    sunset: "Zonsondergang",
+    azimuth: "Azimut",
+    elevation: "Elevatie",
+  },
   rain: {
     detected: "Regen gedetecteerd",
     dry: "Droog",
@@ -81,6 +87,7 @@ export default {
     battery_entity: "Batterij",
     sun_entity: "Zon (dag/nacht)",
     show_daynight: "Dag / nacht modus",
+    show_sun: "Zonsopkomst / zonsondergang diagram",
     show_dewpoint: "Dauwpunt",
     show_wind_gust: "Windstoot",
     show_battery: "Batterij",

@@ -30,6 +30,12 @@ export default {
     pressure: "Luftdruck",
     battery: "Batterie",
   },
+  sun: {
+    sunrise: "Sonnenaufgang",
+    sunset: "Sonnenuntergang",
+    azimuth: "Azimut",
+    elevation: "Höhe",
+  },
   rain: {
     detected: "Regen erkannt",
     dry: "Trocken",
@@ -81,6 +87,7 @@ export default {
     battery_entity: "Batterie",
     sun_entity: "Sonne (Tag/Nacht)",
     show_daynight: "Tag-/Nachtmodus",
+    show_sun: "Sonnenauf-/untergang Diagramm",
     show_dewpoint: "Taupunkt",
     show_wind_gust: "Windböe",
     show_battery: "Batterie",

@@ -15,12 +15,12 @@ sun_entity: sun.sun
 
 settings:
   show_dewpoint: true
-  show_pressure_trend: true
-  pressure_trend_threshold: 0.5
+  show_pressure_trend: false
   show_battery: true
   show_wind_gust: true
   show_interactions: true
   show_daynight: true
+  show_sun: true
 
 # Optional per-section tap / hold / double-tap actions.
 # Any Home Assistant action is supported: more-info, navigate, url,

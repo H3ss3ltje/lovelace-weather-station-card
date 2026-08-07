@@ -30,6 +30,12 @@ export default {
     pressure: "Pressure",
     battery: "Battery",
   },
+  sun: {
+    sunrise: "Sunrise",
+    sunset: "Sunset",
+    azimuth: "Azimuth",
+    elevation: "Elevation",
+  },
   rain: {
     detected: "Rain detected",
     dry: "Dry",
@@ -81,6 +87,7 @@ export default {
     battery_entity: "Battery",
     sun_entity: "Sun (day/night)",
     show_daynight: "Day / night mode",
+    show_sun: "Sunrise / sunset diagram",
     show_dewpoint: "Dew point",
     show_wind_gust: "Wind gust",
     show_battery: "Battery",

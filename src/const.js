@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.1.0";
+export const CARD_VERSION = "1.2.0";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -32,6 +32,7 @@ export const DEFAULT_SETTINGS = {
   show_wind_gust: true,
   show_interactions: true,
   show_daynight: true,
+  show_sun: true,
   pressure_trend_threshold: 1, // percent change to flag rising/falling
   manual_condition: "", // used when no sun entity + user wants a fixed icon
 };

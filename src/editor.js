@@ -65,6 +65,7 @@ class WeatherStationCardEditor extends LitElement {
             type: "grid",
             schema: [
               { name: "show_daynight", selector: { boolean: {} } },
+              { name: "show_sun", selector: { boolean: {} } },
               { name: "show_dewpoint", selector: { boolean: {} } },
               { name: "show_wind_gust", selector: { boolean: {} } },
               { name: "show_battery", selector: { boolean: {} } },

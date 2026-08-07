@@ -146,71 +146,47 @@ export function formatSunTime(hass, iso) {
 }
 
 /**
- * Point on a cubic Bezier at t ∈ [0, 1].
- */
-function cubicPoint(p0, p1, p2, p3, t) {
-  const u = 1 - t;
-  const tt = t * t;
-  const uu = u * u;
-  return {
-    x: uu * u * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + tt * t * p3.x,
-    y: uu * u * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + tt * t * p3.y,
-  };
-}
-
-/**
- * Smooth sun-path geometry (two cubics, horizontal tangents at sunrise/sunset).
- * viewBox: 200×90
+ * Flat semi-ellipse sun path (wide, low arch on a baseline).
+ * viewBox: 200×90 — ratio ~4.5:1 so the peak stays modest.
  */
 export const SUN_PATH = {
-  // Left: sunrise → zenith
-  left: [
-    { x: 8, y: 74 },
-    { x: 52, y: 74 },
-    { x: 68, y: 46 },
-    { x: 100, y: 46 },
-  ],
-  // Right: zenith → sunset
-  right: [
-    { x: 100, y: 46 },
-    { x: 132, y: 46 },
-    { x: 148, y: 74 },
-    { x: 192, y: 74 },
-  ],
+  cx: 100,
+  cy: 70,
+  rx: 92,
+  ry: 20,
 };
 
-/** SVG path `d` matching SUN_PATH. */
-export const SUN_PATH_D =
-  "M 8 74 C 52 74, 68 46, 100 46 C 132 46, 148 74, 192 74";
+/** SVG stroke path — upper half of the ellipse. */
+export const SUN_PATH_D = "M 8 70 A 92 20 0 0 1 192 70";
+
+/** Closed path for a soft fill under the arc. */
+export const SUN_PATH_FILL_D = "M 8 70 A 92 20 0 0 1 192 70 Z";
 
 /**
- * Place the sun on the smooth path.
+ * Place the sun on the flat elliptical arc.
  * East (az 90°) → left, South (180°) → top, West (270°) → right.
  */
 export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
+  const { cx, cy, rx, ry } = SUN_PATH;
+
   let az = Number(azimuth);
   if (!Number.isFinite(az)) az = aboveHorizon ? 180 : 0;
   az = ((az % 360) + 360) % 360;
 
-  // 0 at east/sunrise, 1 at west/sunset
-  let t = ((az - 90 + 360) % 360) / 180;
-  if (t > 1) t = az < 180 ? 0 : 1;
+  // Angle on the ellipse: π at east/left → 0 at west/right
+  let arcDeg = 180 - (az - 90);
 
   const elev = Number(elevation);
   if (!aboveHorizon || (Number.isFinite(elev) && elev < 0)) {
-    // Slightly past the arc ends, under the horizon line.
-    const side = az < 180 ? SUN_PATH.left[0] : SUN_PATH.right[3];
-    return { x: side.x, y: side.y + 10, arcDeg: 0 };
+    const x = az < 180 ? cx - rx : cx + rx;
+    return { x, y: cy + 8, arcDeg: az < 180 ? 180 : 0 };
   }
 
-  t = Math.max(0.02, Math.min(0.98, t));
-
-  if (t <= 0.5) {
-    const u = t * 2;
-    const [p0, p1, p2, p3] = SUN_PATH.left;
-    return { ...cubicPoint(p0, p1, p2, p3, u), arcDeg: (1 - t) * 180 };
-  }
-  const u = (t - 0.5) * 2;
-  const [p0, p1, p2, p3] = SUN_PATH.right;
-  return { ...cubicPoint(p0, p1, p2, p3, u), arcDeg: (1 - t) * 180 };
+  arcDeg = Math.max(6, Math.min(174, arcDeg));
+  const rad = (arcDeg * Math.PI) / 180;
+  return {
+    x: cx + rx * Math.cos(rad),
+    y: cy - ry * Math.sin(rad),
+    arcDeg,
+  };
 }

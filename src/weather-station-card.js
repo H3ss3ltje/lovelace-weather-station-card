@@ -67,6 +67,7 @@ class WeatherStationCard extends LitElement {
     };
     this._pressureHistory = this._pressureHistory || [];
     this._tempStats = this._tempStats || null;
+    this._tempHistoryKey = undefined;
   }
 
   _normalizeTileOrder(order) {
@@ -95,16 +96,128 @@ class WeatherStationCard extends LitElement {
     return localize(this.hass, key, replace);
   }
 
-  // Track today's min/max in memory (reset at local midnight). Used only when
-  // dedicated min/max entities are not configured.
+  _hasDedicatedMinMax() {
+    return !!(
+      this._config?.temperature_min_entity || this._config?.temperature_max_entity
+    );
+  }
+
+  _tempStorageKey() {
+    const entity = this._config?.temperature_entity;
+    return entity ? `wsc-temp-stats:${entity}` : null;
+  }
+
+  _readStoredTempStats() {
+    const key = this._tempStorageKey();
+    if (!key) return null;
+    try {
+      const raw = window.localStorage?.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.day !== new Date().toDateString()) return null;
+      if (!Number.isFinite(parsed.min) || !Number.isFinite(parsed.max)) return null;
+      return { day: parsed.day, min: parsed.min, max: parsed.max };
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  _writeStoredTempStats() {
+    const key = this._tempStorageKey();
+    if (!key || !this._tempStats) return;
+    try {
+      window.localStorage?.setItem(key, JSON.stringify(this._tempStats));
+    } catch (_e) {
+      /* ignore quota / private mode */
+    }
+  }
+
+  // Track today's min/max (local midnight reset). Used when dedicated
+  // min/max entities are not configured. Survives refresh via localStorage
+  // + Home Assistant history for the current day.
   _recordTemp(temp) {
-    if (temp == null) return;
+    if (temp == null || this._hasDedicatedMinMax()) return;
+    if (!(this._config.settings || {}).show_minmax) return;
+
     const day = new Date().toDateString();
     if (!this._tempStats || this._tempStats.day !== day) {
-      this._tempStats = { day, min: temp, max: temp };
+      const stored = this._readStoredTempStats();
+      this._tempStats =
+        stored && stored.day === day
+          ? {
+              day,
+              min: Math.min(stored.min, temp),
+              max: Math.max(stored.max, temp),
+            }
+          : { day, min: temp, max: temp };
+      this._tempHistoryKey = undefined;
     } else {
       this._tempStats.min = Math.min(this._tempStats.min, temp);
       this._tempStats.max = Math.max(this._tempStats.max, temp);
+    }
+    this._writeStoredTempStats();
+    this._ensureTempHistory();
+  }
+
+  async _ensureTempHistory() {
+    if (this._hasDedicatedMinMax()) return;
+    if (!(this._config.settings || {}).show_minmax) return;
+
+    const entity = this._config?.temperature_entity;
+    if (!entity || !this.hass?.callWS) return;
+
+    const day = new Date().toDateString();
+    const fetchKey = `${entity}|${day}`;
+    if (this._tempHistoryKey === fetchKey) return;
+    this._tempHistoryKey = fetchKey;
+
+    try {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      const hist = await this.hass.callWS({
+        type: "history/history_during_period",
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        entity_ids: [entity],
+        minimal_response: true,
+        no_attributes: true,
+        significant_changes_only: false,
+      });
+
+      const states = hist?.[entity] || [];
+      let min = Infinity;
+      let max = -Infinity;
+      for (const st of states) {
+        const v = Number.parseFloat(st.s ?? st.state);
+        if (Number.isFinite(v)) {
+          min = Math.min(min, v);
+          max = Math.max(max, v);
+        }
+      }
+
+      const current = numericState(this._stateObj("temperature_entity"));
+      if (current != null) {
+        min = Math.min(min, current);
+        max = Math.max(max, current);
+      }
+
+      if (!Number.isFinite(min) || !Number.isFinite(max)) return;
+
+      if (!this._tempStats || this._tempStats.day !== day) {
+        this._tempStats = { day, min, max };
+      } else {
+        this._tempStats = {
+          day,
+          min: Math.min(this._tempStats.min, min),
+          max: Math.max(this._tempStats.max, max),
+        };
+      }
+      this._writeStoredTempStats();
+      this.requestUpdate();
+    } catch (_e) {
+      // History may be unavailable; keep localStorage / live tracking.
+      this._tempHistoryKey = undefined;
     }
   }
 

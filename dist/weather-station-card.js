@@ -39,7 +39,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           </div>
         </div>
       </ha-card>
-    `}_renderSun(){if(!(this._config.settings||{}).show_sun)return V;const t=this._stateObj("sun_entity"),e=this._stateObj("azimuth_entity"),i=this._stateObj("elevation_entity"),n=this._stateObj("uv_entity");if(!t&&!e&&!i)return V;const s=t&&t.attributes||{},r=!t||"above_horizon"===t.state,o=wt(i)??Number(s.elevation),a=wt(e)??Number(s.azimuth),l=wt(n),c=Et(this.hass,s.next_rising),d=Et(this.hass,s.next_setting),h=function(t,e,i){let n=Number(t);Number.isFinite(n)||(n=i?180:0),n=(n%360+360)%360;let s=180-(n-90);const r=Number(e);s=!i||Number.isFinite(r)&&r<0?n<180?198:-18:Math.max(8,Math.min(172,s));const o=s*Math.PI/180;return{x:100+78*Math.cos(o),y:96-78*Math.sin(o),arcDeg:s}}(a,o,r),u=h.x/200*100+"%",_=h.y/120*100+"%",p=Number.isFinite(o)?`${St(o,1)}°`:"—",m=Number.isFinite(a)?`${St(a,0)}°`:"—",g=t?"sun_entity":e?"azimuth_entity":"elevation_entity",y=r?"mdi:white-balance-sunny":"mdi:weather-night";return B`
+    `}_renderSun(){if(!(this._config.settings||{}).show_sun)return V;const t=this._stateObj("sun_entity"),e=this._stateObj("azimuth_entity"),i=this._stateObj("elevation_entity"),n=this._stateObj("uv_entity");if(!t&&!e&&!i)return V;const s=t&&t.attributes||{},r=!t||"above_horizon"===t.state,o=wt(i)??Number(s.elevation),a=wt(e)??Number(s.azimuth),l=wt(n),c=Et(this.hass,s.next_rising),d=Et(this.hass,s.next_setting),h=function(t,e,i){let n=Number(t);Number.isFinite(n)||(n=i?180:0),n=(n%360+360)%360;let s=180-(n-90);const r=Number(e);s=!i||Number.isFinite(r)&&r<0?n<180?198:-18:Math.max(8,Math.min(172,s));const o=s*Math.PI/180;return{x:100+92*Math.cos(o),y:102-40*Math.sin(o),arcDeg:s}}(a,o,r),u=h.x/200*100+"%",_=h.y/120*100+"%",p=Number.isFinite(o)?`${St(o,1)}°`:"—",m=Number.isFinite(a)?`${St(a,0)}°`:"—",g=t?"sun_entity":e?"azimuth_entity":"elevation_entity",y=r?"mdi:white-balance-sunny":"mdi:weather-night";return B`
       <div
         class="sun-panel ${this._clickable(g)?"tappable":""}"
         @click=${()=>this._handleClick(g)}
@@ -50,7 +50,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           <svg class="sun-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
             <path
               class="sun-arc"
-              d="M 22 96 A 78 78 0 0 1 178 96"
+              d="M 8 102 A 92 40 0 0 1 192 102"
               fill="none"
             />
           </svg>
@@ -273,7 +273,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 52%;
+        top: 58%;
         transform: translate(-50%, -40%);
         display: flex;
         flex-direction: column;
@@ -450,4 +450,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(pt)||customElements.define(pt,Mt),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===pt)||window.customCards.push({type:pt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.2.2 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Mt as WeatherStationCard};
+    `}}customElements.get(pt)||customElements.define(pt,Mt),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===pt)||window.customCards.push({type:pt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.2.3 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{Mt as WeatherStationCard};

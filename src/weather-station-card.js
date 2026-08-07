@@ -252,7 +252,7 @@ class WeatherStationCard extends LitElement {
           <svg class="sun-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
             <path
               class="sun-arc"
-              d="M 22 96 A 78 78 0 0 1 178 96"
+              d="M 8 102 A 92 40 0 0 1 192 102"
               fill="none"
             />
           </svg>
@@ -621,7 +621,7 @@ class WeatherStationCard extends LitElement {
       .sun-center {
         position: absolute;
         left: 50%;
-        top: 52%;
+        top: 58%;
         transform: translate(-50%, -40%);
         display: flex;
         flex-direction: column;

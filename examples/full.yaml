@@ -12,6 +12,9 @@ wind_gust_entity: sensor.wind_gust
 pressure_entity: sensor.pressure
 battery_entity: sensor.battery
 sun_entity: sun.sun
+# Optional — only if you don't use sun.sun attributes:
+# azimuth_entity: sensor.sun_azimuth
+# elevation_entity: sensor.sun_elevation
 
 settings:
   show_dewpoint: true

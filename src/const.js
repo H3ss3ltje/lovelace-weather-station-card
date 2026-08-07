@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.2.0";
+export const CARD_VERSION = "1.2.1";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -18,6 +18,8 @@ export const ENTITY_FIELDS = [
   { key: "pressure_entity", icon: "mdi:gauge" },
   { key: "battery_entity", icon: "mdi:battery-high" },
   { key: "sun_entity", icon: "mdi:weather-sunny" },
+  { key: "azimuth_entity", icon: "mdi:compass-outline" },
+  { key: "elevation_entity", icon: "mdi:angle-acute" },
 ];
 
 /**

@@ -52,6 +52,14 @@ class WeatherStationCardEditor extends LitElement {
           { name: "pressure_entity", selector: { entity: {} } },
           { name: "battery_entity", selector: { entity: {} } },
           { name: "sun_entity", selector: { entity: { domain: "sun" } } },
+          {
+            name: "",
+            type: "grid",
+            schema: [
+              { name: "azimuth_entity", selector: { entity: {} } },
+              { name: "elevation_entity", selector: { entity: {} } },
+            ],
+          },
         ],
       },
       {

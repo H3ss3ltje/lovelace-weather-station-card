@@ -214,23 +214,30 @@ class WeatherStationCard extends LitElement {
   _renderSun() {
     const s = this._config.settings || {};
     if (!s.show_sun) return nothing;
-    const sun = this._stateObj("sun_entity");
-    if (!sun) return nothing;
 
-    const attrs = sun.attributes || {};
-    const above = sun.state === "above_horizon";
-    const elevation = Number(attrs.elevation);
-    const azimuth = Number(attrs.azimuth);
+    const sun = this._stateObj("sun_entity");
+    const azObj = this._stateObj("azimuth_entity");
+    const elObj = this._stateObj("elevation_entity");
+
+    // Need at least the sun entity (for times + diagram) or az/el sensors.
+    if (!sun && !azObj && !elObj) return nothing;
+
+    const attrs = (sun && sun.attributes) || {};
+    const above = sun ? sun.state === "above_horizon" : true;
+
+    const elevation = numericState(elObj) ?? Number(attrs.elevation);
+    const azimuth = numericState(azObj) ?? Number(attrs.azimuth);
     const sunrise = formatSunTime(this.hass, attrs.next_rising);
     const sunset = formatSunTime(this.hass, attrs.next_setting);
     const pos = sunDiagramPosition(azimuth, elevation, above);
     const elevLabel = Number.isFinite(elevation) ? `${round(elevation, 1)}°` : "—";
     const azLabel = Number.isFinite(azimuth) ? `${round(azimuth, 0)}°` : "—";
+    const tapKey = sun ? "sun_entity" : azObj ? "azimuth_entity" : "elevation_entity";
 
     return html`
       <div
-        class="sun-panel ${this._clickable("sun_entity") ? "tappable" : ""}"
-        @click=${() => this._handleClick("sun_entity")}
+        class="sun-panel ${this._clickable(tapKey) ? "tappable" : ""}"
+        @click=${() => this._handleClick(tapKey)}
       >
         <div class="sun-diagram" aria-hidden="true">
           <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
@@ -249,22 +256,26 @@ class WeatherStationCard extends LitElement {
           </svg>
         </div>
 
-        <div class="sun-times">
-          <div class="sun-time">
-            <ha-icon .icon=${"mdi:weather-sunset-up"}></ha-icon>
-            <div>
-              <div class="sun-time-label">${this._t("sun.sunrise")}</div>
-              <div class="sun-time-value">${sunrise || "—"}</div>
-            </div>
-          </div>
-          <div class="sun-time">
-            <ha-icon .icon=${"mdi:weather-sunset-down"}></ha-icon>
-            <div>
-              <div class="sun-time-label">${this._t("sun.sunset")}</div>
-              <div class="sun-time-value">${sunset || "—"}</div>
-            </div>
-          </div>
-        </div>
+        ${sun
+          ? html`
+              <div class="sun-times">
+                <div class="sun-time">
+                  <ha-icon .icon=${"mdi:weather-sunset-up"}></ha-icon>
+                  <div>
+                    <div class="sun-time-label">${this._t("sun.sunrise")}</div>
+                    <div class="sun-time-value">${sunrise || "—"}</div>
+                  </div>
+                </div>
+                <div class="sun-time">
+                  <ha-icon .icon=${"mdi:weather-sunset-down"}></ha-icon>
+                  <div>
+                    <div class="sun-time-label">${this._t("sun.sunset")}</div>
+                    <div class="sun-time-value">${sunset || "—"}</div>
+                  </div>
+                </div>
+              </div>
+            `
+          : nothing}
 
         <div class="sun-meta">
           <div class="sun-meta-item">
@@ -492,15 +503,19 @@ class WeatherStationCard extends LitElement {
       :host {
         --wsc-radius: 18px;
         --wsc-gap: 10px;
+        container-type: inline-size;
+        container-name: wsc;
+        display: block;
       }
       ha-card {
         overflow: hidden;
       }
       .wsc {
-        padding: 16px;
+        padding: 14px;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 12px;
+        min-width: 0;
       }
       .title {
         font-size: 1.1rem;
@@ -645,24 +660,47 @@ class WeatherStationCard extends LitElement {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--wsc-gap);
+        min-width: 0;
       }
-      @media (min-width: 500px) {
+      /* Card-width breakpoints (not viewport) so narrow phone columns stay readable */
+      @container wsc (max-width: 320px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @container wsc (min-width: 480px) {
         .grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      /* Fallback when container queries are unavailable */
+      @supports not (container-type: inline-size) {
+        @media (max-width: 360px) {
+          .grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        @media (min-width: 520px) {
+          .grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
         }
       }
 
       .tile {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
+        gap: 10px;
+        padding: 12px;
         border-radius: var(--wsc-radius);
         background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
         min-height: 56px;
+        min-width: 0;
+        overflow: hidden;
+        box-sizing: border-box;
       }
       .tile-icon {
-        --mdc-icon-size: 26px;
+        --mdc-icon-size: 24px;
         color: var(--tile-accent, var(--state-icon-color, var(--primary-color)));
         flex: 0 0 auto;
       }
@@ -670,18 +708,25 @@ class WeatherStationCard extends LitElement {
         display: flex;
         flex-direction: column;
         min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
       }
       .tile-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.03em;
         color: var(--secondary-text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .tile-value {
         font-size: 1.05rem;
         font-weight: 600;
         color: var(--primary-text-color);
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .tile-sub {
         font-size: 0.8rem;
@@ -689,6 +734,9 @@ class WeatherStationCard extends LitElement {
         display: flex;
         align-items: center;
         gap: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .mini-icon {
         --mdc-icon-size: 15px;
@@ -696,12 +744,20 @@ class WeatherStationCard extends LitElement {
 
       .wind {
         justify-content: space-between;
+        grid-column: span 1;
+      }
+      @container wsc (min-width: 480px) {
+        .wind:has(.compass) {
+          grid-column: span 2;
+        }
       }
       .wind-info {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
       }
       .compass {
         position: relative;

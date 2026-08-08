@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.5.2";
+export const CARD_VERSION = "1.6.0";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -73,8 +73,8 @@ export const UV_LEVELS = [
 
 /** Lux bands — `labelKey` is looked up under `lux.*` in translations. */
 export const LUX_LEVELS = [
-  { max: 100, labelKey: "dark", icon: "mdi:brightness-2" },
-  { max: 1000, labelKey: "low_light", icon: "mdi:brightness-5" },
-  { max: 10000, labelKey: "bright", icon: "mdi:brightness-6" },
-  { max: Infinity, labelKey: "very_bright", icon: "mdi:brightness-7" },
+  { max: 100, labelKey: "dark", icon: "lux_dark" },
+  { max: 1000, labelKey: "low_light", icon: "lux_low" },
+  { max: 10000, labelKey: "bright", icon: "lux_bright" },
+  { max: Infinity, labelKey: "very_bright", icon: "lux_very_bright" },
 ];

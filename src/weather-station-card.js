@@ -31,6 +31,7 @@ import {
   SUN_CROSS_RIGHT_X,
 } from "./utils.js";
 import { localize } from "./localize/localize.js";
+import { wscIcon } from "./icons.js";
 
 import "./editor.js";
 
@@ -269,13 +270,13 @@ class WeatherStationCard extends LitElement {
   _pressureTrend(value) {
     const threshold = Number(this._config.settings.pressure_trend_threshold) || 1;
     if (this._pressureHistory.length < 2 || value == null) {
-      return { icon: "mdi:trending-neutral", labelKey: "steady" };
+      return { icon: "trend_steady", labelKey: "steady" };
     }
     const oldest = this._pressureHistory[0].v;
     const pct = ((value - oldest) / oldest) * 100;
-    if (pct >= threshold) return { icon: "mdi:arrow-up", labelKey: "rising" };
-    if (pct <= -threshold) return { icon: "mdi:arrow-down", labelKey: "falling" };
-    return { icon: "mdi:trending-neutral", labelKey: "steady" };
+    if (pct >= threshold) return { icon: "trend_up", labelKey: "rising" };
+    if (pct <= -threshold) return { icon: "trend_down", labelKey: "falling" };
+    return { icon: "trend_steady", labelKey: "steady" };
   }
 
   _actionConfig(key) {
@@ -321,10 +322,10 @@ class WeatherStationCard extends LitElement {
     let condition;
     if (!s.show_daynight && this._config.settings.manual_condition) {
       const map = {
-        sunny: { icon: "mdi:weather-sunny", labelKey: "clear_sky" },
-        cloudy: { icon: "mdi:weather-cloudy", labelKey: "cloudy" },
-        rainy: { icon: "mdi:weather-rainy", labelKey: "rain" },
-        night: { icon: "mdi:weather-night", labelKey: "clear_night" },
+        sunny: { icon: "sunny", labelKey: "clear_sky" },
+        cloudy: { icon: "cloudy", labelKey: "cloudy" },
+        rainy: { icon: "rainy", labelKey: "rain" },
+        night: { icon: "night", labelKey: "clear_night" },
       };
       condition =
         map[this._config.settings.manual_condition] ||
@@ -448,11 +449,10 @@ class WeatherStationCard extends LitElement {
             })}
           </svg>
 
-          <ha-icon
-            class="sun-marker ${isNight ? "night" : "day"}"
-            style="left:${markerLeft};top:${markerTop}"
-            .icon=${isNight ? "mdi:weather-night" : "mdi:white-balance-sunny"}
-          ></ha-icon>
+          <div class="sun-marker ${isNight ? "night" : "day"}"
+            style="left:${markerLeft};top:${markerTop}">
+            ${wscIcon(isNight ? "night" : "sunny", "sun-marker-icon")}
+          </div>
 
           <div class="sun-center">
             <div class="sun-stat">
@@ -516,7 +516,7 @@ class WeatherStationCard extends LitElement {
         class="hero ${showWind ? "has-wind" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
-        <ha-icon class="hero-icon" .icon=${condition.icon}></ha-icon>
+        ${wscIcon(condition.icon, "hero-icon")}
         <div class="hero-main">
           <div class="hero-condition">
             ${this._t(`condition.${condition.labelKey}`)}
@@ -527,11 +527,11 @@ class WeatherStationCard extends LitElement {
           ${minmax
             ? html`<div class="hero-minmax">
                 <span class="mm mm-min">
-                  <ha-icon .icon=${"mdi:arrow-down-thin"}></ha-icon>
+                  ${wscIcon("arrow_down", "mm-icon")}
                   ${round(minmax.min, 1)}°
                 </span>
                 <span class="mm mm-max">
-                  <ha-icon .icon=${"mdi:arrow-up-thin"}></ha-icon>
+                  ${wscIcon("arrow_up", "mm-icon")}
                   ${round(minmax.max, 1)}°
                 </span>
               </div>`
@@ -578,11 +578,9 @@ class WeatherStationCard extends LitElement {
         class="tile ${clickable ? "tappable" : ""}"
         @click=${key ? () => this._handleClick(key) : undefined}
       >
-        <ha-icon
-          class="tile-icon"
-          style=${accent ? `--tile-accent:${accent}` : ""}
-          .icon=${icon}
-        ></ha-icon>
+        <span class="tile-icon" style=${accent ? `--tile-accent:${accent}` : ""}>
+          ${wscIcon(icon)}
+        </span>
         <div class="tile-body">
           <div class="tile-label">${label}</div>
           <div class="tile-value">${value}</div>
@@ -596,7 +594,7 @@ class WeatherStationCard extends LitElement {
     if (!this._stateObj("lux_entity")) return nothing;
     const level = luxLevel(lux);
     return this._tile({
-      icon: level ? level.icon : "mdi:brightness-7",
+      icon: level ? level.icon : "lux_very_bright",
       label: this._t("sections.light"),
       value: formatLux(lux),
       sub: level ? this._t(`lux.${level.labelKey}`) : "",
@@ -607,7 +605,7 @@ class WeatherStationCard extends LitElement {
   _renderTemperature(temp, tempUnit) {
     if (!this._stateObj("temperature_entity")) return nothing;
     return this._tile({
-      icon: "mdi:thermometer",
+      icon: "thermometer",
       label: this._t("sections.temperature"),
       value: temp != null ? `${round(temp, 1)} ${tempUnit}` : "—",
       key: "temperature_entity",
@@ -617,7 +615,7 @@ class WeatherStationCard extends LitElement {
   _renderHumidity(humidity) {
     if (!this._stateObj("humidity_entity")) return nothing;
     return this._tile({
-      icon: "mdi:water-percent",
+      icon: "humidity",
       label: this._t("sections.humidity"),
       value: humidity != null ? `${round(humidity, 0)}%` : "—",
       key: "humidity_entity",
@@ -647,7 +645,7 @@ class WeatherStationCard extends LitElement {
     }
 
     return this._tile({
-      icon: rainOn ? "mdi:weather-rainy" : "mdi:weather-partly-rainy",
+      icon: rainOn ? "rainy" : "partly_rainy",
       label: this._t("sections.rain"),
       value: rainObj
         ? rainOn
@@ -681,7 +679,7 @@ class WeatherStationCard extends LitElement {
         class="tile wind ${this._clickable("wind_speed_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("wind_speed_entity")}
       >
-        <ha-icon class="tile-icon" .icon=${"mdi:weather-windy"}></ha-icon>
+        ${wscIcon("wind", "tile-icon")}
         <div class="tile-body">
           <div class="tile-label">${this._t("sections.wind")}</div>
           <div class="tile-value">
@@ -705,7 +703,7 @@ class WeatherStationCard extends LitElement {
             : nothing}
           ${s.show_wind_gust && gust != null
             ? html`<div class="tile-sub">
-                <ha-icon class="mini-icon" .icon=${"mdi:weather-windy-variant"}></ha-icon>
+                ${wscIcon("wind_gust", "mini-icon")}
                 ${this._t("wind.gust", {
                   value: round(gust, 0),
                   unit: gustUnit,
@@ -725,7 +723,7 @@ class WeatherStationCard extends LitElement {
         <span class="c-s">${this._t("compass.S")}</span>
         <span class="c-w">${this._t("compass.W")}</span>
         <div class="needle" style="transform: rotate(${deg}deg)">
-          <ha-icon .icon=${"mdi:navigation"}></ha-icon>
+          ${wscIcon("compass_needle", "needle-icon")}
         </div>
       </div>
     `;
@@ -735,7 +733,7 @@ class WeatherStationCard extends LitElement {
     if (!this._stateObj("uv_entity")) return nothing;
     const level = uvLevel(uv);
     return this._tile({
-      icon: "mdi:sun-wireless",
+      icon: "uv",
       label: this._t("sections.uv"),
       value: uv != null ? `${round(uv, 0)}` : "—",
       sub: level ? this._t(`uv.${level.labelKey}`) : "",
@@ -753,11 +751,11 @@ class WeatherStationCard extends LitElement {
     this._recordPressure(value);
     const trend = s.show_pressure_trend ? this._pressureTrend(value) : null;
     return this._tile({
-      icon: "mdi:gauge",
+      icon: "gauge",
       label: this._t("sections.pressure"),
       value: value != null ? `${round(value, 0)} ${unitStr}` : "—",
       sub: trend
-        ? html`<ha-icon class="mini-icon" .icon=${trend.icon}></ha-icon>
+        ? html`${wscIcon(trend.icon, "mini-icon")}
             ${this._t(`pressure.${trend.labelKey}`)}`
         : "",
       key: "pressure_entity",
@@ -835,10 +833,25 @@ class WeatherStationCard extends LitElement {
       .hero.has-wind {
         grid-template-columns: auto 1fr auto;
       }
+      .wsc-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        line-height: 0;
+        color: inherit;
+      }
+      .wsc-icon svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        overflow: visible;
+      }
+
       .hero-icon {
         grid-row: 1 / 3;
-        --mdc-icon-size: 46px;
-        color: var(--state-icon-color, var(--primary-color));
+        width: 46px;
+        height: 46px;
       }
       .hero-main {
         display: flex;
@@ -866,8 +879,9 @@ class WeatherStationCard extends LitElement {
       .hero-wind .compass .c-s { top: 65px; }
       .hero-wind .compass .c-e { left: 65px; }
       .hero-wind .compass .c-w { left: 11px; }
-      .hero-wind .compass .needle ha-icon {
-        --mdc-icon-size: 30px;
+      .hero-wind .compass .needle-icon {
+        width: 30px;
+        height: 30px;
       }
       .hero-wind-speed {
         font-size: 0.95rem;
@@ -882,7 +896,8 @@ class WeatherStationCard extends LitElement {
           padding: 12px;
         }
         .hero-icon {
-          --mdc-icon-size: 38px;
+          width: 38px;
+          height: 38px;
         }
         .hero-temp {
           font-size: 1.65rem;
@@ -900,8 +915,9 @@ class WeatherStationCard extends LitElement {
         .hero-wind .compass .c-s { top: 51px; }
         .hero-wind .compass .c-e { left: 51px; }
         .hero-wind .compass .c-w { left: 9px; }
-        .hero-wind .compass .needle ha-icon {
-          --mdc-icon-size: 24px;
+        .hero-wind .compass .needle-icon {
+          width: 24px;
+          height: 24px;
         }
         .hero-wind-speed {
           font-size: 0.82rem;
@@ -940,8 +956,9 @@ class WeatherStationCard extends LitElement {
         align-items: center;
         gap: 1px;
       }
-      .hero-minmax .mm ha-icon {
-        --mdc-icon-size: 15px;
+      .hero-minmax .mm-icon {
+        width: 15px;
+        height: 15px;
       }
       .hero-minmax .mm-min {
         color: var(--info-color, #2196f3);
@@ -1032,10 +1049,10 @@ class WeatherStationCard extends LitElement {
         stroke: #9bb0ff;
         stroke-opacity: 0.45;
       }
-      .sun-panel.night-palette .sun-marker.night {
-        color: #a8c0ff;
+      .sun-panel.night-palette .sun-marker.night .wsc-icon {
+        width: 24px;
+        height: 24px;
         filter: drop-shadow(0 0 10px rgba(123, 156, 255, 0.75));
-        --mdc-icon-size: 24px;
       }
       .sun-panel.night-palette .sun-stat-value,
       .sun-panel.night-palette .sun-edge {
@@ -1051,17 +1068,21 @@ class WeatherStationCard extends LitElement {
       .sun-marker {
         position: absolute;
         transform: translate(-50%, -50%);
-        --mdc-icon-size: 26px;
-        color: #ffc107;
-        filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
         z-index: 2;
         pointer-events: none;
         transition: left 0.6s ease, top 0.6s ease;
       }
-      .sun-marker.night {
-        color: var(--wsc-night-color, #3f6fd6);
+      .sun-marker .wsc-icon,
+      .sun-marker-icon {
+        width: 28px;
+        height: 28px;
+        filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
+      }
+      .sun-marker.night .wsc-icon,
+      .sun-marker.night .sun-marker-icon {
+        width: 24px;
+        height: 24px;
         filter: drop-shadow(0 0 6px rgba(63, 111, 214, 0.5));
-        --mdc-icon-size: 22px;
       }
       .sun-center {
         position: absolute;
@@ -1166,9 +1187,14 @@ class WeatherStationCard extends LitElement {
         box-sizing: border-box;
       }
       .tile-icon {
-        --mdc-icon-size: 24px;
+        width: 28px;
+        height: 28px;
         color: var(--tile-accent, var(--state-icon-color, var(--primary-color)));
         flex: 0 0 auto;
+      }
+      .tile-icon .wsc-icon {
+        width: 28px;
+        height: 28px;
       }
       .tile-body {
         display: flex;
@@ -1217,7 +1243,8 @@ class WeatherStationCard extends LitElement {
         line-height: 1.25;
       }
       .mini-icon {
-        --mdc-icon-size: 15px;
+        width: 16px;
+        height: 16px;
       }
 
       .compass {
@@ -1246,9 +1273,9 @@ class WeatherStationCard extends LitElement {
         justify-content: center;
         transition: transform 0.4s ease;
       }
-      .compass .needle ha-icon {
-        --mdc-icon-size: 22px;
-        color: var(--primary-color);
+      .compass .needle-icon {
+        width: 22px;
+        height: 22px;
       }
 
       .tappable {

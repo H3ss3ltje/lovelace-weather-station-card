@@ -75,12 +75,12 @@ export function uvLevel(uv) {
  * Pick a battery icon from the charge percentage.
  */
 export function batteryIcon(pct) {
-  if (pct == null) return "mdi:battery-unknown";
-  if (pct >= 95) return "mdi:battery";
-  if (pct >= 70) return "mdi:battery-high";
-  if (pct >= 40) return "mdi:battery-medium";
-  if (pct >= 15) return "mdi:battery-low";
-  return "mdi:battery-outline";
+  if (pct == null) return "battery_unknown";
+  if (pct >= 95) return "battery";
+  if (pct >= 70) return "battery_high";
+  if (pct >= 40) return "battery_medium";
+  if (pct >= 15) return "battery_low";
+  return "battery_outline";
 }
 
 /**
@@ -89,19 +89,19 @@ export function batteryIcon(pct) {
  */
 export function deriveCondition({ isDay, rainMm, rainOn, lux, uv }) {
   if (rainOn || (rainMm != null && rainMm > 0)) {
-    return { icon: "mdi:weather-rainy", labelKey: "rain" };
+    return { icon: "rainy", labelKey: "rain" };
   }
   const bright = (lux != null && lux > 8000) || (uv != null && uv >= 3);
   if (!isDay) {
-    return { icon: "mdi:weather-night", labelKey: "clear_night" };
+    return { icon: "night", labelKey: "clear_night" };
   }
   if (lux != null && lux < 4000 && !bright) {
-    return { icon: "mdi:weather-cloudy", labelKey: "cloudy" };
+    return { icon: "cloudy", labelKey: "cloudy" };
   }
   if (bright) {
-    return { icon: "mdi:weather-sunny", labelKey: "clear_sky" };
+    return { icon: "sunny", labelKey: "clear_sky" };
   }
-  return { icon: "mdi:weather-partly-cloudy", labelKey: "partly_cloudy" };
+  return { icon: "partly_cloudy", labelKey: "partly_cloudy" };
 }
 
 /**

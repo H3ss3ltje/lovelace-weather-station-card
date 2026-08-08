@@ -571,7 +571,7 @@ class WeatherStationCard extends LitElement {
     `;
   }
 
-  _tile({ icon, label, value, sub, key, accent }) {
+  _tile({ icon, iconOpts, label, value, sub, key, accent }) {
     const clickable = key ? this._clickable(key) : false;
     return html`
       <div
@@ -579,7 +579,7 @@ class WeatherStationCard extends LitElement {
         @click=${key ? () => this._handleClick(key) : undefined}
       >
         <span class="tile-icon" style=${accent ? `--tile-accent:${accent}` : ""}>
-          ${wscIcon(icon)}
+          ${wscIcon(icon, "", iconOpts || {})}
         </span>
         <div class="tile-body">
           <div class="tile-label">${label}</div>
@@ -679,7 +679,7 @@ class WeatherStationCard extends LitElement {
         class="tile wind ${this._clickable("wind_speed_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("wind_speed_entity")}
       >
-        ${wscIcon("wind", "tile-icon")}
+        ${wscIcon("wind", "tile-icon", { value: bft ? bft.n : 0 })}
         <div class="tile-body">
           <div class="tile-label">${this._t("sections.wind")}</div>
           <div class="tile-value">
@@ -703,7 +703,9 @@ class WeatherStationCard extends LitElement {
             : nothing}
           ${s.show_wind_gust && gust != null
             ? html`<div class="tile-sub">
-                ${wscIcon("wind_gust", "mini-icon")}
+                ${wscIcon("wind_gust", "mini-icon", {
+                  value: beaufort(toMetersPerSecond(gust, gustUnit))?.n ?? "",
+                })}
                 ${this._t("wind.gust", {
                   value: round(gust, 0),
                   unit: gustUnit,
@@ -732,10 +734,15 @@ class WeatherStationCard extends LitElement {
   _renderUv(uv) {
     if (!this._stateObj("uv_entity")) return nothing;
     const level = uvLevel(uv);
+    const uvNum = uv != null ? round(uv, 0) : null;
     return this._tile({
       icon: "uv",
+      iconOpts: {
+        value: uvNum != null ? uvNum : "",
+        color: level ? level.color : "#ffb300",
+      },
       label: this._t("sections.uv"),
-      value: uv != null ? `${round(uv, 0)}` : "—",
+      value: uvNum != null ? `${uvNum}` : "—",
       sub: level ? this._t(`uv.${level.labelKey}`) : "",
       key: "uv_entity",
       accent: level ? level.color : undefined,
@@ -885,8 +892,8 @@ class WeatherStationCard extends LitElement {
       .hero-wind .compass .c-e { left: 65px; }
       .hero-wind .compass .c-w { left: 11px; }
       .hero-wind .compass .needle-icon {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
       }
       .hero-wind-speed {
         font-size: 0.95rem;
@@ -1310,11 +1317,21 @@ class WeatherStationCard extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
+        transform-origin: 50% 50%;
         transition: transform 0.4s ease;
+        pointer-events: none;
       }
       .compass .needle-icon {
         width: 22px;
         height: 22px;
+        display: flex;
+        margin: 0;
+        line-height: 0;
+      }
+      .compass .needle-icon svg {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
 
       .tappable {

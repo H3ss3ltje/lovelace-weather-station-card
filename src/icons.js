@@ -274,100 +274,80 @@ function luxIcon(level, className) {
   );
 }
 
-function uv(className) {
+function uv(className, opts = {}) {
   const g = uid("uv");
+  const raw = opts.value;
+  const n =
+    raw != null && raw !== "" && Number.isFinite(Number(raw))
+      ? String(Math.round(Number(raw)))
+      : raw != null && raw !== ""
+        ? String(raw)
+        : "";
+  const badge = opts.color || "#ffb300";
   return wrap(
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="${g}a" cx="40%" cy="30%" r="70%">
+          <radialGradient id="${g}s" cx="40%" cy="35%" r="65%">
             <stop offset="0%" stop-color="#FFE56A"/>
-            <stop offset="100%" stop-color="#FF9F0A"/>
+            <stop offset="100%" stop-color="#FFB100"/>
           </radialGradient>
-          <linearGradient id="${g}b" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#BF5AF2"/>
-            <stop offset="100%" stop-color="#5E5CE6"/>
-          </linearGradient>
         </defs>
-        <circle cx="32" cy="30" r="13" fill="url(#${g}a)"/>
         ${[0, 45, 90, 135, 180, 225, 270, 315].map(
           (deg) => svg`
-            <rect x="29.5" y="5" width="5" height="8" rx="2.5"
-              fill="#FFB100" transform="rotate(${deg} 32 30)"/>
+            <rect x="27.5" y="4" width="5" height="10" rx="2.5"
+              fill="#FF9F0A" transform="rotate(${deg} 30 28)"/>
           `
         )}
-        <circle cx="32" cy="48" r="9" fill="url(#${g}b)"/>
-        <text x="32" y="52" text-anchor="middle" font-size="11" font-weight="800"
-          font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="#fff">UV</text>
+        <circle cx="30" cy="28" r="13" fill="url(#${g}s)"/>
+        <circle cx="26" cy="24" r="3.5" fill="#fff" opacity="0.35"/>
+        <rect x="34" y="36" width="26" height="26" rx="7" fill="${badge}"/>
+        <rect x="36" y="38" width="22" height="10" rx="4" fill="#fff" opacity="0.18"/>
+        ${n !== ""
+          ? svg`<text x="47" y="50" text-anchor="middle" dominant-baseline="central"
+              font-size="${n.length > 1 ? 14 : 16}" font-weight="800"
+              font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+              fill="#fff">${n}</text>`
+          : nothing}
       </svg>
     `,
     className
   );
 }
 
-function wind(className) {
+function wind(className, opts = {}) {
   const g = uid("wd");
+  const n =
+    opts.value != null && Number.isFinite(Number(opts.value))
+      ? String(Math.round(Number(opts.value)))
+      : "";
   return wrap(
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="${g}bg" cx="40%" cy="35%" r="70%">
-            <stop offset="0%" stop-color="#7AD3FF"/>
-            <stop offset="55%" stop-color="#0A84FF"/>
-            <stop offset="100%" stop-color="#0040C0"/>
-          </radialGradient>
           <linearGradient id="${g}a" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
-            <stop offset="100%" stop-color="#D6EFFF" stop-opacity="0.9"/>
+            <stop offset="0%" stop-color="#C7C7CC"/>
+            <stop offset="100%" stop-color="#8E8E93"/>
           </linearGradient>
         </defs>
-        <circle cx="32" cy="32" r="28" fill="url(#${g}bg)"/>
-        <circle cx="22" cy="20" r="10" fill="#fff" opacity="0.18"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="5" stroke-linecap="round"
-          d="M14 24h26c4.5 0 8 3.2 8 7.2S44.5 38.4 40 38.4"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="5" stroke-linecap="round"
-          d="M14 34h22c3.8 0 6.8 2.7 6.8 6.1S39.8 46.2 36 46.2"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="5" stroke-linecap="round"
-          d="M14 44h16"/>
+        <path fill="none" stroke="url(#${g}a)" stroke-width="7" stroke-linecap="round"
+          d="M8 24 H38 C48 24 52 18 46 12"/>
+        <path fill="none" stroke="url(#${g}a)" stroke-width="7" stroke-linecap="round"
+          d="M8 40 H30 C40 40 44 48 38 54"/>
+        ${n !== ""
+          ? svg`<text x="42" y="52" text-anchor="middle" dominant-baseline="middle"
+              font-size="${n.length > 1 ? 14 : 18}" font-weight="700"
+              font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+              fill="#636366">${n}</text>`
+          : nothing}
       </svg>
     `,
     className
   );
 }
 
-function windGust(className) {
-  const g = uid("wg");
-  return wrap(
-    svg`
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="${g}bg" cx="40%" cy="35%" r="70%">
-            <stop offset="0%" stop-color="#8AD8FF"/>
-            <stop offset="55%" stop-color="#007AFF"/>
-            <stop offset="100%" stop-color="#003AAF"/>
-          </radialGradient>
-          <linearGradient id="${g}a" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#FFFFFF"/>
-            <stop offset="100%" stop-color="#D6EFFF"/>
-          </linearGradient>
-          <linearGradient id="${g}b" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#FFD60A"/>
-            <stop offset="100%" stop-color="#FF9F0A"/>
-          </linearGradient>
-        </defs>
-        <circle cx="32" cy="32" r="28" fill="url(#${g}bg)"/>
-        <circle cx="22" cy="20" r="10" fill="#fff" opacity="0.16"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="4.5" stroke-linecap="round"
-          d="M12 22h24c4.5 0 8 3.2 8 7.2S40.5 36.4 36 36.4"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="4.5" stroke-linecap="round"
-          d="M12 32h20c3.6 0 6.5 2.6 6.5 5.8S35.6 43.6 32 43.6"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="4.5" stroke-linecap="round"
-          d="M12 42h14"/>
-        <path fill="url(#${g}b)" d="M46 12l10 9-10 9V12z"/>
-      </svg>
-    `,
-    className
-  );
+function windGust(className, opts = {}) {
+  return wind(className, opts);
 }
 
 function gauge(className) {
@@ -491,6 +471,8 @@ function trendSteady(className) {
 
 function compassNeedle(className) {
   const g = uid("cn");
+  // Hub sits exactly at viewBox center (12,12) so rotation around the
+  // compass middle keeps the needle visually centered.
   return wrap(
     svg`
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -500,8 +482,10 @@ function compassNeedle(className) {
             <stop offset="100%" stop-color="#64D2FF"/>
           </linearGradient>
         </defs>
-        <path fill="url(#${g}a)" d="M12 2l4.5 16.5L12 15l-4.5 3.5L12 2z"/>
-        <circle cx="12" cy="14" r="1.8" fill="#fff" opacity="0.85"/>
+        <path fill="url(#${g}a)"
+          d="M12 2.2 L16.2 17.2 L12 14.2 L7.8 17.2 Z"/>
+        <circle cx="12" cy="12" r="2.4" fill="url(#${g}a)"/>
+        <circle cx="12" cy="12" r="1.1" fill="#fff" opacity="0.9"/>
       </svg>
     `,
     className
@@ -512,8 +496,9 @@ function compassNeedle(className) {
  * Render an Apple-style card icon by logical name.
  * @param {string} name
  * @param {string} [className]
+ * @param {{ value?: number|string, color?: string }} [opts]
  */
-export function wscIcon(name, className = "") {
+export function wscIcon(name, className = "", opts = {}) {
   switch (name) {
     case "sunny":
     case "clear_sky":
@@ -547,11 +532,11 @@ export function wscIcon(name, className = "") {
     case "brightness_7":
       return luxIcon("very", className);
     case "uv":
-      return uv(className);
+      return uv(className, opts);
     case "wind":
-      return wind(className);
+      return wind(className, opts);
     case "wind_gust":
-      return windGust(className);
+      return windGust(className, opts);
     case "gauge":
     case "pressure":
       return gauge(className);

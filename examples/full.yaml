@@ -34,6 +34,7 @@ settings:
   show_beaufort: true # Beaufort number + description under wind
   compact_mode: false # true = hero + sun only (hide tile grid)
   night_palette: true # stronger moon / night path after sunset
+  lux_in_klux: false # true if lux_entity already reports kilolux (0–200)
   # Optional tile order for the full-station grid:
   # tile_order:
   #   - lux

@@ -66,6 +66,7 @@ export default {
     low_light: "Wenig Licht",
     bright: "Hell",
     very_bright: "Sehr hell",
+    full_sun: "Volle Sonne",
   },
   uv: {
     low: "Niedrig",
@@ -121,6 +122,7 @@ export default {
     show_interactions: "Interaktionen",
     compact_mode: "Kompaktmodus (nur Hero + Sonne)",
     night_palette: "Nachtpalette für Sonnendiagramm",
+    lux_in_klux: "Lux-Sensor liefert Kilolux (0–200)",
     tile_order: "Kachelreihenfolge",
     tile_order_hint: "Reihenfolge der Sensorkacheln im Raster ändern. Fehlende Entitäten bleiben ausgeblendet.",
     tile_order_reset: "Zurücksetzen",

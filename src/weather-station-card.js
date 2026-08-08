@@ -16,6 +16,7 @@ import {
   degToCompass,
   luxLevel,
   formatLux,
+  normalizeLux,
   uvLevel,
   batteryIcon,
   deriveCondition,
@@ -254,7 +255,7 @@ class WeatherStationCard extends LitElement {
     if (!s.show_daynight) return true;
     const sun = this._stateObj("sun_entity");
     if (sun) return sun.state === "above_horizon";
-    const lux = numericState(this._stateObj("lux_entity"));
+    const lux = normalizeLux(numericState(this._stateObj("lux_entity")), s);
     if (lux != null) return lux > 50;
     return true;
   }
@@ -316,7 +317,10 @@ class WeatherStationCard extends LitElement {
     const rainObj = this._stateObj("rain_entity");
     const rainOn = rainObj ? isRainDetected(rainObj) : false;
     const rainMm = numericState(rainObj);
-    const lux = numericState(this._stateObj("lux_entity"));
+    const lux = normalizeLux(
+      numericState(this._stateObj("lux_entity")),
+      s
+    );
     const uv = numericState(this._stateObj("uv_entity"));
 
     let condition;

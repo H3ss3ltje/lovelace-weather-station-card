@@ -66,6 +66,7 @@ export default {
     low_light: "Poca luz",
     bright: "Luminoso",
     very_bright: "Muy luminoso",
+    full_sun: "Sol pleno",
   },
   uv: {
     low: "Bajo",
@@ -121,6 +122,7 @@ export default {
     show_interactions: "Interacciones",
     compact_mode: "Modo compacto (solo hero + sol)",
     night_palette: "Paleta nocturna del diagrama solar",
+    lux_in_klux: "El sensor de lux reporta kilolux (0–200)",
     tile_order: "Orden de mosaicos",
     tile_order_hint: "Cambia el orden de los mosaicos de sensores en la cuadrícula. Las entidades vacías siguen ocultas.",
     tile_order_reset: "Restablecer",

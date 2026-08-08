@@ -103,6 +103,7 @@ class WeatherStationCardEditor extends LitElement {
               { name: "show_sun", selector: { boolean: {} } },
               { name: "night_palette", selector: { boolean: {} } },
               { name: "compact_mode", selector: { boolean: {} } },
+              { name: "lux_in_klux", selector: { boolean: {} } },
               { name: "show_dewpoint", selector: { boolean: {} } },
               { name: "show_minmax", selector: { boolean: {} } },
               { name: "show_rain_today", selector: { boolean: {} } },

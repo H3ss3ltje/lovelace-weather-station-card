@@ -128,6 +128,7 @@ All entities are optional. A section is only rendered when its entity is set.
 | `manual_condition`           | string  | `""`    | When day/night is off: `sunny`/`cloudy`/`rainy`/`night`. |
 | `show_sun`                   | boolean | `true`  | Show the sunrise / sunset path diagram.                  |
 | `night_palette`              | boolean | `true`  | Stronger moon / night colours on the sun diagram.        |
+| `lux_in_klux`                | boolean | `false` | Set if `lux_entity` already reports kilolux (0–200).     |
 | `compact_mode`               | boolean | `false` | Hero + sun only (hide the sensor tile grid).             |
 | `tile_order`                 | list    | see below | Order of tiles: `lux`, `temperature`, `humidity`, `rain`, `wind`, `uv`, `pressure`, `battery`. |
 | `show_dewpoint`              | boolean | `false` | Calculate & show dew point from temperature + humidity.  |
@@ -170,14 +171,17 @@ Supported actions: `more-info`, `navigate`, `url`, `call-service`, `toggle`, `no
 
 ## Interpretations
 
-**Lux → label**
+**Lux → label** (outdoor 0–200 klx)
 
-| Lux         | Label       |
-| ----------- | ----------- |
-| 0–100       | Dark        |
-| 100–1000    | Low light   |
-| 1000–10000  | Bright      |
-| 10000+      | Very bright |
+| Lux (klx)     | Label       |
+| ------------- | ----------- |
+| 0–0.1         | Dark        |
+| 0.1–2         | Low light   |
+| 2–20          | Bright      |
+| 20–80         | Very bright |
+| 80–200        | Full sun    |
+
+If your sensor already reports **kilolux** (0–200) instead of lux, enable `settings.lux_in_klux: true`.
 
 **UV index → level**
 

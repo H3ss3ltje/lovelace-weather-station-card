@@ -47,19 +47,34 @@ export function degToCompass(deg) {
 }
 
 /**
- * Interpret a lux value into a human label key + icon.
+ * Convert a raw lux entity reading to lux (lx).
+ * When `lux_in_klux` is set, the entity already reports kilolux (0–200).
  */
-export function luxLevel(lux) {
-  if (lux == null) return null;
-  return LUX_LEVELS.find((l) => lux < l.max) || LUX_LEVELS[LUX_LEVELS.length - 1];
+export function normalizeLux(raw, settings = {}) {
+  if (raw == null || !Number.isFinite(Number(raw))) return null;
+  const n = Number(raw);
+  return settings.lux_in_klux ? n * 1000 : n;
 }
 
 /**
- * Format lux as klux when large.
+ * Interpret a lux value (in lx) into a human label key + icon.
+ * Tuned for outdoor stations spanning ~0–200 klx.
+ */
+export function luxLevel(lux) {
+  if (lux == null) return null;
+  return LUX_LEVELS.find((l) => lux <= l.max) || LUX_LEVELS[LUX_LEVELS.length - 1];
+}
+
+/**
+ * Format lux for display. Outdoor values show as klux (up to ~200.0).
  */
 export function formatLux(lux) {
   if (lux == null) return "—";
-  if (lux >= 1000) return `${Math.round(lux / 100) / 10} klux`;
+  if (lux >= 1000) {
+    const k = lux / 1000;
+    if (k >= 100) return `${Math.round(k)} klux`;
+    return `${Math.round(k * 10) / 10} klux`;
+  }
   return `${Math.round(lux)} lux`;
 }
 
@@ -91,11 +106,12 @@ export function deriveCondition({ isDay, rainMm, rainOn, lux, uv }) {
   if (rainOn || (rainMm != null && rainMm > 0)) {
     return { icon: "rainy", labelKey: "rain" };
   }
-  const bright = (lux != null && lux > 8000) || (uv != null && uv >= 3);
+  // Outdoor lux: >20 klx is clearly bright daylight; <5 klx leans cloudy.
+  const bright = (lux != null && lux > 20000) || (uv != null && uv >= 3);
   if (!isDay) {
     return { icon: "night", labelKey: "clear_night" };
   }
-  if (lux != null && lux < 4000 && !bright) {
+  if (lux != null && lux < 5000 && !bright) {
     return { icon: "cloudy", labelKey: "cloudy" };
   }
   if (bright) {

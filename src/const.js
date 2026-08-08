@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.6.3";
+export const CARD_VERSION = "1.6.4";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -55,6 +55,7 @@ export const DEFAULT_SETTINGS = {
   show_beaufort: true, // Beaufort scale + description on wind
   compact_mode: false, // hero + sun only (hide tile grid)
   night_palette: true, // stronger moon / night path colours after sunset
+  lux_in_klux: false, // true if lux_entity reports kilolux (0–200) instead of lux
   tile_order: [...DEFAULT_TILE_ORDER],
   pressure_trend_threshold: 1, // percent change to flag rising/falling
   manual_condition: "", // used when no sun entity + user wants a fixed icon
@@ -71,10 +72,14 @@ export const UV_LEVELS = [
   { max: Infinity, labelKey: "extreme", color: "#8e24aa" },
 ];
 
-/** Lux bands — `labelKey` is looked up under `lux.*` in translations. */
+/**
+ * Outdoor lux bands for sensors spanning ~0–200 klx (0–200000 lx).
+ * `max` is inclusive upper bound in lux.
+ */
 export const LUX_LEVELS = [
-  { max: 100, labelKey: "dark", icon: "lux_dark" },
-  { max: 1000, labelKey: "low_light", icon: "lux_low" },
-  { max: 10000, labelKey: "bright", icon: "lux_bright" },
-  { max: Infinity, labelKey: "very_bright", icon: "lux_very_bright" },
+  { max: 100, labelKey: "dark", icon: "lux_dark" }, // ≤ 0.1 klx
+  { max: 2000, labelKey: "low_light", icon: "lux_low" }, // ≤ 2 klx
+  { max: 20000, labelKey: "bright", icon: "lux_bright" }, // ≤ 20 klx
+  { max: 80000, labelKey: "very_bright", icon: "lux_very_bright" }, // ≤ 80 klx
+  { max: Infinity, labelKey: "full_sun", icon: "lux_full_sun" }, // 80–200 klx
 ];

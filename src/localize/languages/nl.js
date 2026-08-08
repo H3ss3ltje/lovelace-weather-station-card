@@ -66,6 +66,7 @@ export default {
     low_light: "Weinig licht",
     bright: "Helder",
     very_bright: "Zeer helder",
+    full_sun: "Volle zon",
   },
   uv: {
     low: "Laag",
@@ -121,6 +122,7 @@ export default {
     show_interactions: "Interacties",
     compact_mode: "Compacte modus (alleen hero + zon)",
     night_palette: "Nachtpalet voor zondiagram",
+    lux_in_klux: "Lux-sensor geeft kilolux (0–200)",
     tile_order: "Tegelvolgorde",
     tile_order_hint: "Wijzig de volgorde van sensortegels in het raster. Ontbrekende entiteiten blijven verborgen.",
     tile_order_reset: "Reset",

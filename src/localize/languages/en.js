@@ -66,6 +66,7 @@ export default {
     low_light: "Low light",
     bright: "Bright",
     very_bright: "Very bright",
+    full_sun: "Full sun",
   },
   uv: {
     low: "Low",
@@ -121,6 +122,7 @@ export default {
     show_interactions: "Interactions",
     compact_mode: "Compact mode (hero + sun only)",
     night_palette: "Night palette for sun diagram",
+    lux_in_klux: "Lux sensor reports kilolux (0–200)",
     tile_order: "Tile order",
     tile_order_hint: "Change the order of sensor tiles in the grid. Empty entities stay hidden.",
     tile_order_reset: "Reset",

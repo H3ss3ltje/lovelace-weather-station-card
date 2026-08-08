@@ -247,27 +247,48 @@ function humidity(className) {
 
 function luxIcon(level, className) {
   const g = uid("lx");
-  const brightness =
-    level === "dark" ? 0.35 : level === "low" ? 0.55 : level === "bright" ? 0.85 : 1;
-  const rayH = level === "dark" ? 7 : level === "low" ? 9 : 11;
+  // Five outdoor bands for 0–200 klx sensors.
+  const cfg = {
+    dark: { opacity: 0.4, rayH: 6, rays: 4, disc: "#6B7280", ray: "#9CA3AF", glow: false },
+    low: { opacity: 0.65, rayH: 8, rays: 6, disc: "#F5D76E", ray: "#E0B000", glow: false },
+    bright: { opacity: 0.9, rayH: 10, rays: 8, disc: "#FFE56A", ray: "#FFB100", glow: false },
+    very: { opacity: 1, rayH: 11, rays: 8, disc: "#FFE56A", ray: "#FF9F0A", glow: true },
+    full: { opacity: 1, rayH: 13, rays: 12, disc: "#FFF3C4", ray: "#FF9500", glow: true },
+  }[level] || { opacity: 1, rayH: 10, rays: 8, disc: "#FFE56A", ray: "#FFB100", glow: false };
+
+  const step = 360 / cfg.rays;
+  const angles = Array.from({ length: cfg.rays }, (_, i) => i * step);
+
   return wrap(
     svg`
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" opacity="${brightness + 0.15}">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="${g}a" cx="35%" cy="30%" r="70%">
-            <stop offset="0%" stop-color="#FFF3C4"/>
-            <stop offset="100%" stop-color="#FFB100"/>
+            <stop offset="0%" stop-color="#FFF8DC"/>
+            <stop offset="55%" stop-color="${cfg.disc}"/>
+            <stop offset="100%" stop-color="${cfg.ray}"/>
           </radialGradient>
+          ${cfg.glow
+            ? svg`<radialGradient id="${g}glow" cx="50%" cy="50%" r="50%">
+                <stop offset="40%" stop-color="#FFB100" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#FFB100" stop-opacity="0"/>
+              </radialGradient>`
+            : nothing}
         </defs>
-        ${[0, 45, 90, 135, 180, 225, 270, 315].map(
+        ${cfg.glow
+          ? svg`<circle cx="32" cy="32" r="30" fill="url(#${g}glow)"/>`
+          : nothing}
+        ${angles.map(
           (deg) => svg`
-            <rect x="29.5" y="${8 - (rayH - 8) / 2}" width="5" height="${rayH}" rx="2.5"
-              fill="#FFB100" opacity="${brightness}"
+            <rect x="29.5" y="${7 - (cfg.rayH - 8) / 2}" width="5" height="${cfg.rayH}" rx="2.5"
+              fill="${cfg.ray}" opacity="${cfg.opacity}"
               transform="rotate(${deg} 32 32)"/>
           `
         )}
-        <circle cx="32" cy="32" r="12" fill="url(#${g}a)"/>
-        <circle cx="28" cy="28" r="3.5" fill="#fff" opacity="0.35"/>
+        <circle cx="32" cy="32" r="${level === "dark" ? 11 : 13}" fill="url(#${g}a)" opacity="${cfg.opacity}"/>
+        ${level !== "dark"
+          ? svg`<circle cx="27" cy="27" r="3.5" fill="#fff" opacity="0.35"/>`
+          : nothing}
       </svg>
     `,
     className
@@ -537,6 +558,8 @@ export function wscIcon(name, className = "", opts = {}) {
     case "lux_very_bright":
     case "brightness_7":
       return luxIcon("very", className);
+    case "lux_full_sun":
+      return luxIcon("full", className);
     case "uv":
       return uv(className, opts);
     case "wind":

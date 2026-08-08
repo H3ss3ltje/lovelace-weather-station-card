@@ -865,15 +865,20 @@ class WeatherStationCard extends LitElement {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        justify-self: center;
         gap: 6px;
-        padding: 2px 0 2px 8px;
+        padding: 4px 6px;
         border-radius: 12px;
-        align-self: stretch;
+        align-self: center;
+        width: max-content;
+        min-width: 84px;
+        box-sizing: border-box;
       }
       .hero-wind .compass {
         width: 76px;
         height: 76px;
         font-size: 0.72rem;
+        margin: 0 auto;
       }
       .hero-wind .compass .c-n { top: 11px; }
       .hero-wind .compass .c-s { top: 65px; }
@@ -889,6 +894,8 @@ class WeatherStationCard extends LitElement {
         line-height: 1.1;
         color: var(--primary-text-color);
         white-space: nowrap;
+        text-align: center;
+        width: 100%;
       }
       @container wsc (max-width: 380px) {
         .hero {
@@ -903,8 +910,9 @@ class WeatherStationCard extends LitElement {
           font-size: 1.65rem;
         }
         .hero-wind {
-          padding-left: 2px;
+          padding: 2px 4px;
           gap: 4px;
+          min-width: 68px;
         }
         .hero-wind .compass {
           width: 60px;
@@ -1049,10 +1057,19 @@ class WeatherStationCard extends LitElement {
         stroke: #9bb0ff;
         stroke-opacity: 0.45;
       }
+      .sun-panel.night-palette .sun-marker.night {
+        background: radial-gradient(
+          circle,
+          rgba(40, 52, 90, 0.95) 0%,
+          rgba(40, 52, 90, 0.7) 45%,
+          rgba(40, 52, 90, 0) 72%
+        );
+        box-shadow: 0 0 14px rgba(123, 156, 255, 0.75);
+      }
       .sun-panel.night-palette .sun-marker.night .wsc-icon {
-        width: 24px;
-        height: 24px;
-        filter: drop-shadow(0 0 10px rgba(123, 156, 255, 0.75));
+        width: 26px;
+        height: 26px;
+        filter: drop-shadow(0 0 8px rgba(168, 192, 255, 0.9));
       }
       .sun-panel.night-palette .sun-stat-value,
       .sun-panel.night-palette .sun-edge {
@@ -1068,21 +1085,43 @@ class WeatherStationCard extends LitElement {
       .sun-marker {
         position: absolute;
         transform: translate(-50%, -50%);
-        z-index: 2;
+        z-index: 4;
         pointer-events: none;
         transition: left 0.6s ease, top 0.6s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(255, 255, 255, 0.75) 42%,
+          rgba(255, 255, 255, 0) 72%
+        );
+        box-shadow: 0 0 14px rgba(255, 177, 0, 0.65);
       }
       .sun-marker .wsc-icon,
       .sun-marker-icon {
-        width: 28px;
-        height: 28px;
-        filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.55));
+        width: 30px;
+        height: 30px;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+      }
+      .sun-marker.night {
+        background: radial-gradient(
+          circle,
+          rgba(30, 40, 70, 0.95) 0%,
+          rgba(30, 40, 70, 0.7) 45%,
+          rgba(30, 40, 70, 0) 72%
+        );
+        box-shadow: 0 0 14px rgba(123, 156, 255, 0.7);
       }
       .sun-marker.night .wsc-icon,
       .sun-marker.night .sun-marker-icon {
-        width: 24px;
-        height: 24px;
-        filter: drop-shadow(0 0 6px rgba(63, 111, 214, 0.5));
+        width: 26px;
+        height: 26px;
+        filter: drop-shadow(0 0 6px rgba(168, 192, 255, 0.8));
       }
       .sun-center {
         position: absolute;

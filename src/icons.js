@@ -311,17 +311,24 @@ function wind(className) {
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
+          <radialGradient id="${g}bg" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="#7AD3FF"/>
+            <stop offset="55%" stop-color="#0A84FF"/>
+            <stop offset="100%" stop-color="#0040C0"/>
+          </radialGradient>
           <linearGradient id="${g}a" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#64D2FF"/>
-            <stop offset="100%" stop-color="#0A84FF"/>
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#D6EFFF" stop-opacity="0.9"/>
           </linearGradient>
         </defs>
+        <circle cx="32" cy="32" r="28" fill="url(#${g}bg)"/>
+        <circle cx="22" cy="20" r="10" fill="#fff" opacity="0.18"/>
         <path fill="none" stroke="url(#${g}a)" stroke-width="5" stroke-linecap="round"
-          d="M8 22h34c5 0 9 4 9 9s-4 9-9 9"/>
+          d="M14 24h26c4.5 0 8 3.2 8 7.2S44.5 38.4 40 38.4"/>
         <path fill="none" stroke="url(#${g}a)" stroke-width="5" stroke-linecap="round"
-          d="M8 34h28c4 0 7 3 7 7s-3 7-7 7"/>
+          d="M14 34h22c3.8 0 6.8 2.7 6.8 6.1S39.8 46.2 36 46.2"/>
         <path fill="none" stroke="url(#${g}a)" stroke-width="5" stroke-linecap="round"
-          d="M8 46h22"/>
+          d="M14 44h16"/>
       </svg>
     `,
     className
@@ -334,18 +341,29 @@ function windGust(className) {
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
+          <radialGradient id="${g}bg" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="#8AD8FF"/>
+            <stop offset="55%" stop-color="#007AFF"/>
+            <stop offset="100%" stop-color="#003AAF"/>
+          </radialGradient>
           <linearGradient id="${g}a" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#5AC8FA"/>
-            <stop offset="100%" stop-color="#007AFF"/>
+            <stop offset="0%" stop-color="#FFFFFF"/>
+            <stop offset="100%" stop-color="#D6EFFF"/>
+          </linearGradient>
+          <linearGradient id="${g}b" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FFD60A"/>
+            <stop offset="100%" stop-color="#FF9F0A"/>
           </linearGradient>
         </defs>
+        <circle cx="32" cy="32" r="28" fill="url(#${g}bg)"/>
+        <circle cx="22" cy="20" r="10" fill="#fff" opacity="0.16"/>
         <path fill="none" stroke="url(#${g}a)" stroke-width="4.5" stroke-linecap="round"
-          d="M6 18h36c5.5 0 10 4.5 10 10s-4.5 10-10 10"/>
+          d="M12 22h24c4.5 0 8 3.2 8 7.2S40.5 36.4 36 36.4"/>
         <path fill="none" stroke="url(#${g}a)" stroke-width="4.5" stroke-linecap="round"
-          d="M6 32h30c4.5 0 8 3.5 8 8s-3.5 8-8 8"/>
+          d="M12 32h20c3.6 0 6.5 2.6 6.5 5.8S35.6 43.6 32 43.6"/>
         <path fill="none" stroke="url(#${g}a)" stroke-width="4.5" stroke-linecap="round"
-          d="M6 46h24"/>
-        <path fill="#FF9F0A" d="M48 10l8 8-8 8V10z"/>
+          d="M12 42h14"/>
+        <path fill="url(#${g}b)" d="M46 12l10 9-10 9V12z"/>
       </svg>
     `,
     className

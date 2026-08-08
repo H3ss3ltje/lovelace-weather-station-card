@@ -24,7 +24,7 @@ Everything is configurable through the UI or YAML — no entity IDs are hardcode
 - **Configurable tap / hold / double-tap actions** per section (more-info, navigate, url, call-service…).
 - **Visual editor** with entity pickers and toggles, similar to Power Flow Card Plus.
 - Uses **Home Assistant theme variables** — adapts to light & dark mode.
-- Built with **LitElement**, no external UI frameworks. Only built-in **MDI icons**.
+- Built with **LitElement**, no external UI frameworks. Custom **Apple Weather–style SVG icons**.
 - **Multi-language**: English, Dutch, Spanish, and German (follows Home Assistant language).
 
 ---

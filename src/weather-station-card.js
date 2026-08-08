@@ -610,6 +610,7 @@ class WeatherStationCard extends LitElement {
     if (!this._stateObj("temperature_entity")) return nothing;
     return this._tile({
       icon: "thermometer",
+      iconOpts: { value: temp, unit: tempUnit },
       label: this._t("sections.temperature"),
       value: temp != null ? `${round(temp, 1)} ${tempUnit}` : "—",
       key: "temperature_entity",

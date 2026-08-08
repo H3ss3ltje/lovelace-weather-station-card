@@ -194,15 +194,58 @@ function partlyRainy(className) {
   );
 }
 
-function thermometer(className) {
+/** Map °C in [-30, 40] → { cold, hot } colors (blue → red). */
+function tempColors(tempC) {
+  const t = Math.max(0, Math.min(1, ((tempC ?? 20) + 30) / 70));
+  // Blue (−30) → cyan (0) → amber (20) → red (40)
+  const stops = [
+    { p: 0, r: 10, g: 132, b: 255 }, // #0A84FF
+    { p: 0.43, r: 90, g: 200, b: 250 }, // ~0°C
+    { p: 0.64, r: 52, g: 199, b: 89 }, // ~15°C
+    { p: 0.79, r: 255, g: 159, b: 10 }, // ~25°C
+    { p: 1, r: 255, g: 69, b: 58 }, // #FF453A
+  ];
+  let a = stops[0];
+  let b = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t >= stops[i].p && t <= stops[i + 1].p) {
+      a = stops[i];
+      b = stops[i + 1];
+      break;
+    }
+  }
+  const u = (t - a.p) / (b.p - a.p || 1);
+  const r = Math.round(a.r + (b.r - a.r) * u);
+  const g = Math.round(a.g + (b.g - a.g) * u);
+  const bl = Math.round(a.b + (b.b - a.b) * u);
+  const hot = `rgb(${r},${g},${bl})`;
+  // Slightly lighter for the top of the mercury gradient
+  const cold = `rgb(${Math.min(255, r + 40)},${Math.min(255, g + 40)},${Math.min(255, bl + 20)})`;
+  return { cold, hot, t };
+}
+
+function toCelsius(temp, unitStr) {
+  if (temp == null || !Number.isFinite(Number(temp))) return null;
+  const n = Number(temp);
+  const u = String(unitStr || "").toLowerCase();
+  if (u.includes("f")) return ((n - 32) * 5) / 9;
+  return n;
+}
+
+function thermometer(className, opts = {}) {
   const g = uid("th");
+  const tempC = toCelsius(opts.value, opts.unit);
+  const { cold, hot, t } = tempColors(tempC != null ? tempC : 20);
+  // Mercury column: tube inner area y=16..40 (height 24). Fill from bottom.
+  const fillH = 4 + t * 20;
+  const fillY = 40 - fillH;
   return wrap(
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="${g}a" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#FF9F0A"/>
-            <stop offset="100%" stop-color="#FF453A"/>
+            <stop offset="0%" stop-color="${cold}"/>
+            <stop offset="100%" stop-color="${hot}"/>
           </linearGradient>
           <linearGradient id="${g}b" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="#F2F4F8"/>
@@ -210,7 +253,7 @@ function thermometer(className) {
           </linearGradient>
         </defs>
         <rect x="26" y="6" width="12" height="36" rx="6" fill="url(#${g}b)"/>
-        <rect x="29" y="18" width="6" height="22" rx="3" fill="url(#${g}a)"/>
+        <rect x="29" y="${fillY}" width="6" height="${fillH}" rx="3" fill="url(#${g}a)"/>
         <circle cx="32" cy="48" r="12" fill="url(#${g}a)"/>
         <circle cx="28" cy="44" r="3.5" fill="#fff" opacity="0.35"/>
         <circle cx="32" cy="48" r="5" fill="#fff" opacity="0.2"/>
@@ -543,7 +586,7 @@ export function wscIcon(name, className = "", opts = {}) {
     case "partly_rainy":
       return partlyRainy(className);
     case "thermometer":
-      return thermometer(className);
+      return thermometer(className, opts);
     case "humidity":
       return humidity(className);
     case "lux_dark":

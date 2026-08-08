@@ -326,19 +326,25 @@ function wind(className, opts = {}) {
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="${g}a" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#C7C7CC"/>
-            <stop offset="100%" stop-color="#8E8E93"/>
+            <stop offset="0%" stop-color="#AEAEB2"/>
+            <stop offset="100%" stop-color="#636366"/>
           </linearGradient>
         </defs>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="7" stroke-linecap="round"
-          d="M8 24 H38 C48 24 52 18 46 12"/>
-        <path fill="none" stroke="url(#${g}a)" stroke-width="7" stroke-linecap="round"
-          d="M8 40 H30 C40 40 44 48 38 54"/>
+        <!-- Top stroke with upward hook -->
+        <path fill="none" stroke="url(#${g}a)" stroke-width="6.5" stroke-linecap="round"
+          d="M6 22 H36 C47 22 51 15 44 10"/>
+        <!-- Bottom stroke with downward hook; open space holds the Bft number -->
+        <path fill="none" stroke="url(#${g}a)" stroke-width="6.5" stroke-linecap="round"
+          d="M6 38 H28 C40 38 44 48 36 54"/>
         ${n !== ""
-          ? svg`<text x="42" y="52" text-anchor="middle" dominant-baseline="middle"
-              font-size="${n.length > 1 ? 14 : 18}" font-weight="700"
-              font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
-              fill="#636366">${n}</text>`
+          ? svg`
+              <text x="46" y="46" text-anchor="middle" dominant-baseline="central"
+                font-size="${n.length > 1 ? 15 : 18}" font-weight="800"
+                font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+                fill="#1C1C1E"
+                stroke="#fff" stroke-width="3" paint-order="stroke fill"
+                stroke-linejoin="round">${n}</text>
+            `
           : nothing}
       </svg>
     `,

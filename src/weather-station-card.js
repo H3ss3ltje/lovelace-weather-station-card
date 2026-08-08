@@ -645,7 +645,7 @@ class WeatherStationCard extends LitElement {
     }
 
     return this._tile({
-      icon: rainOn ? "rainy" : "partly_rainy",
+      icon: rainOn ? "rainy" : "cloudy",
       label: this._t("sections.rain"),
       value: rainObj
         ? rainOn
@@ -718,15 +718,33 @@ class WeatherStationCard extends LitElement {
   }
 
   _renderCompass(deg, compass) {
+    // Full-size SVG needle with hub at viewBox center (50,50) so rotation
+    // around 50%/50% keeps the arrow visually centered in the dial.
     return html`
       <div class="compass" title="${compass || ""} (${round(deg, 0)}°)">
+        <svg
+          class="needle-svg"
+          viewBox="0 0 100 100"
+          style="transform: rotate(${deg}deg)"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="wsc-needle" x1="0.5" y1="1" x2="0.5" y2="0">
+              <stop offset="0%" stop-color="#0A84FF"></stop>
+              <stop offset="100%" stop-color="#64D2FF"></stop>
+            </linearGradient>
+          </defs>
+          <path
+            fill="url(#wsc-needle)"
+            d="M50 14 L62 72 L50 62 L38 72 Z"
+          ></path>
+          <circle cx="50" cy="50" r="7" fill="url(#wsc-needle)"></circle>
+          <circle cx="50" cy="50" r="3" fill="#fff" opacity="0.95"></circle>
+        </svg>
         <span class="c-n">${this._t("compass.N")}</span>
         <span class="c-e">${this._t("compass.E")}</span>
         <span class="c-s">${this._t("compass.S")}</span>
         <span class="c-w">${this._t("compass.W")}</span>
-        <div class="needle" style="transform: rotate(${deg}deg)">
-          ${wscIcon("compass_needle", "needle-icon")}
-        </div>
       </div>
     `;
   }
@@ -891,10 +909,6 @@ class WeatherStationCard extends LitElement {
       .hero-wind .compass .c-s { top: 65px; }
       .hero-wind .compass .c-e { left: 65px; }
       .hero-wind .compass .c-w { left: 11px; }
-      .hero-wind .compass .needle-icon {
-        width: 28px;
-        height: 28px;
-      }
       .hero-wind-speed {
         font-size: 0.95rem;
         font-weight: 600;
@@ -930,10 +944,6 @@ class WeatherStationCard extends LitElement {
         .hero-wind .compass .c-s { top: 51px; }
         .hero-wind .compass .c-e { left: 51px; }
         .hero-wind .compass .c-w { left: 9px; }
-        .hero-wind .compass .needle-icon {
-          width: 24px;
-          height: 24px;
-        }
         .hero-wind-speed {
           font-size: 0.82rem;
         }
@@ -1303,36 +1313,27 @@ class WeatherStationCard extends LitElement {
         color: var(--secondary-text-color);
         font-size: 0.6rem;
       }
+      .compass .needle-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        transform-origin: 50% 50%;
+        transition: transform 0.4s ease;
+        pointer-events: none;
+        overflow: visible;
+        z-index: 1;
+      }
       .compass span {
         position: absolute;
         transform: translate(-50%, -50%);
+        z-index: 2;
       }
       .compass .c-n { top: 8px; left: 50%; }
       .compass .c-s { top: 44px; left: 50%; }
       .compass .c-e { top: 50%; left: 44px; }
       .compass .c-w { top: 50%; left: 8px; }
-      .compass .needle {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transform-origin: 50% 50%;
-        transition: transform 0.4s ease;
-        pointer-events: none;
-      }
-      .compass .needle-icon {
-        width: 22px;
-        height: 22px;
-        display: flex;
-        margin: 0;
-        line-height: 0;
-      }
-      .compass .needle-icon svg {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
 
       .tappable {
         cursor: pointer;

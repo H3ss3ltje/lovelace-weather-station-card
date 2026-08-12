@@ -38,6 +38,69 @@ export function comfortKey(tempC, humidity) {
 }
 
 /**
+ * Map a weather-condition text (e.g. from Zigbee2MQTT) to an icon + labelKey.
+ * Returns null when text is empty. `raw` keeps the original string for display.
+ */
+export function conditionFromText(text, isDay = true) {
+  if (text == null || text === "" || text === "unknown" || text === "unavailable") {
+    return null;
+  }
+  const raw = String(text);
+  const t = raw.toLowerCase();
+  if (/rain|drizzle|shower|pour|wet/.test(t)) {
+    return { icon: "rainy", labelKey: "rain", raw };
+  }
+  if (/snow|sleet|blizzard|ice|hail/.test(t)) {
+    return { icon: "snowy", labelKey: "snow", raw };
+  }
+  if (/storm|thunder|lightning/.test(t)) {
+    return { icon: "rainy", labelKey: "rain", raw };
+  }
+  if (/fog|mist|haze/.test(t)) {
+    return { icon: "cloudy", labelKey: "cloudy", raw };
+  }
+  if (/part|few|scatter|broken/.test(t) && /cloud/.test(t)) {
+    return { icon: "partly_cloudy", labelKey: "partly_cloudy", raw };
+  }
+  if (/cloud|overcast/.test(t)) {
+    return { icon: "cloudy", labelKey: "cloudy", raw };
+  }
+  if (/clear|sunny|fair|sun/.test(t)) {
+    return isDay
+      ? { icon: "sunny", labelKey: "clear_sky", raw }
+      : { icon: "night", labelKey: "clear_night", raw };
+  }
+  if (/night/.test(t)) {
+    return { icon: "night", labelKey: "clear_night", raw };
+  }
+  return {
+    icon: isDay ? "partly_cloudy" : "night",
+    labelKey: "partly_cloudy",
+    raw,
+  };
+}
+
+/**
+ * Pressure trend from a rate sensor (hPa/h). Negative = falling.
+ */
+export function pressureTrendFromRate(rate, threshold = 0.3) {
+  if (rate == null || !Number.isFinite(rate)) return null;
+  const t = Number(threshold) || 0.3;
+  if (rate >= t) return { icon: "trend_up", labelKey: "rising" };
+  if (rate <= -t) return { icon: "trend_down", labelKey: "falling" };
+  return { icon: "trend_steady", labelKey: "steady" };
+}
+
+/**
+ * Capitalize a condition string for display when no translation key fits.
+ */
+export function prettyLabel(text) {
+  if (!text) return "";
+  const s = String(text).replace(/_/g, " ").trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
  * Convert wind degrees (0-360) into an 8-point compass key (N, NE, …).
  */
 export function degToCompass(deg) {

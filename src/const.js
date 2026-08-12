@@ -1,10 +1,11 @@
-export const CARD_VERSION = "1.6.5";
+export const CARD_VERSION = "1.7.0";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
 
 /**
  * Configuration keys for the entities the user can pick.
+ * Covers a full Zigbee2MQTT weather-station expose set.
  */
 export const ENTITY_FIELDS = [
   { key: "temperature_entity", icon: "mdi:thermometer" },
@@ -12,11 +13,22 @@ export const ENTITY_FIELDS = [
   { key: "lux_entity", icon: "mdi:brightness-7" },
   { key: "uv_entity", icon: "mdi:sun-wireless" },
   { key: "rain_entity", icon: "mdi:weather-rainy" },
+  { key: "rain_rate_entity", icon: "mdi:weather-pouring" },
+  { key: "precipitation_entity", icon: "mdi:cup-water" },
   { key: "wind_speed_entity", icon: "mdi:weather-windy" },
   { key: "wind_direction_entity", icon: "mdi:compass" },
   { key: "wind_gust_entity", icon: "mdi:weather-windy-variant" },
   { key: "pressure_entity", icon: "mdi:gauge" },
+  { key: "pressure_trend_entity", icon: "mdi:trending-up" },
   { key: "battery_entity", icon: "mdi:battery-high" },
+  { key: "voltage_entity", icon: "mdi:flash" },
+  { key: "capacitor_voltage_entity", icon: "mdi:sine-wave" },
+  { key: "dewpoint_entity", icon: "mdi:water-thermometer" },
+  { key: "apparent_temperature_entity", icon: "mdi:thermometer-lines" },
+  { key: "wind_chill_entity", icon: "mdi:snowflake-thermometer" },
+  { key: "humidex_entity", icon: "mdi:sun-thermometer" },
+  { key: "heat_stress_entity", icon: "mdi:heat-wave" },
+  { key: "condition_entity", icon: "mdi:weather-partly-cloudy" },
   { key: "sun_entity", icon: "mdi:weather-sunny" },
   { key: "azimuth_entity", icon: "mdi:compass-outline" },
   { key: "elevation_entity", icon: "mdi:angle-acute" },
@@ -29,36 +41,40 @@ export const ENTITY_FIELDS = [
 export const DEFAULT_TILE_ORDER = [
   "lux",
   "temperature",
+  "feels_like",
   "humidity",
+  "dewpoint",
   "rain",
   "wind",
   "uv",
   "pressure",
+  "heat_stress",
   "battery",
 ];
 
 /**
- * Default values for the `settings` object. Everything that is potentially
- * "extra" is disabled by default per the design brief (dew point, pressure
- * trend). Sections that are core to a weather station default to on.
+ * Default values for the `settings` object.
  */
 export const DEFAULT_SETTINGS = {
-  show_dewpoint: false,
-  show_pressure_trend: false,
+  show_dewpoint: true,
+  show_pressure_trend: true,
   show_battery: true,
+  show_voltage: true,
   show_wind_gust: true,
   show_interactions: true,
   show_daynight: true,
   show_sun: true,
-  show_minmax: true, // today's min/max temperature
-  show_rain_today: true, // rain total today (needs rain_today_entity)
-  show_beaufort: true, // Beaufort scale + description on wind
-  compact_mode: false, // hero + sun only (hide tile grid)
-  night_palette: true, // stronger moon / night path colours after sunset
-  lux_in_klux: false, // true if lux_entity reports kilolux (0–200) instead of lux
+  show_minmax: true,
+  show_rain_today: true,
+  show_beaufort: true,
+  show_feels_like: true,
+  show_heat_stress: true,
+  compact_mode: false,
+  night_palette: true,
+  lux_in_klux: false,
   tile_order: [...DEFAULT_TILE_ORDER],
-  pressure_trend_threshold: 1, // percent change to flag rising/falling
-  manual_condition: "", // used when no sun entity + user wants a fixed icon
+  pressure_trend_threshold: 0.3, // hPa/h when using pressure_trend_entity
+  manual_condition: "",
 };
 
 export const COMPASS_POINTS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
@@ -77,9 +93,9 @@ export const UV_LEVELS = [
  * `max` is inclusive upper bound in lux.
  */
 export const LUX_LEVELS = [
-  { max: 100, labelKey: "dark", icon: "lux_dark" }, // ≤ 0.1 klx
-  { max: 2000, labelKey: "low_light", icon: "lux_low" }, // ≤ 2 klx
-  { max: 20000, labelKey: "bright", icon: "lux_bright" }, // ≤ 20 klx
-  { max: 80000, labelKey: "very_bright", icon: "lux_very_bright" }, // ≤ 80 klx
-  { max: Infinity, labelKey: "full_sun", icon: "lux_full_sun" }, // 80–200 klx
+  { max: 100, labelKey: "dark", icon: "lux_dark" },
+  { max: 2000, labelKey: "low_light", icon: "lux_low" },
+  { max: 20000, labelKey: "bright", icon: "lux_bright" },
+  { max: 80000, labelKey: "very_bright", icon: "lux_very_bright" },
+  { max: Infinity, labelKey: "full_sun", icon: "lux_full_sun" },
 ];

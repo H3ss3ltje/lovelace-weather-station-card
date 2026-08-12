@@ -194,6 +194,86 @@ function partlyRainy(className) {
   );
 }
 
+function snowy(className) {
+  const g = uid("sn");
+  return wrap(
+    svg`
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${g}c" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8ECF2"/>
+            <stop offset="100%" stop-color="#8A94A4"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#${g}c)"
+          d="M14 34c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C12.6 9.4 17.8 6 24 6
+             c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
+             S47.6 38 41.4 38H14z"/>
+        <circle cx="20" cy="48" r="3" fill="#A8C0FF"/>
+        <circle cx="32" cy="52" r="3" fill="#A8C0FF"/>
+        <circle cx="44" cy="48" r="3" fill="#A8C0FF"/>
+      </svg>
+    `,
+    className
+  );
+}
+
+function heatStress(className, opts = {}) {
+  const g = uid("hs");
+  const pct =
+    opts.value != null && Number.isFinite(Number(opts.value))
+      ? Math.max(0, Math.min(100, Number(opts.value)))
+      : 50;
+  const t = pct / 100;
+  const gr = Math.round(200 - t * 140);
+  const bl = Math.round(50 - t * 50);
+  const color = `rgb(255,${Math.max(40, gr)},${Math.max(0, bl)})`;
+  return wrap(
+    svg`
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="${g}a" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="#FFE56A"/>
+            <stop offset="100%" stop-color="${color}"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="28" r="14" fill="url(#${g}a)"/>
+        <path fill="none" stroke="${color}" stroke-width="3.5" stroke-linecap="round"
+          d="M18 48c4-6 8-6 12 0s8 6 12 0 8-6 12 0"/>
+        <path fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" opacity="0.55"
+          d="M22 54c3-4 6-4 9 0s6 4 9 0"/>
+      </svg>
+    `,
+    className
+  );
+}
+
+function dewpointIcon(className) {
+  const g = uid("dp");
+  return wrap(
+    svg`
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${g}a" x1="0.3" y1="0" x2="0.7" y2="1">
+            <stop offset="0%" stop-color="#64D2FF"/>
+            <stop offset="100%" stop-color="#0A84FF"/>
+          </linearGradient>
+          <linearGradient id="${g}b" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FF9F0A"/>
+            <stop offset="100%" stop-color="#FF453A"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#${g}a)"
+          d="M22 8C22 8 8 24 8 34c0 8 6.5 12 14 12s14-4 14-12C36 24 22 8 22 8z"/>
+        <rect x="40" y="10" width="8" height="24" rx="4" fill="#C8CDD6"/>
+        <rect x="42" y="20" width="4" height="12" rx="2" fill="url(#${g}b)"/>
+        <circle cx="44" cy="42" r="8" fill="url(#${g}b)"/>
+      </svg>
+    `,
+    className
+  );
+}
+
 /** Map °C in [-30, 40] → { cold, hot } colors (blue → red). */
 function tempColors(tempC) {
   const t = Math.max(0, Math.min(1, ((tempC ?? 20) + 30) / 70));
@@ -585,8 +665,16 @@ export function wscIcon(name, className = "", opts = {}) {
       return rainy(className);
     case "partly_rainy":
       return partlyRainy(className);
+    case "snowy":
+    case "snow":
+      return snowy(className);
     case "thermometer":
+    case "feels_like":
       return thermometer(className, opts);
+    case "dewpoint":
+      return dewpointIcon(className);
+    case "heat_stress":
+      return heatStress(className, opts);
     case "humidity":
       return humidity(className);
     case "lux_dark":

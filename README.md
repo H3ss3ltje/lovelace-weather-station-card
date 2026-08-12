@@ -5,7 +5,7 @@ A modern, minimalistic, **Mushroom-inspired** custom Lovelace card for Home Assi
 Everything is configurable through the UI or YAML — no entity IDs are hardcoded, and every section is optional and hides itself automatically when its entity is not configured.
 
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)
 
 ---
 
@@ -76,20 +76,31 @@ type: custom:weather-station-card
 title: Weather Station
 temperature_entity: sensor.temperature
 humidity_entity: sensor.humidity
-lux_entity: sensor.lux
-uv_entity: sensor.uv
-rain_entity: sensor.rain
+lux_entity: sensor.illuminance
+uv_entity: sensor.uv_index
+rain_entity: binary_sensor.rain_status
+rain_rate_entity: sensor.rain_rate
+precipitation_entity: sensor.precipitation
 wind_speed_entity: sensor.wind_speed
 wind_direction_entity: sensor.wind_direction
-wind_gust_entity: sensor.wind_gust
+wind_gust_entity: sensor.gust_speed
 pressure_entity: sensor.pressure
+pressure_trend_entity: sensor.pressure_trend
 battery_entity: sensor.battery
+voltage_entity: sensor.voltage
+dewpoint_entity: sensor.dew_point
+apparent_temperature_entity: sensor.apparent_temperature
+heat_stress_entity: sensor.heat_stress
+condition_entity: sensor.weather_condition
 sun_entity: sun.sun
 
 settings:
   show_dewpoint: true
-  show_pressure_trend: false
+  show_feels_like: true
+  show_heat_stress: true
+  show_pressure_trend: true
   show_battery: true
+  show_voltage: true
   show_wind_gust: true
   show_interactions: true
   show_daynight: true
@@ -103,22 +114,34 @@ More examples live in the [`examples/`](./examples) folder.
 
 ### Entities
 
-All entities are optional. A section is only rendered when its entity is set.
+All entities are optional. A section is only rendered when its entity is set. Zigbee2MQTT weather-station exposes map 1:1 to these options.
 
-| Option                   | Type   | Description                                    |
-| ------------------------ | ------ | ---------------------------------------------- |
-| `temperature_entity`     | string | Temperature sensor (°C).                       |
-| `humidity_entity`        | string | Relative humidity sensor (%).                  |
-| `lux_entity`             | string | Illuminance sensor (lx).                       |
-| `uv_entity`              | string | UV index sensor.                               |
-| `rain_entity`            | string | Rain sensor — binary state or rate (mm/h).     |
-| `wind_speed_entity`      | string | Wind speed sensor (m/s).                       |
-| `wind_direction_entity`  | string | Wind direction sensor (degrees, 0–360).        |
-| `wind_gust_entity`       | string | Wind gust sensor.                              |
-| `pressure_entity`        | string | Atmospheric pressure sensor (hPa).             |
-| `battery_entity`         | string | Battery level sensor (%).                      |
-| `sun_entity`             | string | `sun.sun` for automatic day/night detection.   |
-| `title`                  | string | Card title. Default: `Weather Station`.        |
+| Option                         | Type   | Description                                              |
+| ------------------------------ | ------ | -------------------------------------------------------- |
+| `temperature_entity`           | string | Temperature (°C).                                        |
+| `humidity_entity`              | string | Relative humidity (%).                                   |
+| `lux_entity`                   | string | Illuminance (lx).                                        |
+| `uv_entity`                    | string | UV index.                                                |
+| `rain_entity`                  | string | Rain status (binary / on-off).                           |
+| `rain_rate_entity`             | string | Rain rate (mm/h).                                        |
+| `precipitation_entity`         | string | Precipitation total (mm). Prefer over `rain_today_entity`. |
+| `rain_today_entity`            | string | Alternate daily rain total (mm).                         |
+| `wind_speed_entity`            | string | Wind speed (m/s).                                        |
+| `wind_direction_entity`        | string | Wind direction (°, 0–360).                               |
+| `wind_gust_entity`             | string | Gust speed (m/s).                                        |
+| `pressure_entity`              | string | Atmospheric pressure (hPa / kPa).                        |
+| `pressure_trend_entity`        | string | Pressure change rate (hPa/h; negative = falling).        |
+| `battery_entity`               | string | Battery level (%).                                       |
+| `voltage_entity`               | string | Battery voltage (mV).                                    |
+| `capacitor_voltage_entity`     | string | Capacitor voltage (V).                                   |
+| `dewpoint_entity`              | string | Dew point (°C). Falls back to calculated dew point.      |
+| `apparent_temperature_entity`  | string | Apparent / feels-like temperature (°C).                  |
+| `wind_chill_entity`            | string | Wind chill (°C).                                         |
+| `humidex_entity`               | string | Humidex (°C).                                            |
+| `heat_stress_entity`           | string | Heat stress (0–100%).                                    |
+| `condition_entity`             | string | Weather condition text (sunny, rainy, snowy, …).         |
+| `sun_entity`                   | string | `sun.sun` for day/night and sunrise/sunset.              |
+| `title`                        | string | Card title. Default: `Weather Station`.                  |
 
 ### Settings
 
@@ -130,15 +153,18 @@ All entities are optional. A section is only rendered when its entity is set.
 | `night_palette`              | boolean | `true`  | Stronger moon / night colours on the sun diagram.        |
 | `lux_in_klux`                | boolean | `false` | Set if `lux_entity` already reports kilolux (0–200).     |
 | `compact_mode`               | boolean | `false` | Hero + sun only (hide the sensor tile grid).             |
-| `tile_order`                 | list    | see below | Order of tiles: `lux`, `temperature`, `humidity`, `rain`, `wind`, `uv`, `pressure`, `battery`. |
-| `show_dewpoint`              | boolean | `false` | Calculate & show dew point from temperature + humidity.  |
+| `tile_order`                 | list    | see below | Order of tiles: `lux`, `temperature`, `feels_like`, `humidity`, `dewpoint`, `rain`, `wind`, `uv`, `pressure`, `heat_stress`, `battery`. |
+| `show_dewpoint`              | boolean | `true`  | Show dew point (entity or calculated).                   |
+| `show_feels_like`            | boolean | `true`  | Show feels-like (apparent / wind chill / humidex).       |
+| `show_heat_stress`           | boolean | `true`  | Show heat stress tile when configured.                   |
 | `show_minmax`                | boolean | `true`  | Show today's min / max temperature in the hero.          |
-| `show_rain_today`            | boolean | `true`  | Show rain total today when configured.                   |
+| `show_rain_today`            | boolean | `true`  | Show precipitation / rain today when configured.         |
 | `show_beaufort`              | boolean | `true`  | Show Beaufort number + description on the wind tile.     |
 | `show_wind_gust`             | boolean | `true`  | Show wind gust in the wind tile.                         |
 | `show_battery`               | boolean | `true`  | Show the battery tile.                                   |
-| `show_pressure_trend`        | boolean | `false` | Show a rising/steady/falling pressure trend.             |
-| `pressure_trend_threshold`   | number  | `1`     | Percent change needed to flag rising/falling.            |
+| `show_voltage`               | boolean | `true`  | Show battery / capacitor voltage under battery.          |
+| `show_pressure_trend`        | boolean | `true`  | Show rising/steady/falling pressure trend.               |
+| `pressure_trend_threshold`   | number  | `0.3`   | Rate (hPa/h) needed to flag rising/falling.              |
 | `show_interactions`          | boolean | `true`  | Enable tap/hold/double-tap actions on sections.          |
 
 ### Interactions

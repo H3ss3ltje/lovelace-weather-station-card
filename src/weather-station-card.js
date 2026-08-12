@@ -20,6 +20,8 @@ import {
   uvLevel,
   batteryIcon,
   deriveCondition,
+  conditionFromText,
+  pressureTrendFromRate,
   isRainDetected,
   round,
   unit,
@@ -269,15 +271,73 @@ class WeatherStationCard extends LitElement {
   }
 
   _pressureTrend(value) {
-    const threshold = Number(this._config.settings.pressure_trend_threshold) || 1;
+    const threshold =
+      Number(this._config.settings.pressure_trend_threshold) || 0.3;
+    const rateObj = this._stateObj("pressure_trend_entity");
+    const rate = numericState(rateObj);
+    if (rate != null) {
+      return (
+        pressureTrendFromRate(rate, threshold) || {
+          icon: "trend_steady",
+          labelKey: "steady",
+        }
+      );
+    }
     if (this._pressureHistory.length < 2 || value == null) {
       return { icon: "trend_steady", labelKey: "steady" };
     }
-    const oldest = this._pressureHistory[0].v;
-    const pct = ((value - oldest) / oldest) * 100;
-    if (pct >= threshold) return { icon: "trend_up", labelKey: "rising" };
-    if (pct <= -threshold) return { icon: "trend_down", labelKey: "falling" };
-    return { icon: "trend_steady", labelKey: "steady" };
+    const oldest = this._pressureHistory[0];
+    const hours = Math.max((Date.now() - oldest.t) / 3600000, 0.05);
+    const derived = (value - oldest.v) / hours;
+    return (
+      pressureTrendFromRate(derived, threshold) || {
+        icon: "trend_steady",
+        labelKey: "steady",
+      }
+    );
+  }
+
+  _dewPoint(temp, humidity) {
+    const fromEntity = numericState(this._stateObj("dewpoint_entity"));
+    if (fromEntity != null) return fromEntity;
+    return calcDewPoint(temp, humidity);
+  }
+
+  /**
+   * Prefer apparent temperature; otherwise pick wind chill / humidex by season.
+   */
+  _feelsLike(temp) {
+    const apparent = numericState(
+      this._stateObj("apparent_temperature_entity")
+    );
+    if (apparent != null) {
+      return {
+        value: apparent,
+        key: "apparent_temperature_entity",
+        kind: "apparent",
+      };
+    }
+    const chill = numericState(this._stateObj("wind_chill_entity"));
+    const humidex = numericState(this._stateObj("humidex_entity"));
+    if (temp != null && temp <= 10 && chill != null) {
+      return { value: chill, key: "wind_chill_entity", kind: "wind_chill" };
+    }
+    if (temp != null && temp >= 22 && humidex != null) {
+      return { value: humidex, key: "humidex_entity", kind: "humidex" };
+    }
+    if (chill != null) {
+      return { value: chill, key: "wind_chill_entity", kind: "wind_chill" };
+    }
+    if (humidex != null) {
+      return { value: humidex, key: "humidex_entity", kind: "humidex" };
+    }
+    return null;
+  }
+
+  _precipToday() {
+    const precip = this._stateObj("precipitation_entity");
+    if (precip) return precip;
+    return this._stateObj("rain_today_entity");
   }
 
   _actionConfig(key) {
@@ -315,8 +375,22 @@ class WeatherStationCard extends LitElement {
 
     const isDay = this._isDay();
     const rainObj = this._stateObj("rain_entity");
+    const rainRateObj = this._stateObj("rain_rate_entity");
     const rainOn = rainObj ? isRainDetected(rainObj) : false;
-    const rainMm = numericState(rainObj);
+    const rainState = String(rainObj?.state ?? "").toLowerCase();
+    const rainLooksBinary = [
+      "on",
+      "off",
+      "true",
+      "false",
+      "wet",
+      "dry",
+      "detected",
+      "raining",
+    ].includes(rainState);
+    const rainRate =
+      numericState(rainRateObj) ??
+      (!rainLooksBinary ? numericState(rainObj) : null);
     const lux = normalizeLux(
       numericState(this._stateObj("lux_entity")),
       s
@@ -324,7 +398,13 @@ class WeatherStationCard extends LitElement {
     const uv = numericState(this._stateObj("uv_entity"));
 
     let condition;
-    if (!s.show_daynight && this._config.settings.manual_condition) {
+    const conditionObj = this._stateObj("condition_entity");
+    const fromText = conditionObj
+      ? conditionFromText(conditionObj.state, isDay)
+      : null;
+    if (fromText) {
+      condition = fromText;
+    } else if (!s.show_daynight && this._config.settings.manual_condition) {
       const map = {
         sunny: { icon: "sunny", labelKey: "clear_sky" },
         cloudy: { icon: "cloudy", labelKey: "cloudy" },
@@ -333,9 +413,9 @@ class WeatherStationCard extends LitElement {
       };
       condition =
         map[this._config.settings.manual_condition] ||
-        deriveCondition({ isDay, rainMm, rainOn, lux, uv });
+        deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv });
     } else {
-      condition = deriveCondition({ isDay, rainMm, rainOn, lux, uv });
+      condition = deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv });
     }
 
     // Empty string hides the title. Missing / English default uses the
@@ -358,23 +438,26 @@ class WeatherStationCard extends LitElement {
           ${s.compact_mode
             ? nothing
             : html`<div class="grid">
-                ${this._renderTiles(lux, temp, tempUnit, humidity, rainObj, rainOn, rainMm, uv)}
+                ${this._renderTiles(lux, temp, tempUnit, humidity, rainObj, rainOn, rainRate, uv)}
               </div>`}
         </div>
       </ha-card>
     `;
   }
 
-  _renderTiles(lux, temp, tempUnit, humidity, rainObj, rainOn, rainMm, uv) {
+  _renderTiles(lux, temp, tempUnit, humidity, rainObj, rainOn, rainRate, uv) {
     const order = this._normalizeTileOrder(this._config.settings?.tile_order);
     const renderers = {
       lux: () => this._renderLux(lux),
       temperature: () => this._renderTemperature(temp, tempUnit),
+      feels_like: () => this._renderFeelsLike(tempUnit),
       humidity: () => this._renderHumidity(humidity),
-      rain: () => this._renderRain(rainObj, rainOn, rainMm),
+      dewpoint: () => this._renderDewpoint(temp, tempUnit, humidity),
+      rain: () => this._renderRain(rainObj, rainOn, rainRate),
       wind: () => this._renderWind(),
       uv: () => this._renderUv(uv),
       pressure: () => this._renderPressure(),
+      heat_stress: () => this._renderHeatStress(),
       battery: () => this._renderBattery(),
     };
     return order.map((key) => (renderers[key] ? renderers[key]() : nothing));
@@ -503,8 +586,10 @@ class WeatherStationCard extends LitElement {
 
   _renderHero(condition, temp, tempUnit, humidity) {
     const s = this._config.settings || {};
-    const dew = s.show_dewpoint ? calcDewPoint(temp, humidity) : null;
-    const comfort = comfortKey(temp, humidity);
+    const dew = s.show_dewpoint ? this._dewPoint(temp, humidity) : null;
+    const feels = s.show_feels_like ? this._feelsLike(temp) : null;
+    const comfort =
+      feels == null ? comfortKey(temp, humidity) : null;
     const minmax = s.show_minmax ? this._todayMinMax() : null;
 
     const speedObj = this._stateObj("wind_speed_entity");
@@ -515,6 +600,8 @@ class WeatherStationCard extends LitElement {
     const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
     const showWind = speedObj || dirDeg != null;
 
+    const conditionText = this._t(`condition.${condition.labelKey}`);
+
     return html`
       <div
         class="hero ${showWind ? "has-wind" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
@@ -522,9 +609,7 @@ class WeatherStationCard extends LitElement {
       >
         ${wscIcon(condition.icon, "hero-icon")}
         <div class="hero-main">
-          <div class="hero-condition">
-            ${this._t(`condition.${condition.labelKey}`)}
-          </div>
+          <div class="hero-condition">${conditionText}</div>
           <div class="hero-temp">
             ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
           </div>
@@ -561,12 +646,22 @@ class WeatherStationCard extends LitElement {
           : nothing}
         ${temp != null
           ? html`<div class="hero-sub">
-              ${comfort
-                ? html`<span>${this._t(`comfort.${comfort}`)}</span>`
-                : nothing}
+              ${feels
+                ? html`<span
+                    >${this._t("feels_like", {
+                      value: round(feels.value, 1),
+                      unit: tempUnit,
+                    })}</span
+                  >`
+                : comfort
+                  ? html`<span>${this._t(`comfort.${comfort}`)}</span>`
+                  : nothing}
               ${dew != null
                 ? html`<span class="muted"
-                    >${this._t("dewpoint", { value: dew, unit: tempUnit })}</span
+                    >${this._t("dewpoint", {
+                      value: round(dew, 1),
+                      unit: tempUnit,
+                    })}</span
                   >`
                 : nothing}
             </div>`
@@ -627,41 +722,137 @@ class WeatherStationCard extends LitElement {
     });
   }
 
-  _renderRain(rainObj, rainOn, rainMm) {
+  _renderFeelsLike(tempUnit) {
     const s = this._config.settings || {};
-    const todayObj = this._stateObj("rain_today_entity");
-    const today = s.show_rain_today ? numericState(todayObj) : null;
-    if (!rainObj && today == null) return nothing;
+    if (!s.show_feels_like) return nothing;
+    const temp = numericState(this._stateObj("temperature_entity"));
+    const feels = this._feelsLike(temp);
+    if (!feels) return nothing;
+    const feelUnit = unit(this._stateObj(feels.key), tempUnit);
+    return this._tile({
+      icon: "feels_like",
+      iconOpts: { value: feels.value, unit: feelUnit },
+      label: this._t("sections.feels_like"),
+      value: `${round(feels.value, 1)} ${feelUnit}`,
+      sub: this._t(`feels.${feels.kind}`),
+      key: feels.key,
+    });
+  }
 
-    const unitStr = unit(rainObj, "mm/h");
+  _renderDewpoint(temp, tempUnit, humidity) {
+    const s = this._config.settings || {};
+    if (!s.show_dewpoint) return nothing;
+    const hasSource =
+      this._stateObj("dewpoint_entity") ||
+      (this._stateObj("temperature_entity") &&
+        this._stateObj("humidity_entity"));
+    if (!hasSource) return nothing;
+    const dew = this._dewPoint(temp, humidity);
+    const dewUnit = unit(this._stateObj("dewpoint_entity"), tempUnit);
+    return this._tile({
+      icon: "dewpoint",
+      label: this._t("sections.dewpoint"),
+      value: dew != null ? `${round(dew, 1)} ${dewUnit}` : "—",
+      key: this._stateObj("dewpoint_entity")
+        ? "dewpoint_entity"
+        : "temperature_entity",
+    });
+  }
+
+  _renderHeatStress() {
+    const s = this._config.settings || {};
+    if (!s.show_heat_stress) return nothing;
+    const obj = this._stateObj("heat_stress_entity");
+    if (!obj) return nothing;
+    const pct = numericState(obj);
+    let levelKey = "moderate";
+    let accent;
+    if (pct != null) {
+      if (pct < 25) {
+        levelKey = "low";
+        accent = "#4caf50";
+      } else if (pct < 50) {
+        levelKey = "moderate";
+        accent = "#ffb300";
+      } else if (pct < 75) {
+        levelKey = "high";
+        accent = "#fb8c00";
+      } else {
+        levelKey = "extreme";
+        accent = "#e53935";
+      }
+    }
+    return this._tile({
+      icon: "heat_stress",
+      iconOpts: { value: pct },
+      label: this._t("sections.heat_stress"),
+      value: pct != null ? `${round(pct, 0)}%` : "—",
+      sub: this._t(`heat_stress.${levelKey}`),
+      key: "heat_stress_entity",
+      accent,
+    });
+  }
+
+  _renderRain(rainObj, rainOn, rainRate) {
+    const s = this._config.settings || {};
+    const rateObj = this._stateObj("rain_rate_entity");
+    const todayObj = s.show_rain_today ? this._precipToday() : null;
+    const today = numericState(todayObj);
+    if (!rainObj && rateObj == null && today == null) return nothing;
+
+    const rateUnit = unit(rateObj || rainObj, "mm/h");
     const todayUnit = unit(todayObj, "mm");
-    const rateSub = rainMm != null ? `${round(rainMm, 1)} ${unitStr}` : "";
+    const rate =
+      rainRate != null
+        ? rainRate
+        : numericState(rateObj);
+    const rateText = rate != null ? `${round(rate, 1)} ${rateUnit}` : "";
     const todayText =
-      today != null ? `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}` : "";
+      today != null
+        ? `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}`
+        : "";
 
-    let sub;
-    if (rainObj && todayText) {
-      sub = html`<span>${rateSub || this._t("rain.today")}</span
-        ><span class="dot">·</span><span>${todayText}</span>`;
-    } else if (rainObj) {
-      sub = rateSub;
+    let value;
+    if (rainObj) {
+      value = rainOn ? this._t("rain.detected") : this._t("rain.dry");
+    } else if (rate != null) {
+      value = rateText;
+    } else if (today != null) {
+      value = `${round(today, 1)} ${todayUnit}`;
     } else {
-      sub = todayText;
+      value = "—";
     }
 
+    let sub = "";
+    if (rainObj || rateObj) {
+      if (rateText && todayText) {
+        sub = html`<span>${rateText}</span><span class="dot">·</span
+          ><span>${todayText}</span>`;
+      } else {
+        sub = rateText || todayText;
+      }
+    } else if (today != null) {
+      sub = this._t("rain.today");
+    }
+
+    const key = rainObj
+      ? "rain_entity"
+      : rateObj
+        ? "rain_rate_entity"
+        : this._stateObj("precipitation_entity")
+          ? "precipitation_entity"
+          : "rain_today_entity";
+
     return this._tile({
-      icon: rainOn ? "rainy" : "cloudy",
+      icon: rainOn || (rate != null && rate > 0) ? "rainy" : "cloudy",
       label: this._t("sections.rain"),
-      value: rainObj
-        ? rainOn
-          ? this._t("rain.detected")
-          : this._t("rain.dry")
-        : today != null
-          ? `${round(today, 1)} ${todayUnit}`
-          : "—",
-      sub: rainObj ? sub : todayText && today != null ? this._t("rain.today") : sub,
-      key: rainObj ? "rain_entity" : "rain_today_entity",
-      accent: rainOn ? "var(--info-color, #2196f3)" : undefined,
+      value,
+      sub,
+      key,
+      accent:
+        rainOn || (rate != null && rate > 0)
+          ? "var(--info-color, #2196f3)"
+          : undefined,
     });
   }
 
@@ -780,14 +971,21 @@ class WeatherStationCard extends LitElement {
     const unitStr = unit(obj, "hPa");
     this._recordPressure(value);
     const trend = s.show_pressure_trend ? this._pressureTrend(value) : null;
+    const rate = numericState(this._stateObj("pressure_trend_entity"));
+    const rateUnit = unit(this._stateObj("pressure_trend_entity"), "hPa/h");
+    const rateText =
+      rate != null ? `${rate > 0 ? "+" : ""}${round(rate, 2)} ${rateUnit}` : "";
+    const decimals = /hpa|mbar|\bmb\b/i.test(unitStr) ? 0 : 1;
     return this._tile({
       icon: "gauge",
       label: this._t("sections.pressure"),
-      value: value != null ? `${round(value, 0)} ${unitStr}` : "—",
+      value: value != null ? `${round(value, decimals)} ${unitStr}` : "—",
       sub: trend
         ? html`${wscIcon(trend.icon, "mini-icon")}
-            ${this._t(`pressure.${trend.labelKey}`)}`
-        : "",
+            ${this._t(`pressure.${trend.labelKey}`)}${rateText
+              ? html`<span class="dot">·</span><span>${rateText}</span>`
+              : nothing}`
+        : rateText,
       key: "pressure_entity",
     });
   }
@@ -796,16 +994,53 @@ class WeatherStationCard extends LitElement {
     const s = this._config.settings || {};
     if (!s.show_battery) return nothing;
     const obj = this._stateObj("battery_entity");
-    if (!obj) return nothing;
+    const voltObj = s.show_voltage ? this._stateObj("voltage_entity") : null;
+    const capObj = s.show_voltage
+      ? this._stateObj("capacitor_voltage_entity")
+      : null;
+    if (!obj && !voltObj && !capObj) return nothing;
     const pct = numericState(obj);
     let accent;
     if (pct != null && pct < 15) accent = "var(--error-color, #e53935)";
     else if (pct != null && pct < 40) accent = "var(--warning-color, #ffa726)";
+
+    const mv = numericState(voltObj);
+    const voltUnit = unit(voltObj, "mV");
+    let voltText = "";
+    if (mv != null) {
+      // Zigbee2MQTT reports mV; show volts when the number looks like millivolts.
+      if (voltUnit.toLowerCase() === "mv" || mv >= 1000) {
+        voltText = `${round(mv / 1000, 2)} V`;
+      } else {
+        voltText = `${round(mv, 0)} ${voltUnit}`;
+      }
+    }
+    const cap = numericState(capObj);
+    const capUnit = unit(capObj, "V");
+    const capText =
+      cap != null ? `${this._t("battery.capacitor")} ${round(cap, 2)} ${capUnit}` : "";
+
+    let sub = "";
+    if (voltText && capText) {
+      sub = html`<span>${voltText}</span><span class="dot">·</span
+        ><span>${capText}</span>`;
+    } else {
+      sub = voltText || capText;
+    }
+
     return this._tile({
       icon: batteryIcon(pct),
       label: this._t("sections.battery"),
-      value: pct != null ? `${round(pct, 0)}%` : "—",
-      key: "battery_entity",
+      value:
+        pct != null
+          ? `${round(pct, 0)}%`
+          : voltText || (cap != null ? `${round(cap, 2)} ${capUnit}` : "—"),
+      sub: pct != null ? sub : capText && voltText ? capText : "",
+      key: obj
+        ? "battery_entity"
+        : voltObj
+          ? "voltage_entity"
+          : "capacitor_voltage_entity",
       accent,
     });
   }

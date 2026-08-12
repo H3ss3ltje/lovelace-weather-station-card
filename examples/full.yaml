@@ -1,54 +1,82 @@
-# Full configuration with every entity and all optional features enabled.
+# Full configuration covering Zigbee2MQTT weather-station exposes.
 type: custom:weather-station-card
 title: Weather Station
+
+# Core sensors
 temperature_entity: sensor.temperature
 humidity_entity: sensor.humidity
-lux_entity: sensor.lux
-uv_entity: sensor.uv
-rain_entity: sensor.rain
+lux_entity: sensor.illuminance
+uv_entity: sensor.uv_index
+
+# Rain: binary status + rate + precipitation total
+rain_entity: binary_sensor.rain_status
+rain_rate_entity: sensor.rain_rate
+precipitation_entity: sensor.precipitation
+# rain_today_entity: sensor.rain_today  # alternate for daily total
+
+# Wind
 wind_speed_entity: sensor.wind_speed
 wind_direction_entity: sensor.wind_direction
-wind_gust_entity: sensor.wind_gust
+wind_gust_entity: sensor.gust_speed
+
+# Pressure
 pressure_entity: sensor.pressure
+pressure_trend_entity: sensor.pressure_trend
+
+# Power
 battery_entity: sensor.battery
+voltage_entity: sensor.voltage
+capacitor_voltage_entity: sensor.capacitor_voltage
+
+# Calculated / derived (from station or Z2M)
+dewpoint_entity: sensor.dew_point
+apparent_temperature_entity: sensor.apparent_temperature
+wind_chill_entity: sensor.wind_chill
+humidex_entity: sensor.humidex
+heat_stress_entity: sensor.heat_stress
+condition_entity: sensor.weather_condition
+
 sun_entity: sun.sun
 # Optional — only if you don't use sun.sun attributes:
 # azimuth_entity: sensor.sun_azimuth
 # elevation_entity: sensor.sun_elevation
-# Optional — dedicated daily min/max + rain total sensors.
-# If omitted, today's min/max is tracked in the browser instead.
+# Optional daily min/max (otherwise tracked in the browser):
 # temperature_min_entity: sensor.temperature_min
 # temperature_max_entity: sensor.temperature_max
-# rain_today_entity: sensor.rain_today
 
 settings:
   show_dewpoint: true
-  show_pressure_trend: false
+  show_feels_like: true
+  show_heat_stress: true
+  show_pressure_trend: true
+  pressure_trend_threshold: 0.3 # hPa/h
   show_battery: true
+  show_voltage: true
   show_wind_gust: true
   show_interactions: true
   show_daynight: true
   show_sun: true
-  show_minmax: true # today's min / max temperature in the hero
-  show_rain_today: true # rain total today (needs rain_today_entity)
-  show_beaufort: true # Beaufort number + description under wind
-  compact_mode: false # true = hero + sun only (hide tile grid)
-  night_palette: true # stronger moon / night path after sunset
-  lux_in_klux: false # true if lux_entity already reports kilolux (0–200)
+  show_minmax: true
+  show_rain_today: true
+  show_beaufort: true
+  compact_mode: false
+  night_palette: true
+  lux_in_klux: false
   # Optional tile order for the full-station grid:
   # tile_order:
   #   - lux
   #   - temperature
+  #   - feels_like
   #   - humidity
+  #   - dewpoint
   #   - rain
   #   - wind
   #   - uv
   #   - pressure
+  #   - heat_stress
   #   - battery
 
 # Optional per-section tap / hold / double-tap actions.
-# Any Home Assistant action is supported: more-info, navigate, url,
-# call-service, toggle, none.
 temperature_action:
   tap_action:
     action: more-info

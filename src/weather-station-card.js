@@ -1235,28 +1235,13 @@ class WeatherStationCard extends LitElement {
         opacity: 0.6;
       }
 
-      /* Sun path panel — matches the hero box (card bg + subtle border) */
+      /* Sun path panel — same surface as hero / tiles in light and dark mode */
       .sun-panel {
         padding: 6px 12px 8px;
         border-radius: var(--wsc-radius);
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
         overflow: hidden;
-      }
-      .sun-panel.night-palette {
-        background: #152038;
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-      }
-      @supports (background: color-mix(in srgb, red, blue)) {
-        .sun-panel.night-palette {
-          background: color-mix(
-            in srgb,
-            #152038 70%,
-            var(--ha-card-background, var(--card-background-color, #121212))
-          );
-          box-shadow: inset 0 0 0 1px
-            color-mix(in srgb, #fff 10%, var(--divider-color, transparent));
-        }
       }
       .sun-scene {
         position: relative;
@@ -1290,47 +1275,28 @@ class WeatherStationCard extends LitElement {
       .dot.night.future {
         opacity: 0.35;
       }
-      /* Night palette: cooler moon path + soft panel. Traveled dots stay
-         fully highlighted (orange above, blue below); only upcoming stay faint. */
+      /* Night palette: cooler path colours only — panel chrome stays like other boxes. */
       .sun-panel.night-palette {
-        --wsc-night-color: #7b9cff;
+        --wsc-night-color: #5b7fd6;
       }
       .sun-panel.night-palette .dot.day.past {
-        fill: #ffb14a;
+        fill: #e8961e;
         opacity: 1;
       }
       .sun-panel.night-palette .dot.day.future {
-        fill: #9a7340;
-        opacity: 0.28;
+        fill: #c4a06a;
+        opacity: 0.35;
       }
       .sun-panel.night-palette .dot.night.past {
-        fill: #9bb4ff;
+        fill: #5b7fd6;
         opacity: 1;
       }
       .sun-panel.night-palette .dot.night.future {
         opacity: 0.4;
       }
       .sun-panel.night-palette .sun-horizon {
-        stroke: #9bb0ff;
-        stroke-opacity: 0.45;
-      }
-      .sun-panel.night-palette .sun-marker.night {
-        background: radial-gradient(
-          circle,
-          rgba(40, 52, 90, 0.95) 0%,
-          rgba(40, 52, 90, 0.7) 45%,
-          rgba(40, 52, 90, 0) 72%
-        );
-        box-shadow: 0 0 14px rgba(123, 156, 255, 0.75);
-      }
-      .sun-panel.night-palette .sun-marker.night .wsc-icon {
-        width: 26px;
-        height: 26px;
-        filter: drop-shadow(0 0 8px rgba(168, 192, 255, 0.9));
-      }
-      .sun-panel.night-palette .sun-stat-value,
-      .sun-panel.night-palette .sun-edge {
-        color: var(--primary-text-color);
+        stroke: var(--primary-text-color, #3a3a3a);
+        stroke-opacity: 0.35;
       }
       /* Horizon at 0° — solid so "below horizon" is readable. */
       .sun-horizon {
@@ -1353,32 +1319,32 @@ class WeatherStationCard extends LitElement {
         border-radius: 50%;
         background: radial-gradient(
           circle,
-          rgba(255, 255, 255, 0.95) 0%,
-          rgba(255, 255, 255, 0.75) 42%,
-          rgba(255, 255, 255, 0) 72%
+          rgba(255, 177, 0, 0.35) 0%,
+          rgba(255, 177, 0, 0.12) 45%,
+          rgba(255, 177, 0, 0) 72%
         );
-        box-shadow: 0 0 14px rgba(255, 177, 0, 0.65);
+        box-shadow: 0 0 12px rgba(255, 177, 0, 0.45);
       }
       .sun-marker .wsc-icon,
       .sun-marker-icon {
         width: 30px;
         height: 30px;
-        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
       }
       .sun-marker.night {
         background: radial-gradient(
           circle,
-          rgba(30, 40, 70, 0.95) 0%,
-          rgba(30, 40, 70, 0.7) 45%,
-          rgba(30, 40, 70, 0) 72%
+          rgba(91, 127, 214, 0.3) 0%,
+          rgba(91, 127, 214, 0.1) 45%,
+          rgba(91, 127, 214, 0) 72%
         );
-        box-shadow: 0 0 14px rgba(123, 156, 255, 0.7);
+        box-shadow: 0 0 12px rgba(91, 127, 214, 0.4);
       }
       .sun-marker.night .wsc-icon,
       .sun-marker.night .sun-marker-icon {
         width: 26px;
         height: 26px;
-        filter: drop-shadow(0 0 6px rgba(168, 192, 255, 0.8));
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
       }
       .sun-center {
         position: absolute;

@@ -914,14 +914,13 @@ class WeatherStationCard extends LitElement {
   }
 
   _renderCompass(deg, compass) {
-    // Full-size SVG needle with hub at viewBox center (50,50) so rotation
-    // around 50%/50% keeps the arrow visually centered in the dial.
+    // Needle hub at viewBox center (50,50). Scale keeps tips clear of N/E/S/W.
     return html`
       <div class="compass" title="${compass || ""} (${round(deg, 0)}°)">
         <svg
           class="needle-svg"
           viewBox="0 0 100 100"
-          style="transform: rotate(${deg}deg)"
+          style="transform: rotate(${deg}deg) scale(0.7)"
           aria-hidden="true"
         >
           <defs>
@@ -932,10 +931,10 @@ class WeatherStationCard extends LitElement {
           </defs>
           <path
             fill="url(#wsc-needle)"
-            d="M50 14 L62 72 L50 62 L38 72 Z"
+            d="M50 16 L61 70 L50 61 L39 70 Z"
           ></path>
-          <circle cx="50" cy="50" r="7" fill="url(#wsc-needle)"></circle>
-          <circle cx="50" cy="50" r="3" fill="#fff" opacity="0.95"></circle>
+          <circle cx="50" cy="50" r="6.5" fill="url(#wsc-needle)"></circle>
+          <circle cx="50" cy="50" r="2.8" fill="#fff" opacity="0.95"></circle>
         </svg>
         <span class="c-n">${this._t("compass.N")}</span>
         <span class="c-e">${this._t("compass.E")}</span>
@@ -1246,16 +1245,17 @@ class WeatherStationCard extends LitElement {
       }
       .sun-panel.night-palette {
         background: #152038;
-        box-shadow: inset 0 0 0 1px rgba(123, 156, 255, 0.22);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
       }
       @supports (background: color-mix(in srgb, red, blue)) {
         .sun-panel.night-palette {
-          background: linear-gradient(
-            180deg,
-            color-mix(in srgb, #1a2744 55%, var(--ha-card-background, var(--card-background-color, #121212))) 0%,
-            var(--ha-card-background, var(--card-background-color, #121212)) 100%
+          background: color-mix(
+            in srgb,
+            #152038 70%,
+            var(--ha-card-background, var(--card-background-color, #121212))
           );
-          box-shadow: inset 0 0 0 1px color-mix(in srgb, #6b8cff 22%, var(--divider-color, transparent));
+          box-shadow: inset 0 0 0 1px
+            color-mix(in srgb, #fff 10%, var(--divider-color, transparent));
         }
       }
       .sun-scene {

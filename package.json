@@ -1,6 +1,6 @@
 {
   "name": "lovelace-weather-station-card",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A modern, minimalistic, Mushroom-inspired weather station custom card for Home Assistant.",
   "keywords": [
     "home-assistant",

@@ -620,7 +620,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         <svg
           class="needle-svg"
           viewBox="0 0 100 100"
-          style="transform: rotate(${t}deg)"
+          style="transform: rotate(${t}deg) scale(0.7)"
           aria-hidden="true"
         >
           <defs>
@@ -631,10 +631,10 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           </defs>
           <path
             fill="url(#wsc-needle)"
-            d="M50 14 L62 72 L50 62 L38 72 Z"
+            d="M50 16 L61 70 L50 61 L39 70 Z"
           ></path>
-          <circle cx="50" cy="50" r="7" fill="url(#wsc-needle)"></circle>
-          <circle cx="50" cy="50" r="3" fill="#fff" opacity="0.95"></circle>
+          <circle cx="50" cy="50" r="6.5" fill="url(#wsc-needle)"></circle>
+          <circle cx="50" cy="50" r="2.8" fill="#fff" opacity="0.95"></circle>
         </svg>
         <span class="c-n">${this._t("compass.N")}</span>
         <span class="c-e">${this._t("compass.E")}</span>
@@ -843,16 +843,17 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       }
       .sun-panel.night-palette {
         background: #152038;
-        box-shadow: inset 0 0 0 1px rgba(123, 156, 255, 0.22);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
       }
       @supports (background: color-mix(in srgb, red, blue)) {
         .sun-panel.night-palette {
-          background: linear-gradient(
-            180deg,
-            color-mix(in srgb, #1a2744 55%, var(--ha-card-background, var(--card-background-color, #121212))) 0%,
-            var(--ha-card-background, var(--card-background-color, #121212)) 100%
+          background: color-mix(
+            in srgb,
+            #152038 70%,
+            var(--ha-card-background, var(--card-background-color, #121212))
           );
-          box-shadow: inset 0 0 0 1px color-mix(in srgb, #6b8cff 22%, var(--divider-color, transparent));
+          box-shadow: inset 0 0 0 1px
+            color-mix(in srgb, #fff 10%, var(--divider-color, transparent));
         }
       }
       .sun-scene {
@@ -1179,4 +1180,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(yt)||customElements.define(yt,le),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===yt)||window.customCards.push({type:yt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.7.0 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{le as WeatherStationCard};
+    `}}customElements.get(yt)||customElements.define(yt,le),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===yt)||window.customCards.push({type:yt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.7.1 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{le as WeatherStationCard};

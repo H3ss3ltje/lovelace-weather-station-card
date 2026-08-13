@@ -14,6 +14,7 @@ import {
   calcDewPoint,
   comfortKey,
   degToCompass,
+  windDirectionDegrees,
   luxLevel,
   formatLux,
   normalizeLux,
@@ -596,7 +597,10 @@ class WeatherStationCard extends LitElement {
     const minmax = s.show_minmax ? this._todayMinMax() : null;
 
     const speedObj = this._stateObj("wind_speed_entity");
-    const dirDeg = numericState(this._stateObj("wind_direction_entity"));
+    const dirDeg = windDirectionDegrees(
+      numericState(this._stateObj("wind_direction_entity")),
+      s.invert_wind_direction
+    );
     const speed = numericState(speedObj);
     const speedUnit = unit(speedObj, "m/s");
     const compassKey = degToCompass(dirDeg);
@@ -866,7 +870,10 @@ class WeatherStationCard extends LitElement {
     const s = this._config.settings || {};
     const speed = numericState(speedObj);
     const speedUnit = unit(speedObj, "m/s");
-    const dirDeg = numericState(this._stateObj("wind_direction_entity"));
+    const dirDeg = windDirectionDegrees(
+      numericState(this._stateObj("wind_direction_entity")),
+      s.invert_wind_direction
+    );
     const compassKey = degToCompass(dirDeg);
     const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
     const gustObj = this._stateObj("wind_gust_entity");

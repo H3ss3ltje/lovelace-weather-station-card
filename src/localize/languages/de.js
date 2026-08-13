@@ -150,6 +150,7 @@ export default {
     show_rain_today: "Niederschlag / Regen heute",
     show_beaufort: "Beaufort-Skala",
     show_wind_gust: "Windböe",
+    invert_wind_direction: "Windrichtung umkehren (+180°)",
     show_battery: "Batterie",
     show_voltage: "Batterie-/Kondensatorspannung",
     show_pressure_trend: "Luftdrucktrend",

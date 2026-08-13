@@ -101,6 +101,18 @@ export function prettyLabel(text) {
 }
 
 /**
+ * Normalize wind degrees to 0–360. Optionally invert (+180°) for sensors
+ * that report "blowing toward" instead of meteorological "coming from".
+ */
+export function windDirectionDegrees(deg, invert = false) {
+  if (deg == null || !Number.isFinite(Number(deg))) return null;
+  let d = Number(deg);
+  if (invert) d += 180;
+  d = ((d % 360) + 360) % 360;
+  return d;
+}
+
+/**
  * Convert wind degrees (0-360) into an 8-point compass key (N, NE, …).
  */
 export function degToCompass(deg) {

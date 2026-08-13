@@ -5,7 +5,7 @@ A modern, minimalistic, **Mushroom-inspired** custom Lovelace card for Home Assi
 Everything is configurable through the UI or YAML — no entity IDs are hardcoded, and every section is optional and hides itself automatically when its entity is not configured.
 
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)
-![Version](https://img.shields.io/badge/version-1.7.7-blue.svg)
+![Version](https://img.shields.io/badge/version-1.7.8-blue.svg)
 
 ---
 
@@ -161,6 +161,7 @@ All entities are optional. A section is only rendered when its entity is set. Zi
 | `show_rain_today`            | boolean | `true`  | Show precipitation / rain today when configured.         |
 | `show_beaufort`              | boolean | `true`  | Show Beaufort number + description on the wind tile.     |
 | `show_wind_gust`             | boolean | `true`  | Show wind gust in the wind tile.                         |
+| `invert_wind_direction`      | boolean | `false` | Add 180° to wind direction (for “blowing toward” sensors). |
 | `show_battery`               | boolean | `true`  | Show the battery tile.                                   |
 | `show_voltage`               | boolean | `true`  | Show battery / capacitor voltage under battery.          |
 | `show_pressure_trend`        | boolean | `true`  | Show rising/steady/falling pressure trend.               |

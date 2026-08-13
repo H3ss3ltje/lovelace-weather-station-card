@@ -23,8 +23,8 @@ export default {
   dewpoint: "Dauwpunt {value} {unit}",
   feels_like: "Voelt als {value} {unit}",
   feels: {
-    apparent: "Gevoelstemperatuur",
-    wind_chill: "Gevoelstemperatuur (wind)",
+    apparent: "Gevoeld",
+    wind_chill: "Windchill",
     humidex: "Humidex",
   },
   heat_stress: {

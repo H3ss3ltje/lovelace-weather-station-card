@@ -1049,9 +1049,17 @@ class WeatherStationCard extends LitElement {
       :host {
         --wsc-radius: 18px;
         --wsc-gap: 10px;
+        /* Derive muted text from primary so contrast stays OK in light & dark themes
+           even when --secondary-text-color is too dark for nested card surfaces. */
+        --wsc-muted-text: color-mix(
+          in srgb,
+          var(--primary-text-color, #fff) 78%,
+          transparent
+        );
         container-type: inline-size;
         container-name: wsc;
         display: block;
+        color: var(--primary-text-color);
       }
       ha-card {
         overflow: hidden;
@@ -1189,7 +1197,7 @@ class WeatherStationCard extends LitElement {
       }
       .hero-condition {
         font-size: 0.95rem;
-        color: var(--secondary-text-color);
+        color: var(--wsc-muted-text, var(--secondary-text-color));
       }
       .hero-temp {
         font-size: 2rem;
@@ -1203,10 +1211,11 @@ class WeatherStationCard extends LitElement {
         flex-wrap: wrap;
         gap: 4px 12px;
         font-size: 0.85rem;
-        color: var(--secondary-text-color);
+        color: var(--wsc-muted-text, var(--secondary-text-color));
       }
       .hero-sub .muted {
-        opacity: 0.8;
+        color: var(--wsc-muted-text, var(--secondary-text-color));
+        opacity: 1;
       }
       .hero-minmax {
         display: flex;
@@ -1368,7 +1377,7 @@ class WeatherStationCard extends LitElement {
       }
       .sun-stat-label {
         font-size: 0.62rem;
-        color: var(--secondary-text-color);
+        color: var(--wsc-muted-text, var(--secondary-text-color));
         line-height: 1.1;
       }
       /* Times sit just below the horizon line; font matches elev/az values. */
@@ -1469,7 +1478,7 @@ class WeatherStationCard extends LitElement {
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        color: var(--secondary-text-color);
+        color: var(--wsc-muted-text, var(--secondary-text-color));
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1484,13 +1493,14 @@ class WeatherStationCard extends LitElement {
       }
       .tile-sub {
         font-size: 0.8rem;
-        color: var(--secondary-text-color);
+        color: var(--wsc-muted-text, var(--secondary-text-color));
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 4px;
-        white-space: nowrap;
+        line-height: 1.25;
+        white-space: normal;
         overflow: hidden;
-        text-overflow: ellipsis;
       }
       .wind .tile-body {
         overflow: visible;
@@ -1516,7 +1526,7 @@ class WeatherStationCard extends LitElement {
         border-radius: 50%;
         flex: 0 0 auto;
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.15));
-        color: var(--secondary-text-color);
+        color: var(--wsc-muted-text, var(--secondary-text-color));
         font-size: 0.6rem;
       }
       .compass .needle-svg {

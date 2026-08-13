@@ -150,7 +150,7 @@ export default {
     show_rain_today: "Precipitación / lluvia hoy",
     show_beaufort: "Escala de Beaufort",
     show_wind_gust: "Ráfaga de viento",
-    invert_wind_direction: "Invertir dirección del viento (+180°)",
+    invert_wind_direction: "Invertir dirección (mostrar de dónde viene el viento)",
     show_battery: "Batería",
     show_voltage: "Voltaje de batería / condensador",
     show_pressure_trend: "Tendencia de presión",

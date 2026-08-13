@@ -101,13 +101,14 @@ export function prettyLabel(text) {
 }
 
 /**
- * Normalize wind degrees to 0–360. Optionally invert (+180°) for sensors
- * that report "blowing toward" instead of meteorological "coming from".
+ * Normalize wind degrees to 0–360 for the compass needle and labels.
+ * By default the needle points where the wind blows *toward* (deg + 180).
+ * Set `invert` to show meteorological *from*-direction instead.
  */
 export function windDirectionDegrees(deg, invert = false) {
   if (deg == null || !Number.isFinite(Number(deg))) return null;
   let d = Number(deg);
-  if (invert) d += 180;
+  if (!invert) d += 180;
   d = ((d % 360) + 360) % 360;
   return d;
 }

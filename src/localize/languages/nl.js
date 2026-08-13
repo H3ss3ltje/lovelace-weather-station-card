@@ -149,7 +149,7 @@ export default {
     show_rain_today: "Neerslag / regen vandaag",
     show_beaufort: "Beaufortschaal",
     show_wind_gust: "Windstoot",
-    invert_wind_direction: "Windrichting omkeren (+180°)",
+    invert_wind_direction: "Windrichting omkeren (toon waar de wind vandaan komt)",
     show_battery: "Batterij",
     show_voltage: "Batterij- / condensatorspanning",
     show_pressure_trend: "Luchtdruktrend",

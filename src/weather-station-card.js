@@ -734,7 +734,6 @@ class WeatherStationCard extends LitElement {
       iconOpts: { value: feels.value, unit: feelUnit },
       label: this._t("sections.feels_like"),
       value: `${round(feels.value, 1)} ${feelUnit}`,
-      sub: this._t(`feels.${feels.kind}`),
       key: feels.key,
     });
   }
@@ -871,6 +870,20 @@ class WeatherStationCard extends LitElement {
     const gust = numericState(gustObj);
     const gustUnit = unit(gustObj, speedUnit);
     const bft = s.show_beaufort ? beaufort(toMetersPerSecond(speed, speedUnit)) : null;
+    const showGust = s.show_wind_gust && gust != null;
+
+    const meta = [];
+    if (compass) meta.push(compass);
+    if (bft) meta.push(this._t("wind.beaufort", { value: bft.n }));
+    if (bft) meta.push(this._t(`beaufort.${bft.key}`));
+    if (showGust) {
+      meta.push(
+        this._t("wind.gust", {
+          value: round(gust, 0),
+          unit: gustUnit,
+        })
+      );
+    }
 
     return html`
       <div
@@ -883,31 +896,13 @@ class WeatherStationCard extends LitElement {
           <div class="tile-value">
             ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
           </div>
-          ${compass || bft
-            ? html`<div class="tile-sub wind-meta">
-                ${compass ? html`<span>${compass}</span>` : nothing}
-                ${compass && bft ? html`<span class="dot">·</span>` : nothing}
-                ${bft
-                  ? html`<span
-                      >${this._t("wind.beaufort", { value: bft.n })}</span
-                    >`
-                  : nothing}
-              </div>`
-            : nothing}
-          ${bft
-            ? html`<div class="tile-sub wind-desc">
-                ${this._t(`beaufort.${bft.key}`)}
-              </div>`
-            : nothing}
-          ${s.show_wind_gust && gust != null
+          ${meta.length
             ? html`<div class="tile-sub">
-                ${wscIcon("wind_gust", "mini-icon", {
-                  value: beaufort(toMetersPerSecond(gust, gustUnit))?.n ?? "",
-                })}
-                ${this._t("wind.gust", {
-                  value: round(gust, 0),
-                  unit: gustUnit,
-                })}
+                ${meta.map(
+                  (part, i) => html`${i
+                      ? html`<span class="dot">·</span>`
+                      : nothing}<span>${part}</span>`
+                )}
               </div>`
             : nothing}
         </div>
@@ -975,17 +970,18 @@ class WeatherStationCard extends LitElement {
     const rate = numericState(this._stateObj("pressure_trend_entity"));
     const rateUnit = unit(this._stateObj("pressure_trend_entity"), "hPa/h");
     const rateText =
-      rate != null ? `${rate > 0 ? "+" : ""}${round(rate, 2)} ${rateUnit}` : "";
+      rate != null && Math.abs(rate) >= 0.05
+        ? `${rate > 0 ? "+" : ""}${round(rate, 2)} ${rateUnit}`
+        : "";
     const decimals = /hpa|mbar|\bmb\b/i.test(unitStr) ? 0 : 1;
     return this._tile({
       icon: "gauge",
       label: this._t("sections.pressure"),
       value: value != null ? `${round(value, decimals)} ${unitStr}` : "—",
       sub: trend
-        ? html`${wscIcon(trend.icon, "mini-icon")}
-            ${this._t(`pressure.${trend.labelKey}`)}${rateText
-              ? html`<span class="dot">·</span><span>${rateText}</span>`
-              : nothing}`
+        ? html`${this._t(`pressure.${trend.labelKey}`)}${rateText
+            ? html`<span class="dot">·</span><span>${rateText}</span>`
+            : nothing}`
         : rateText,
       key: "pressure_entity",
     });
@@ -1067,23 +1063,23 @@ class WeatherStationCard extends LitElement {
         overflow: hidden;
       }
       .wsc {
-        padding: 12px;
+        padding: 10px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
         min-width: 0;
       }
       .wsc.full {
-        gap: 10px;
+        gap: 8px;
       }
       .wsc.compact {
-        gap: 8px;
-        padding: 12px;
+        gap: 6px;
+        padding: 10px;
       }
       @container wsc (min-width: 520px) {
         .wsc.full {
-          padding: 14px;
-          gap: 12px;
+          padding: 12px;
+          gap: 10px;
         }
       }
       .title {
@@ -1368,7 +1364,7 @@ class WeatherStationCard extends LitElement {
       .grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--wsc-gap);
+        gap: 6px;
         min-width: 0;
       }
       /* Prefer 2 columns in typical phone / half-width panels so labels fit.
@@ -1386,32 +1382,31 @@ class WeatherStationCard extends LitElement {
       @container wsc (min-width: 920px) {
         .grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-        .tile {
-          padding: 11px 12px;
+          gap: 8px;
         }
       }
       @container wsc (max-width: 560px) {
         .tile {
-          gap: 8px;
-          padding: 10px;
-          min-height: 52px;
-          align-items: flex-start;
+          gap: 7px;
+          padding: 8px 9px;
+          align-items: center;
         }
         .tile-icon,
         .tile-icon .wsc-icon {
-          width: 24px;
-          height: 24px;
-          margin-top: 2px;
+          width: 22px;
+          height: 22px;
+          margin-top: 0;
         }
         .tile-label {
-          font-size: 0.65rem;
+          font-size: 0.62rem;
+          letter-spacing: 0.02em;
         }
         .tile-value {
-          font-size: 0.95rem;
+          font-size: 0.92rem;
         }
         .tile-sub {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
+          line-height: 1.2;
         }
         .sun-panel {
           padding: 4px 8px 6px;
@@ -1497,76 +1492,67 @@ class WeatherStationCard extends LitElement {
       .tile {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 11px;
-        border-radius: var(--wsc-radius);
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 14px;
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
-        min-height: 54px;
+        min-height: 0;
         min-width: 0;
         overflow: hidden;
         box-sizing: border-box;
       }
       .tile-icon {
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         color: var(--tile-accent, var(--state-icon-color, var(--primary-color)));
         flex: 0 0 auto;
       }
       .tile-icon .wsc-icon {
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
       }
       .tile-body {
         display: flex;
         flex-direction: column;
+        gap: 1px;
         min-width: 0;
         flex: 1 1 auto;
         overflow: hidden;
       }
       .tile-label {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.02em;
+        line-height: 1.15;
         color: var(--wsc-muted-text, var(--secondary-text-color));
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       .tile-value {
-        font-size: 1.05rem;
+        font-size: 0.98rem;
         font-weight: 600;
+        line-height: 1.2;
         color: var(--primary-text-color);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       .tile-sub {
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         color: var(--wsc-muted-text, var(--secondary-text-color));
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 4px;
-        line-height: 1.25;
+        gap: 2px 4px;
+        line-height: 1.2;
         white-space: normal;
         overflow: hidden;
       }
-      .wind .tile-body {
-        overflow: visible;
-      }
-      .wind .wind-meta {
-        flex-wrap: wrap;
-      }
-      .wind .wind-desc {
-        white-space: normal;
-        overflow: visible;
-        text-overflow: unset;
-        line-height: 1.25;
-      }
       .mini-icon {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
       }
 
       .compass {

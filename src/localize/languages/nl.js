@@ -57,6 +57,7 @@ export default {
   },
   rain: {
     detected: "Regen gedetecteerd",
+    wet: "Nat",
     dry: "Droog",
     today: "Vandaag",
   },

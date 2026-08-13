@@ -57,6 +57,7 @@ export default {
   },
   rain: {
     detected: "Rain detected",
+    wet: "Wet",
     dry: "Dry",
     today: "Today",
   },

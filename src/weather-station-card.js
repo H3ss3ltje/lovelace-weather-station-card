@@ -807,32 +807,34 @@ class WeatherStationCard extends LitElement {
         ? rainRate
         : numericState(rateObj);
     const rateText = rate != null ? `${round(rate, 1)} ${rateUnit}` : "";
-    const todayText =
-      today != null
-        ? `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}`
-        : "";
 
     let value;
+    let statusText = "";
     if (rainObj) {
-      value = rainOn ? this._t("rain.detected") : this._t("rain.dry");
-    } else if (rate != null) {
+      statusText = rainOn ? this._t("rain.wet") : this._t("rain.dry");
+    }
+    // Prefer numeric rate as the main value — status text is too long for narrow tiles.
+    if (rate != null) {
       value = rateText;
+    } else if (statusText) {
+      value = statusText;
     } else if (today != null) {
       value = `${round(today, 1)} ${todayUnit}`;
     } else {
       value = "—";
     }
 
+    const subParts = [];
+    if (rate != null && statusText) subParts.push(statusText);
+    if (today != null) {
+      subParts.push(`${this._t("rain.today")} ${round(today, 1)} ${todayUnit}`);
+    }
     let sub = "";
-    if (rainObj || rateObj) {
-      if (rateText && todayText) {
-        sub = html`<span>${rateText}</span><span class="dot">·</span
-          ><span>${todayText}</span>`;
-      } else {
-        sub = rateText || todayText;
-      }
-    } else if (today != null) {
-      sub = this._t("rain.today");
+    if (subParts.length === 2) {
+      sub = html`<span>${subParts[0]}</span><span class="dot">·</span
+        ><span>${subParts[1]}</span>`;
+    } else if (subParts.length === 1) {
+      sub = subParts[0];
     }
 
     const key = rainObj
@@ -1165,36 +1167,6 @@ class WeatherStationCard extends LitElement {
         text-align: center;
         width: 100%;
       }
-      @container wsc (max-width: 380px) {
-        .hero {
-          gap: 4px 10px;
-          padding: 12px;
-        }
-        .hero-icon {
-          width: 38px;
-          height: 38px;
-        }
-        .hero-temp {
-          font-size: 1.65rem;
-        }
-        .hero-wind {
-          padding: 2px 4px;
-          gap: 4px;
-          min-width: 68px;
-        }
-        .hero-wind .compass {
-          width: 60px;
-          height: 60px;
-          font-size: 0.62rem;
-        }
-        .hero-wind .compass .c-n { top: 9px; }
-        .hero-wind .compass .c-s { top: 51px; }
-        .hero-wind .compass .c-e { left: 51px; }
-        .hero-wind .compass .c-w { left: 9px; }
-        .hero-wind-speed {
-          font-size: 0.82rem;
-        }
-      }
       .hero-condition {
         font-size: 0.95rem;
         color: var(--wsc-muted-text, var(--secondary-text-color));
@@ -1399,24 +1371,108 @@ class WeatherStationCard extends LitElement {
         gap: var(--wsc-gap);
         min-width: 0;
       }
-      /* Card-width breakpoints (not viewport) so narrow phone columns stay readable */
-      @container wsc (max-width: 320px) {
+      /* Prefer 2 columns in typical phone / half-width panels so labels fit.
+         3+ columns only when each tile has enough room. */
+      @container wsc (max-width: 300px) {
         .grid {
           grid-template-columns: 1fr;
         }
       }
-      @container wsc (min-width: 480px) {
+      @container wsc (min-width: 640px) {
         .grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
       }
-      /* Full-station dashboard: 4 columns on wide cards (desktop / tablet landscape) */
-      @container wsc (min-width: 720px) {
+      @container wsc (min-width: 920px) {
         .grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
         }
         .tile {
           padding: 11px 12px;
+        }
+      }
+      @container wsc (max-width: 560px) {
+        .tile {
+          gap: 8px;
+          padding: 10px;
+          min-height: 52px;
+          align-items: flex-start;
+        }
+        .tile-icon,
+        .tile-icon .wsc-icon {
+          width: 24px;
+          height: 24px;
+          margin-top: 2px;
+        }
+        .tile-label {
+          font-size: 0.65rem;
+        }
+        .tile-value {
+          font-size: 0.95rem;
+        }
+        .tile-sub {
+          font-size: 0.72rem;
+        }
+        .sun-panel {
+          padding: 4px 8px 6px;
+        }
+        .sun-center {
+          gap: 10px;
+          top: 40%;
+        }
+        .sun-stat-value {
+          font-size: 0.9rem;
+        }
+        .sun-stat-label {
+          font-size: 0.58rem;
+        }
+        .sun-edge {
+          font-size: 0.85rem;
+        }
+      }
+      @container wsc (max-width: 420px) {
+        .hero {
+          gap: 4px 10px;
+          padding: 12px;
+        }
+        .hero.has-wind {
+          grid-template-columns: auto 1fr;
+          grid-template-rows: auto auto auto;
+        }
+        .hero-icon {
+          width: 38px;
+          height: 38px;
+          grid-row: 1 / 3;
+        }
+        .hero-temp {
+          font-size: 1.65rem;
+        }
+        .hero-wind {
+          grid-column: 1 / -1;
+          grid-row: 3;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+          width: 100%;
+          min-width: 0;
+          margin-top: 4px;
+          padding: 4px 0 0;
+          gap: 10px;
+        }
+        .hero-wind .compass {
+          width: 56px;
+          height: 56px;
+          font-size: 0.58rem;
+        }
+        .hero-wind .compass .c-n { top: 8px; }
+        .hero-wind .compass .c-s { top: 48px; }
+        .hero-wind .compass .c-e { left: 48px; }
+        .hero-wind .compass .c-w { left: 8px; }
+        .hero-wind-speed {
+          font-size: 0.9rem;
+        }
+        .hero-sub {
+          font-size: 0.8rem;
         }
       }
       /* Fallback when container queries are unavailable */
@@ -1426,20 +1482,14 @@ class WeatherStationCard extends LitElement {
             grid-template-columns: 1fr;
           }
         }
-        @media (min-width: 520px) {
+        @media (min-width: 680px) {
           .grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
           }
         }
-        @media (min-width: 780px) {
+        @media (min-width: 960px) {
           .grid {
             grid-template-columns: repeat(4, minmax(0, 1fr));
-          }
-        }
-        @media (max-width: 400px) {
-          .hero-wind .compass {
-            width: 60px;
-            height: 60px;
           }
         }
       }

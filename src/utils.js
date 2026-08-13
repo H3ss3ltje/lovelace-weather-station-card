@@ -485,6 +485,10 @@ function dayProgressFromAzimuth(az) {
 /**
  * Resolve today's sunrise/sunset ms from Home Assistant sun attributes.
  * `next_*` are always in the future, so we shift by ~24h when needed.
+ *
+ * Day (above horizon): sunrise = next_rising − 1d, sunset = next_setting.
+ * Night (below): last sunset = next_setting − 1d, next sunrise = next_rising
+ * so the night span correctly covers post-sunset → pre-dawn (crosses midnight).
  */
 function resolveSunDayBounds(attrs = {}, nowMs, aboveHorizon) {
   const nextRising = Date.parse(attrs.next_rising);
@@ -498,11 +502,10 @@ function resolveSunDayBounds(attrs = {}, nowMs, aboveHorizon) {
       sunsetMs: nextSetting,
     };
   }
-  if (nowMs <= nextRising && nextRising < nextSetting) {
-    return { sunriseMs: nextRising, sunsetMs: nextSetting };
-  }
+  // Below horizon: from the sunset that just happened (or earlier tonight)
+  // until the upcoming sunrise — never use tomorrow's full day as "today".
   return {
-    sunriseMs: nextRising - MS_DAY,
+    sunriseMs: nextRising,
     sunsetMs: nextSetting - MS_DAY,
   };
 }
@@ -536,15 +539,31 @@ export function sunDiagramPosition(
   if (
     bounds &&
     Number.isFinite(bounds.sunriseMs) &&
-    Number.isFinite(bounds.sunsetMs) &&
-    bounds.sunsetMs > bounds.sunriseMs
+    Number.isFinite(bounds.sunsetMs)
   ) {
     const { sunriseMs, sunsetMs } = bounds;
-    if (nowMs < sunriseMs) {
-      const u = Math.max(
-        0,
-        Math.min(1, 1 - (sunriseMs - nowMs) / (MS_DAY / 2))
-      );
+
+    // Night that crosses midnight: sunset (eve) < sunrise (next morn) numerically
+    // is false when we store sunsetMs = last sunset and sunriseMs = next rising
+    // e.g. Aug13 21:04 < Aug14 06:15 → sunsetMs < sunriseMs.
+    if (sunsetMs < sunriseMs && nowMs > sunsetMs && nowMs < sunriseMs) {
+      const mid = (sunsetMs + sunriseMs) / 2;
+      if (nowMs <= mid) {
+        // Evening: walk down the right (post-sunset) tail.
+        const span = Math.max(1, mid - sunsetMs);
+        const u = Math.max(0, Math.min(1, (nowMs - sunsetMs) / span));
+        const pt = cubicPoint(
+          SUN_TAIL_RIGHT[0],
+          SUN_TAIL_RIGHT[1],
+          SUN_TAIL_RIGHT[2],
+          SUN_TAIL_RIGHT[3],
+          u
+        );
+        return { x: pt.x, y: pt.y, t: 1, g: curveProgress(3, u), night: true };
+      }
+      // Morning: walk up the left (pre-dawn) tail toward sunrise.
+      const span = Math.max(1, sunriseMs - mid);
+      const u = Math.max(0, Math.min(1, 1 - (sunriseMs - nowMs) / span));
       const pt = cubicPoint(
         SUN_TAIL_LEFT[0],
         SUN_TAIL_LEFT[1],
@@ -554,23 +573,37 @@ export function sunDiagramPosition(
       );
       return { x: pt.x, y: pt.y, t: 0, g: curveProgress(0, u), night: true };
     }
-    if (nowMs > sunsetMs) {
-      const u = Math.max(
-        0,
-        Math.min(1, (nowMs - sunsetMs) / (MS_DAY / 2))
-      );
-      const pt = cubicPoint(
-        SUN_TAIL_RIGHT[0],
-        SUN_TAIL_RIGHT[1],
-        SUN_TAIL_RIGHT[2],
-        SUN_TAIL_RIGHT[3],
-        u
-      );
-      return { x: pt.x, y: pt.y, t: 1, g: curveProgress(3, u), night: true };
+
+    // Same-calendar-day span (daytime bounds): sunrise then sunset.
+    if (sunriseMs < sunsetMs) {
+      if (nowMs < sunriseMs) {
+        const span = MS_DAY / 2;
+        const u = Math.max(0, Math.min(1, 1 - (sunriseMs - nowMs) / span));
+        const pt = cubicPoint(
+          SUN_TAIL_LEFT[0],
+          SUN_TAIL_LEFT[1],
+          SUN_TAIL_LEFT[2],
+          SUN_TAIL_LEFT[3],
+          u
+        );
+        return { x: pt.x, y: pt.y, t: 0, g: curveProgress(0, u), night: true };
+      }
+      if (nowMs > sunsetMs) {
+        const span = MS_DAY / 2;
+        const u = Math.max(0, Math.min(1, (nowMs - sunsetMs) / span));
+        const pt = cubicPoint(
+          SUN_TAIL_RIGHT[0],
+          SUN_TAIL_RIGHT[1],
+          SUN_TAIL_RIGHT[2],
+          SUN_TAIL_RIGHT[3],
+          u
+        );
+        return { x: pt.x, y: pt.y, t: 1, g: curveProgress(3, u), night: true };
+      }
+      const dayT = (nowMs - sunriseMs) / (sunsetMs - sunriseMs);
+      const pos = pointOnDayArch(dayT);
+      return { x: pos.x, y: pos.y, t: pos.t, g: pos.g, night: false };
     }
-    const dayT = (nowMs - sunriseMs) / (sunsetMs - sunriseMs);
-    const pos = pointOnDayArch(dayT);
-    return { x: pos.x, y: pos.y, t: pos.t, g: pos.g, night: false };
   }
 
   // --- Azimuth fallback: 180° (or 0° SH) lands on the peak ---
@@ -595,8 +628,9 @@ export function sunDiagramPosition(
     const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
     const targetY =
       SUN_BASELINE_Y + depthFrac * (SUN_TAIL_END_Y - SUN_BASELINE_Y);
-    const { p, u } = pointOnHalfByY(SUN_TAIL_LEFT, targetY);
-    return { x: p.x, y: p.y, t: 0, g: curveProgress(0, u), night: true };
+    // Prefer west/evening side when we only know "below" with no azimuth.
+    const { p, u } = pointOnHalfByY(SUN_TAIL_RIGHT, targetY);
+    return { x: p.x, y: p.y, t: 1, g: curveProgress(3, u), night: true };
   }
   const frac = hasEl ? Math.max(0, Math.min(1, el / 90)) : 0.5;
   const targetY = SUN_BASELINE_Y - frac * amp;

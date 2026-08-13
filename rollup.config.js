@@ -25,6 +25,10 @@ export default {
   plugins: [
     nodeResolve(),
     dev && serve(serveOptions),
-    !dev && terser({ format: { comments: false } }),
+    !dev &&
+      terser({
+        format: { comments: false },
+        maxWorkers: 1,
+      }),
   ],
 };

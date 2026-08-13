@@ -1015,12 +1015,11 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       }
       @container wsc (max-width: 420px) {
         .hero {
-          gap: 4px 10px;
+          gap: 4px 8px;
           padding: 12px;
         }
         .hero.has-wind {
-          grid-template-columns: auto 1fr;
-          grid-template-rows: auto auto auto;
+          grid-template-columns: auto 1fr auto;
         }
         .hero-icon {
           width: 38px;
@@ -1031,16 +1030,16 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
           font-size: 1.65rem;
         }
         .hero-wind {
-          grid-column: 1 / -1;
-          grid-row: 3;
-          flex-direction: row;
-          justify-content: flex-start;
+          grid-column: 3;
+          grid-row: 1 / 3;
+          flex-direction: column;
+          justify-content: center;
           align-items: center;
-          width: 100%;
-          min-width: 0;
-          margin-top: 4px;
-          padding: 4px 0 0;
-          gap: 10px;
+          width: max-content;
+          min-width: 64px;
+          margin-top: 0;
+          padding: 2px 4px;
+          gap: 4px;
         }
         .hero-wind .compass {
           width: 56px;
@@ -1052,7 +1051,7 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
         .hero-wind .compass .c-e { left: 48px; }
         .hero-wind .compass .c-w { left: 8px; }
         .hero-wind-speed {
-          font-size: 0.9rem;
+          font-size: 0.82rem;
         }
         .hero-sub {
           font-size: 0.8rem;
@@ -1182,4 +1181,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(yt)||customElements.define(yt,ue),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===yt)||window.customCards.push({type:yt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.7.9 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{ue as WeatherStationCard};
+    `}}customElements.get(yt)||customElements.define(yt,ue),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===yt)||window.customCards.push({type:yt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.7.10 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{ue as WeatherStationCard};

@@ -1437,12 +1437,11 @@ class WeatherStationCard extends LitElement {
       }
       @container wsc (max-width: 420px) {
         .hero {
-          gap: 4px 10px;
+          gap: 4px 8px;
           padding: 12px;
         }
         .hero.has-wind {
-          grid-template-columns: auto 1fr;
-          grid-template-rows: auto auto auto;
+          grid-template-columns: auto 1fr auto;
         }
         .hero-icon {
           width: 38px;
@@ -1453,16 +1452,16 @@ class WeatherStationCard extends LitElement {
           font-size: 1.65rem;
         }
         .hero-wind {
-          grid-column: 1 / -1;
-          grid-row: 3;
-          flex-direction: row;
-          justify-content: flex-start;
+          grid-column: 3;
+          grid-row: 1 / 3;
+          flex-direction: column;
+          justify-content: center;
           align-items: center;
-          width: 100%;
-          min-width: 0;
-          margin-top: 4px;
-          padding: 4px 0 0;
-          gap: 10px;
+          width: max-content;
+          min-width: 64px;
+          margin-top: 0;
+          padding: 2px 4px;
+          gap: 4px;
         }
         .hero-wind .compass {
           width: 56px;
@@ -1474,7 +1473,7 @@ class WeatherStationCard extends LitElement {
         .hero-wind .compass .c-e { left: 48px; }
         .hero-wind .compass .c-w { left: 8px; }
         .hero-wind-speed {
-          font-size: 0.9rem;
+          font-size: 0.82rem;
         }
         .hero-sub {
           font-size: 0.8rem;

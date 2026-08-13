@@ -482,7 +482,10 @@ class WeatherStationCard extends LitElement {
     const uv = numericState(uvObj);
     const sunrise = formatSunTime(this.hass, attrs.next_rising);
     const sunset = formatSunTime(this.hass, attrs.next_setting);
-    const pos = sunDiagramPosition(azimuth, elevation, above);
+    const pos = sunDiagramPosition(azimuth, elevation, above, {
+      sunAttrs: attrs,
+      nowMs: Date.now(),
+    });
     const isNight = pos.night;
     // Evenly spaced dots along the whole day curve. Each dot is coloured by
     // above/below the horizon and weighted by whether the sun has passed it

@@ -337,9 +337,9 @@ export function sunPathSegments(t) {
   return { beforeD: cubicsToD(before), afterD: cubicsToD(after) };
 }
 
-/** Peak Y of the arch and the maximum elevation it represents. */
+/** Peak Y of the arch (visual zenith of the diagram). */
 const SUN_PEAK_Y = 12;
-const SUN_MAX_ELEVATION = 90;
+const MS_DAY = 24 * 60 * 60 * 1000;
 
 /**
  * The full day curve, in travel order:
@@ -396,7 +396,12 @@ export function sunCurveDots(spacing = 4.6) {
     const u = Math.min(1, (d - _cum[si]) / _segLens[si]);
     const [p0, p1, p2, p3] = SUN_CURVE[si];
     const p = cubicPoint(p0, p1, p2, p3, u);
-    dots.push({ x: p.x, y: p.y, above: p.y <= SUN_BASELINE_Y + 0.001, g: d / _total });
+    dots.push({
+      x: p.x,
+      y: p.y,
+      above: p.y <= SUN_BASELINE_Y + 0.001,
+      g: d / _total,
+    });
   }
   return dots;
 }
@@ -421,43 +426,174 @@ function pointOnHalfByY([p0, p1, p2, p3], targetY) {
 }
 
 /**
- * Place the sun on the arch so its HEIGHT reflects the real elevation and its
- * SIDE reflects the azimuth (morning = left/rising, afternoon = right/setting).
- * When the elevation is below 0 the marker dips under the horizon line.
- * Returns { x, y, t (progress for splitting the arch), night }.
+ * Point on the above-horizon arch for day progress t ∈ [0, 1]
+ * (0 = sunrise crossing, 0.5 = peak, 1 = sunset crossing).
  */
-export function sunDiagramPosition(azimuth, elevation, aboveHorizon) {
-  const amp = SUN_BASELINE_Y - SUN_PEAK_Y; // horizon → peak span
+function pointOnDayArch(dayT) {
+  const t = Math.max(0, Math.min(1, dayT));
+  if (t <= 0.5) {
+    const u = t / 0.5;
+    const p = cubicPoint(
+      SUN_PATH.left[0],
+      SUN_PATH.left[1],
+      SUN_PATH.left[2],
+      SUN_PATH.left[3],
+      u
+    );
+    return { x: p.x, y: p.y, t, g: curveProgress(1, u) };
+  }
+  const u = (t - 0.5) / 0.5;
+  const p = cubicPoint(
+    SUN_PATH.right[0],
+    SUN_PATH.right[1],
+    SUN_PATH.right[2],
+    SUN_PATH.right[3],
+    u
+  );
+  return { x: p.x, y: p.y, t, g: curveProgress(2, u) };
+}
+
+/**
+ * Day progress 0..1 from azimuth.
+ * Northern hemisphere: E(90)→0, S(180)→0.5, W(270)→1.
+ * Southern hemisphere: E(90)→0, N(0)→0.5, W(270)→1.
+ */
+function dayProgressFromAzimuth(az) {
+  const a = ((az % 360) + 360) % 360;
+  if (a >= 90 && a <= 270) {
+    return (a - 90) / 180;
+  }
+  const fromEast = (90 - a + 360) % 360;
+  if (fromEast <= 180) return fromEast / 180;
+  return a < 90 ? 0 : 1;
+}
+
+/**
+ * Resolve today's sunrise/sunset ms from Home Assistant sun attributes.
+ * `next_*` are always in the future, so we shift by ~24h when needed.
+ */
+function resolveSunDayBounds(attrs = {}, nowMs, aboveHorizon) {
+  const nextRising = Date.parse(attrs.next_rising);
+  const nextSetting = Date.parse(attrs.next_setting);
+  if (!Number.isFinite(nextRising) || !Number.isFinite(nextSetting)) {
+    return null;
+  }
+  if (aboveHorizon) {
+    return {
+      sunriseMs: nextRising - MS_DAY,
+      sunsetMs: nextSetting,
+    };
+  }
+  if (nowMs <= nextRising && nextRising < nextSetting) {
+    return { sunriseMs: nextRising, sunsetMs: nextSetting };
+  }
+  return {
+    sunriseMs: nextRising - MS_DAY,
+    sunsetMs: nextSetting - MS_DAY,
+  };
+}
+
+/**
+ * Place the sun/moon on the day curve by progress through the day.
+ * Prefers sunrise→sunset time (so solar noon sits at the peak). Falls back to
+ * continuous azimuth. Elevation decides night vs day when needed.
+ */
+export function sunDiagramPosition(
+  azimuth,
+  elevation,
+  aboveHorizon,
+  opts = {}
+) {
   let az = Number(azimuth);
   const hasAz = Number.isFinite(az);
   if (hasAz) az = ((az % 360) + 360) % 360;
   const el = Number(elevation);
   const hasEl = Number.isFinite(el);
-
-  // Morning/rising sits on the left half, afternoon/setting on the right.
-  const rising = hasAz ? az <= 180 : true;
   const below = hasEl ? el < 0 : !aboveHorizon;
 
-  if (below) {
-    // Ride the blue tail below the horizon; deeper for more negative
-    // elevation. -12° reaches the far end of the tail.
-    const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
-    const targetY = SUN_BASELINE_Y + depthFrac * (SUN_TAIL_END_Y - SUN_BASELINE_Y);
-    const tail = rising ? SUN_TAIL_LEFT : SUN_TAIL_RIGHT;
-    const { p, u } = pointOnHalfByY(tail, targetY);
-    // Segment 0 = left tail (curve start), segment 3 = right tail (curve end).
-    const g = rising ? curveProgress(0, u) : curveProgress(3, u);
-    return { x: p.x, y: p.y, t: rising ? 0 : 1, g, night: true };
+  const nowMs = Number.isFinite(opts.nowMs) ? opts.nowMs : Date.now();
+  const bounds = resolveSunDayBounds(
+    opts.sunAttrs || {},
+    nowMs,
+    aboveHorizon && !below
+  );
+
+  // --- Time-based placement (best): midday → diagram peak ---
+  if (
+    bounds &&
+    Number.isFinite(bounds.sunriseMs) &&
+    Number.isFinite(bounds.sunsetMs) &&
+    bounds.sunsetMs > bounds.sunriseMs
+  ) {
+    const { sunriseMs, sunsetMs } = bounds;
+    if (nowMs < sunriseMs) {
+      const u = Math.max(
+        0,
+        Math.min(1, 1 - (sunriseMs - nowMs) / (MS_DAY / 2))
+      );
+      const pt = cubicPoint(
+        SUN_TAIL_LEFT[0],
+        SUN_TAIL_LEFT[1],
+        SUN_TAIL_LEFT[2],
+        SUN_TAIL_LEFT[3],
+        u
+      );
+      return { x: pt.x, y: pt.y, t: 0, g: curveProgress(0, u), night: true };
+    }
+    if (nowMs > sunsetMs) {
+      const u = Math.max(
+        0,
+        Math.min(1, (nowMs - sunsetMs) / (MS_DAY / 2))
+      );
+      const pt = cubicPoint(
+        SUN_TAIL_RIGHT[0],
+        SUN_TAIL_RIGHT[1],
+        SUN_TAIL_RIGHT[2],
+        SUN_TAIL_RIGHT[3],
+        u
+      );
+      return { x: pt.x, y: pt.y, t: 1, g: curveProgress(3, u), night: true };
+    }
+    const dayT = (nowMs - sunriseMs) / (sunsetMs - sunriseMs);
+    const pos = pointOnDayArch(dayT);
+    return { x: pos.x, y: pos.y, t: pos.t, g: pos.g, night: false };
   }
 
-  const frac = hasEl ? Math.max(0, Math.min(1, el / SUN_MAX_ELEVATION)) : 0.5;
+  // --- Azimuth fallback: 180° (or 0° SH) lands on the peak ---
+  if (hasAz) {
+    if (below) {
+      const rising = dayProgressFromAzimuth(az) < 0.5;
+      const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
+      const targetY =
+        SUN_BASELINE_Y + depthFrac * (SUN_TAIL_END_Y - SUN_BASELINE_Y);
+      const tail = rising ? SUN_TAIL_LEFT : SUN_TAIL_RIGHT;
+      const { p, u } = pointOnHalfByY(tail, targetY);
+      const g = rising ? curveProgress(0, u) : curveProgress(3, u);
+      return { x: p.x, y: p.y, t: rising ? 0 : 1, g, night: true };
+    }
+    const pos = pointOnDayArch(dayProgressFromAzimuth(az));
+    return { x: pos.x, y: pos.y, t: pos.t, g: pos.g, night: false };
+  }
+
+  // --- Elevation-only last resort ---
+  const amp = SUN_BASELINE_Y - SUN_PEAK_Y;
+  if (below) {
+    const depthFrac = hasEl ? Math.min(1, -el / 12) : 0.4;
+    const targetY =
+      SUN_BASELINE_Y + depthFrac * (SUN_TAIL_END_Y - SUN_BASELINE_Y);
+    const { p, u } = pointOnHalfByY(SUN_TAIL_LEFT, targetY);
+    return { x: p.x, y: p.y, t: 0, g: curveProgress(0, u), night: true };
+  }
+  const frac = hasEl ? Math.max(0, Math.min(1, el / 90)) : 0.5;
   const targetY = SUN_BASELINE_Y - frac * amp;
-  const half = rising ? SUN_PATH.left : SUN_PATH.right;
-  const { p, u } = pointOnHalfByY(half, targetY);
-  const t = rising ? u * 0.5 : 0.5 + u * 0.5;
-  // Segment 1 = morning arch, segment 2 = afternoon arch.
-  const g = rising ? curveProgress(1, u) : curveProgress(2, u);
-  return { x: p.x, y: p.y, t, g, night: false };
+  const { p, u } = pointOnHalfByY(SUN_PATH.left, targetY);
+  return {
+    x: p.x,
+    y: p.y,
+    t: u * 0.5,
+    g: curveProgress(1, u),
+    night: false,
+  };
 }
 
 /**

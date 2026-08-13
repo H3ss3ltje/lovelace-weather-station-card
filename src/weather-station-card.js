@@ -921,13 +921,15 @@ class WeatherStationCard extends LitElement {
   }
 
   _renderCompass(deg, compass) {
+    // Labels use meteorological *from*; needle points where the wind blows *toward*.
+    const needleDeg = ((Number(deg) + 180) % 360 + 360) % 360;
     // Needle hub at viewBox center (50,50). Scale keeps tips clear of N/E/S/W.
     return html`
       <div class="compass" title="${compass || ""} (${round(deg, 0)}°)">
         <svg
           class="needle-svg"
           viewBox="0 0 100 100"
-          style="transform: rotate(${deg}deg) scale(0.7)"
+          style="transform: rotate(${needleDeg}deg) scale(0.7)"
           aria-hidden="true"
         >
           <defs>

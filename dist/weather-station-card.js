@@ -604,12 +604,12 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
               </div>`:V}
         </div>
       </div>
-    `}_renderCompass(t,e){return R`
+    `}_renderCompass(t,e){const i=((Number(t)+180)%360+360)%360;return R`
       <div class="compass" title="${e||""} (${Nt(t,0)}°)">
         <svg
           class="needle-svg"
           viewBox="0 0 100 100"
-          style="transform: rotate(${t}deg) scale(0.7)"
+          style="transform: rotate(${i}deg) scale(0.7)"
           aria-hidden="true"
         >
           <defs>
@@ -1181,4 +1181,4 @@ const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(yt)||customElements.define(yt,ue),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===yt)||window.customCards.push({type:yt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.7.11 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{ue as WeatherStationCard};
+    `}}customElements.get(yt)||customElements.define(yt,ue),window.customCards=window.customCards||[],window.customCards.find(t=>t.type===yt)||window.customCards.push({type:yt,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.7.12 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{ue as WeatherStationCard};

@@ -5,7 +5,7 @@ A modern, minimalistic, **Mushroom-inspired** custom Lovelace card for Home Assi
 Everything is configurable through the UI or YAML — no entity IDs are hardcoded, and every section is optional and hides itself automatically when its entity is not configured.
 
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)
-![Version](https://img.shields.io/badge/version-1.7.11-blue.svg)
+![Version](https://img.shields.io/badge/version-1.7.12-blue.svg)
 
 ---
 

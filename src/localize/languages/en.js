@@ -149,7 +149,7 @@ export default {
     show_rain_today: "Precipitation / rain today",
     show_beaufort: "Beaufort scale",
     show_wind_gust: "Wind gust",
-    invert_wind_direction: "Invert wind direction (show where wind comes from)",
+    invert_wind_direction: "Invert wind direction (sensor reports toward, not from)",
     show_battery: "Battery",
     show_voltage: "Battery / capacitor voltage",
     show_pressure_trend: "Pressure trend",

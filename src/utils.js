@@ -198,13 +198,40 @@ export function deriveCondition({ isDay, rainMm, rainOn, lux, uv }) {
 }
 
 /**
- * Rain detection: booleans, on/off, or a numeric rate.
+ * Rain detection: booleans, on/off, wet/dry, or a numeric rate.
+ * Covers Zigbee2MQTT / HA binary_sensor and common rain_status strings.
  */
 export function isRainDetected(stateObj) {
   if (!stateObj) return false;
-  const s = String(stateObj.state).toLowerCase();
-  if (["on", "true", "wet", "raining", "detected"].includes(s)) return true;
-  const n = Number(stateObj.state);
+  const raw = stateObj.state;
+  if (raw === true || raw === 1) return true;
+  if (raw === false || raw === 0) return false;
+
+  const s = String(raw ?? "")
+    .toLowerCase()
+    .trim();
+  if (!s || ["unavailable", "unknown", "none", "null"].includes(s)) {
+    return false;
+  }
+  if (["off", "false", "dry", "no", "0"].includes(s)) return false;
+  if (
+    [
+      "on",
+      "true",
+      "wet",
+      "raining",
+      "detected",
+      "rain",
+      "rainy",
+      "yes",
+      "1",
+    ].includes(s)
+  ) {
+    return true;
+  }
+  if (/\b(rain|wet|precip)/.test(s)) return true;
+
+  const n = Number(raw);
   return Number.isFinite(n) && n > 0;
 }
 

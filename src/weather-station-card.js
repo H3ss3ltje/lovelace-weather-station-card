@@ -438,6 +438,16 @@ class WeatherStationCard extends LitElement {
       condition = deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv });
     }
 
+    // Live rain sensors always win for the hero icon. Zigbee weather_condition
+    // can lag or stay "cloudy" while rain_status is already on.
+    if (rainOn || (rainRate != null && rainRate > 0)) {
+      condition = {
+        icon: "rainy",
+        labelKey: "rain",
+        raw: condition?.raw,
+      };
+    }
+
     // Empty string hides the title. Missing / English default uses the
     // localized card name so existing YAML still follows HA language.
     const title =

@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.8.1";
+export const CARD_VERSION = "1.8.2";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";

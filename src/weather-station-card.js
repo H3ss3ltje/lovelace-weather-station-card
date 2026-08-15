@@ -635,38 +635,53 @@ class WeatherStationCard extends LitElement {
     const comfort =
       feels == null ? comfortKey(temp, humidity) : null;
     const minmax = s.show_minmax ? this._todayMinMax() : null;
-    const rainText = this._heroRainText(rainOn, rainRate);
-
-    const speedObj = this._stateObj("wind_speed_entity");
-    const dirDeg = windDirectionDegrees(
-      numericState(this._stateObj("wind_direction_entity")),
-      s.invert_wind_direction
-    );
-    const speed = numericState(speedObj);
-    const speedUnit = unit(speedObj, "m/s");
-    const compassKey = degToCompass(dirDeg);
-    const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
-    const showWind = speedObj || dirDeg != null;
-    if (dirDeg == null) this._needleTarget = null;
+    const rain = this._heroRainParts(rainOn, rainRate);
+    // Compass lives on the dedicated compass card — not in the hero.
+    this._needleTarget = null;
 
     const conditionText = this._t(`condition.${condition.labelKey}`);
-    const showSub =
-      temp != null ||
+    const hasSide =
       feels != null ||
       comfort != null ||
       dew != null ||
-      rainText;
+      (rain && (rain.rate || rain.today));
+
+    const rainClick = (e) => {
+      e.stopPropagation();
+      this._handleClick(
+        this._stateObj("rain_entity")
+          ? "rain_entity"
+          : this._stateObj("rain_rate_entity")
+            ? "rain_rate_entity"
+            : "rain_today_entity"
+      );
+    };
+    const rainTap =
+      this._clickable("rain_entity") ||
+      this._clickable("rain_rate_entity") ||
+      this._clickable("rain_today_entity");
 
     return html`
       <div
-        class="hero ${showWind ? "has-wind" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
+        class="hero ${hasSide ? "has-side" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
         ${wscIcon(condition.icon, "hero-icon")}
         <div class="hero-main">
           <div class="hero-condition">${conditionText}</div>
-          <div class="hero-temp">
-            ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
+          <div class="hero-temp-row">
+            <div class="hero-temp">
+              ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
+            </div>
+            ${rain?.status
+              ? html`<span
+                  class="hero-rain-status ${rain.wet ? "wet" : "dry"} ${rainTap
+                    ? "tappable"
+                    : ""}"
+                  @click=${rainClick}
+                  >${rain.status}</span
+                >`
+              : nothing}
           </div>
           ${minmax
             ? html`<div class="hero-minmax">
@@ -681,62 +696,40 @@ class WeatherStationCard extends LitElement {
               </div>`
             : nothing}
         </div>
-        ${showWind
-          ? html`
-              <div
-                class="hero-wind ${this._clickable("wind_speed_entity") ? "tappable" : ""}"
-                @click=${(e) => {
-                  e.stopPropagation();
-                  this._handleClick("wind_speed_entity");
-                }}
-              >
-                ${dirDeg != null ? this._renderCompass(dirDeg, compass) : nothing}
-                ${speed != null
-                  ? html`<div class="hero-wind-speed">
-                      ${round(speed, 1)} ${speedUnit}
+        ${hasSide
+          ? html`<div class="hero-side">
+              ${feels
+                ? html`<div class="hero-stat">
+                    <div class="hero-stat-label">${this._t("sections.feels_like")}</div>
+                    <div class="hero-stat-value">
+                      ${round(feels.value, 1)} ${tempUnit}
+                    </div>
+                  </div>`
+                : comfort
+                  ? html`<div class="hero-stat">
+                      <div class="hero-stat-value hero-stat-comfort">
+                        ${this._t(`comfort.${comfort}`)}
+                      </div>
                     </div>`
                   : nothing}
-              </div>
-            `
-          : nothing}
-        ${showSub
-          ? html`<div class="hero-sub">
-              ${feels
-                ? html`<span
-                    >${this._t("feels_like", {
-                      value: round(feels.value, 1),
-                      unit: tempUnit,
-                    })}</span
-                  >`
-                : comfort
-                  ? html`<span>${this._t(`comfort.${comfort}`)}</span>`
-                  : nothing}
               ${dew != null
-                ? html`<span class="muted"
-                    >${this._t("dewpoint", {
-                      value: round(dew, 1),
-                      unit: tempUnit,
-                    })}</span
-                  >`
+                ? html`<div class="hero-stat">
+                    <div class="hero-stat-label">${this._t("sections.dewpoint")}</div>
+                    <div class="hero-stat-value">${round(dew, 1)} ${tempUnit}</div>
+                  </div>`
                 : nothing}
-              ${rainText
-                ? html`<span
-                    class="muted hero-rain ${this._clickable("rain_entity") ||
-                    this._clickable("rain_rate_entity")
-                      ? "tappable"
-                      : ""}"
-                    @click=${(e) => {
-                      e.stopPropagation();
-                      this._handleClick(
-                        this._stateObj("rain_entity")
-                          ? "rain_entity"
-                          : this._stateObj("rain_rate_entity")
-                            ? "rain_rate_entity"
-                            : "rain_today_entity"
-                      );
-                    }}
-                    >${rainText}</span
-                  >`
+              ${rain && (rain.rate || rain.today)
+                ? html`<div
+                    class="hero-stat hero-stat-rain ${rainTap ? "tappable" : ""}"
+                    @click=${rainClick}
+                  >
+                    ${rain.rate
+                      ? html`<div class="hero-stat-value">${rain.rate}</div>`
+                      : nothing}
+                    ${rain.today
+                      ? html`<div class="hero-stat-label">${rain.today}</div>`
+                      : nothing}
+                  </div>`
                 : nothing}
             </div>`
           : nothing}
@@ -744,8 +737,8 @@ class WeatherStationCard extends LitElement {
     `;
   }
 
-  /** Compact rain line for the hero (status · rate · today). */
-  _heroRainText(rainOn, rainRate) {
+  /** Rain pieces for the hero: status beside temp, rate/today on the side. */
+  _heroRainParts(rainOn, rainRate) {
     const s = this._config.settings || {};
     if (s.show_rain_hero === false) return null;
 
@@ -753,26 +746,25 @@ class WeatherStationCard extends LitElement {
     const rateObj = this._stateObj("rain_rate_entity");
     const todayObj = s.show_rain_today ? this._precipToday() : null;
     const today = numericState(todayObj);
-    const rate =
-      rainRate != null ? rainRate : numericState(rateObj);
+    const rate = rainRate != null ? rainRate : numericState(rateObj);
 
     if (!rainObj && rate == null && today == null) return null;
 
-    const parts = [];
-    if (rainObj) {
-      parts.push(rainOn ? this._t("rain.wet") : this._t("rain.dry"));
-    }
-    if (rate != null) {
-      const rateUnit = unit(rateObj || rainObj, "mm/h");
-      parts.push(`${round(rate, 1)} ${rateUnit}`);
-    }
-    if (today != null) {
-      const todayUnit = unit(todayObj, "mm");
-      parts.push(
-        `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}`
-      );
-    }
-    return parts.length ? parts.join(" · ") : null;
+    const rateUnit = unit(rateObj || rainObj, "mm/h");
+    const todayUnit = unit(todayObj, "mm");
+    return {
+      wet: !!rainOn,
+      status: rainObj
+        ? rainOn
+          ? this._t("rain.wet")
+          : this._t("rain.dry")
+        : null,
+      rate: rate != null ? `${round(rate, 1)} ${rateUnit}` : null,
+      today:
+        today != null
+          ? `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}`
+          : null,
+    };
   }
 
   _tile({ icon, iconOpts, label, value, sub, key, accent }) {
@@ -1350,17 +1342,16 @@ class WeatherStationCard extends LitElement {
 
       .hero {
         display: grid;
-        grid-template-columns: auto 1fr;
-        grid-template-rows: auto auto;
+        grid-template-columns: auto minmax(0, 1fr);
         align-items: center;
-        gap: 4px 16px;
-        padding: 16px;
+        gap: 14px 18px;
+        padding: 18px 20px;
         border-radius: var(--wsc-radius);
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-      .hero.has-wind {
-        grid-template-columns: auto 1fr auto;
+      .hero.has-side {
+        grid-template-columns: auto minmax(0, 1.2fr) minmax(110px, 0.9fr);
       }
       .wsc-icon {
         display: inline-flex;
@@ -1378,82 +1369,56 @@ class WeatherStationCard extends LitElement {
       }
 
       .hero-icon {
-        grid-row: 1 / 3;
-        width: 46px;
-        height: 46px;
+        width: 56px;
+        height: 56px;
+        align-self: center;
       }
       .hero-main {
         display: flex;
         flex-direction: column;
+        gap: 2px;
         min-width: 0;
-      }
-      .hero-wind {
-        grid-column: 3;
-        grid-row: 1 / 3;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        justify-self: center;
-        gap: 6px;
-        padding: 4px 6px;
-        border-radius: 12px;
-        align-self: center;
-        width: max-content;
-        min-width: 84px;
-        box-sizing: border-box;
-      }
-      .hero-wind .compass {
-        width: 76px;
-        height: 76px;
-        font-size: 0.72rem;
-        margin: 0 auto;
-      }
-      .hero-wind .compass .c-n { top: 11px; }
-      .hero-wind .compass .c-s { top: 65px; }
-      .hero-wind .compass .c-e { left: 65px; }
-      .hero-wind .compass .c-w { left: 11px; }
-      .hero-wind-speed {
-        font-size: 0.95rem;
-        font-weight: 600;
-        line-height: 1.1;
-        color: var(--primary-text-color);
-        white-space: nowrap;
-        text-align: center;
-        width: 100%;
       }
       .hero-condition {
         font-size: 0.95rem;
         color: var(--wsc-muted-text, var(--secondary-text-color));
       }
+      .hero-temp-row {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+      }
       .hero-temp {
-        font-size: 2rem;
-        font-weight: 600;
-        line-height: 1.1;
+        font-size: 2.15rem;
+        font-weight: 650;
+        line-height: 1.05;
+        color: var(--primary-text-color);
+        letter-spacing: -0.02em;
+      }
+      .hero-rain-status {
+        font-size: 1rem;
+        font-weight: 650;
+        line-height: 1.2;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
         color: var(--primary-text-color);
       }
-      .hero-sub {
-        grid-column: 2;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px 12px;
-        font-size: 0.85rem;
-        color: var(--wsc-muted-text, var(--secondary-text-color));
+      .hero-rain-status.wet {
+        color: var(--info-color, #2196f3);
+        border-color: color-mix(in srgb, var(--info-color, #2196f3) 45%, transparent);
+        background: color-mix(in srgb, var(--info-color, #2196f3) 14%, transparent);
       }
-      .hero-sub .muted {
+      .hero-rain-status.dry {
         color: var(--wsc-muted-text, var(--secondary-text-color));
-        opacity: 1;
-      }
-      .hero-sub .hero-rain {
-        display: inline-flex;
-        align-items: center;
       }
       .hero-minmax {
         display: flex;
-        gap: 10px;
-        margin-top: 2px;
-        font-size: 0.9rem;
-        font-weight: 500;
+        gap: 12px;
+        margin-top: 4px;
+        font-size: 0.95rem;
+        font-weight: 550;
       }
       .hero-minmax .mm {
         display: inline-flex;
@@ -1469,6 +1434,46 @@ class WeatherStationCard extends LitElement {
       }
       .hero-minmax .mm-max {
         color: var(--warning-color, #ff9800);
+      }
+      .hero-side {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 10px;
+        min-width: 0;
+        text-align: right;
+        padding-left: 8px;
+        border-left: 1px solid var(--divider-color, rgba(0, 0, 0, 0.1));
+      }
+      .hero-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+      }
+      .hero-stat-label {
+        font-size: 0.72rem;
+        font-weight: 550;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--wsc-muted-text, var(--secondary-text-color));
+      }
+      .hero-stat-value {
+        font-size: 1.05rem;
+        font-weight: 650;
+        line-height: 1.15;
+        color: var(--primary-text-color);
+      }
+      .hero-stat-comfort {
+        font-size: 0.92rem;
+        font-weight: 550;
+      }
+      .hero-stat-rain .hero-stat-label {
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 0.8rem;
+        font-weight: 500;
       }
       .dot {
         margin: 0 3px;
@@ -1688,48 +1693,44 @@ class WeatherStationCard extends LitElement {
           font-size: 0.85rem;
         }
       }
+      @container wsc (max-width: 520px) {
+        .hero.has-side {
+          grid-template-columns: auto minmax(0, 1fr);
+        }
+        .hero-side {
+          grid-column: 2;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: flex-start;
+          justify-content: flex-start;
+          text-align: left;
+          gap: 10px 18px;
+          padding-left: 0;
+          border-left: none;
+          padding-top: 2px;
+        }
+        .hero-stat {
+          min-width: 72px;
+        }
+      }
       @container wsc (max-width: 420px) {
         .hero {
-          gap: 4px 8px;
-          padding: 12px;
-        }
-        .hero.has-wind {
-          grid-template-columns: auto 1fr auto;
+          gap: 10px 12px;
+          padding: 14px;
         }
         .hero-icon {
-          width: 38px;
-          height: 38px;
-          grid-row: 1 / 3;
+          width: 44px;
+          height: 44px;
         }
         .hero-temp {
-          font-size: 1.65rem;
+          font-size: 1.75rem;
         }
-        .hero-wind {
-          grid-column: 3;
-          grid-row: 1 / 3;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          width: max-content;
-          min-width: 64px;
-          margin-top: 0;
-          padding: 2px 4px;
-          gap: 4px;
+        .hero-rain-status {
+          font-size: 0.88rem;
+          padding: 2px 8px;
         }
-        .hero-wind .compass {
-          width: 56px;
-          height: 56px;
-          font-size: 0.58rem;
-        }
-        .hero-wind .compass .c-n { top: 8px; }
-        .hero-wind .compass .c-s { top: 48px; }
-        .hero-wind .compass .c-e { left: 48px; }
-        .hero-wind .compass .c-w { left: 8px; }
-        .hero-wind-speed {
-          font-size: 0.82rem;
-        }
-        .hero-sub {
-          font-size: 0.8rem;
+        .hero-stat-value {
+          font-size: 0.95rem;
         }
       }
       /* Fallback when container queries are unavailable */

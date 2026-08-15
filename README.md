@@ -5,7 +5,7 @@ A modern, minimalistic, **Mushroom-inspired** custom Lovelace card for Home Assi
 Everything is configurable through the UI or YAML — no entity IDs are hardcoded, and every section is optional and hides itself automatically when its entity is not configured.
 
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)
-![Version](https://img.shields.io/badge/version-1.8.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.2-blue.svg)
 
 ---
 
@@ -178,7 +178,7 @@ All entities are optional. A section is only rendered when its entity is set. Zi
 | `show_heat_stress`           | boolean | `true`  | Show heat stress tile when configured.                   |
 | `show_minmax`                | boolean | `true`  | Show today's min / max temperature in the hero.          |
 | `show_rain_today`            | boolean | `true`  | Show precipitation / rain today when configured.         |
-| `show_rain_hero`             | boolean | `true`  | Show rain status (dry/wet · rate · today) in the hero.   |
+| `show_rain_hero`             | boolean | `true`  | Show rain status beside temperature; rate/today on the hero side. |
 | `show_beaufort`              | boolean | `true`  | Show Beaufort number + description on the wind tile.     |
 | `show_wind_gust`             | boolean | `true`  | Show wind gust in the wind tile.                         |
 | `invert_wind_direction`      | boolean | `false` | Flip 180° when the sensor reports *toward* instead of meteorological *from*. |

@@ -77,16 +77,14 @@ class WeatherStationCard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    if (this._needleRaf) {
-      cancelAnimationFrame(this._needleRaf);
-      this._needleRaf = null;
-    }
-    this._needleLastTs = null;
+    this._stopNeedleAnimation();
   }
 
   updated() {
     if (this._needleTarget != null) {
       this._startNeedleAnimation();
+    } else {
+      this._stopNeedleAnimation();
     }
   }
 
@@ -621,6 +619,7 @@ class WeatherStationCard extends LitElement {
     const compassKey = degToCompass(dirDeg);
     const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
     const showWind = speedObj || dirDeg != null;
+    if (dirDeg == null) this._needleTarget = null;
 
     const conditionText = this._t(`condition.${condition.labelKey}`);
 
@@ -986,13 +985,26 @@ class WeatherStationCard extends LitElement {
     }
   }
 
+  _stopNeedleAnimation() {
+    if (this._needleRaf) {
+      cancelAnimationFrame(this._needleRaf);
+      this._needleRaf = null;
+    }
+    this._needleLastTs = null;
+  }
+
   /**
-   * Ease the needle toward `_needleTarget` along the shortest arc.
-   * Exponential smoothing (~0.7s time constant) so noisy wind updates glide.
+   * Ease the needle toward `_needleTarget` along the shortest arc, then keep
+   * a gentle ±5° sway so it looks like a live compass.
    */
   _startNeedleAnimation() {
     if (this._needleRaf) return;
     const tau = 700;
+    const swayAmp = 5;
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
     const step = (now) => {
       const target = this._needleTarget;
       if (target == null) {
@@ -1000,12 +1012,9 @@ class WeatherStationCard extends LitElement {
         this._needleLastTs = null;
         return;
       }
+
       if (this._needleCurrent == null) {
         this._needleCurrent = target;
-        this._applyNeedleTransform(this._needleCurrent);
-        this._needleRaf = null;
-        this._needleLastTs = null;
-        return;
       }
 
       const prev = this._needleLastTs ?? now;
@@ -1015,16 +1024,16 @@ class WeatherStationCard extends LitElement {
       const delta = this._shortestAngleDelta(this._needleCurrent, target);
       const alpha = 1 - Math.exp(-dt / tau);
       this._needleCurrent += delta * alpha;
-      this._applyNeedleTransform(this._needleCurrent);
 
-      if (Math.abs(delta) > 0.2) {
-        this._needleRaf = requestAnimationFrame(step);
-      } else {
-        this._needleCurrent += delta;
-        this._applyNeedleTransform(this._needleCurrent);
-        this._needleRaf = null;
-        this._needleLastTs = null;
-      }
+      // Organic wobble: two slow sines summing to ~±5°.
+      const t = now * 0.001;
+      const sway = reduceMotion
+        ? 0
+        : swayAmp *
+          (0.62 * Math.sin(t * 1.35) + 0.38 * Math.sin(t * 2.1 + 1.1));
+
+      this._applyNeedleTransform(this._needleCurrent + sway);
+      this._needleRaf = requestAnimationFrame(step);
     };
     this._needleRaf = requestAnimationFrame(step);
   }

@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.8.0";
+export const CARD_VERSION = "1.8.1";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -67,6 +67,7 @@ export const DEFAULT_SETTINGS = {
   show_sun: true,
   show_minmax: true,
   show_rain_today: true,
+  show_rain_hero: true,
   show_beaufort: true,
   show_feels_like: true,
   show_heat_stress: true,

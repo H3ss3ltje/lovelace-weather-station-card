@@ -149,6 +149,7 @@ export default {
     show_heat_stress: "Hittebelasting",
     show_minmax: "Vandaag min / max",
     show_rain_today: "Neerslag / regen vandaag",
+    show_rain_hero: "Regenstatus in hero (bij temperatuur)",
     show_beaufort: "Beaufortschaal",
     show_wind_gust: "Windstoot",
     invert_wind_direction: "Windrichting omkeren (sensor geeft heen-richting i.p.v. herkomst)",

@@ -149,6 +149,7 @@ export default {
     show_heat_stress: "Heat stress",
     show_minmax: "Today min / max",
     show_rain_today: "Precipitation / rain today",
+    show_rain_hero: "Rain status in hero (next to temperature)",
     show_beaufort: "Beaufort scale",
     show_wind_gust: "Wind gust",
     invert_wind_direction: "Invert wind direction (sensor reports toward, not from)",

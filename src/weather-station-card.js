@@ -473,7 +473,7 @@ class WeatherStationCard extends LitElement {
         <div class="wsc ${s.compact_mode ? "compact" : "full"}">
           ${title ? html`<div class="title">${title}</div>` : nothing}
 
-          ${this._renderHero(condition, temp, tempUnit, humidity)}
+          ${this._renderHero(condition, temp, tempUnit, humidity, rainOn, rainRate)}
           ${this._renderSun()}
 
           ${s.compact_mode
@@ -628,13 +628,14 @@ class WeatherStationCard extends LitElement {
     return { min, max };
   }
 
-  _renderHero(condition, temp, tempUnit, humidity) {
+  _renderHero(condition, temp, tempUnit, humidity, rainOn, rainRate) {
     const s = this._config.settings || {};
     const dew = s.show_dewpoint ? this._dewPoint(temp, humidity) : null;
     const feels = s.show_feels_like ? this._feelsLike(temp) : null;
     const comfort =
       feels == null ? comfortKey(temp, humidity) : null;
     const minmax = s.show_minmax ? this._todayMinMax() : null;
+    const rainText = this._heroRainText(rainOn, rainRate);
 
     const speedObj = this._stateObj("wind_speed_entity");
     const dirDeg = windDirectionDegrees(
@@ -649,6 +650,12 @@ class WeatherStationCard extends LitElement {
     if (dirDeg == null) this._needleTarget = null;
 
     const conditionText = this._t(`condition.${condition.labelKey}`);
+    const showSub =
+      temp != null ||
+      feels != null ||
+      comfort != null ||
+      dew != null ||
+      rainText;
 
     return html`
       <div
@@ -692,7 +699,7 @@ class WeatherStationCard extends LitElement {
               </div>
             `
           : nothing}
-        ${temp != null
+        ${showSub
           ? html`<div class="hero-sub">
               ${feels
                 ? html`<span
@@ -712,10 +719,60 @@ class WeatherStationCard extends LitElement {
                     })}</span
                   >`
                 : nothing}
+              ${rainText
+                ? html`<span
+                    class="muted hero-rain ${this._clickable("rain_entity") ||
+                    this._clickable("rain_rate_entity")
+                      ? "tappable"
+                      : ""}"
+                    @click=${(e) => {
+                      e.stopPropagation();
+                      this._handleClick(
+                        this._stateObj("rain_entity")
+                          ? "rain_entity"
+                          : this._stateObj("rain_rate_entity")
+                            ? "rain_rate_entity"
+                            : "rain_today_entity"
+                      );
+                    }}
+                    >${rainText}</span
+                  >`
+                : nothing}
             </div>`
           : nothing}
       </div>
     `;
+  }
+
+  /** Compact rain line for the hero (status · rate · today). */
+  _heroRainText(rainOn, rainRate) {
+    const s = this._config.settings || {};
+    if (s.show_rain_hero === false) return null;
+
+    const rainObj = this._stateObj("rain_entity");
+    const rateObj = this._stateObj("rain_rate_entity");
+    const todayObj = s.show_rain_today ? this._precipToday() : null;
+    const today = numericState(todayObj);
+    const rate =
+      rainRate != null ? rainRate : numericState(rateObj);
+
+    if (!rainObj && rate == null && today == null) return null;
+
+    const parts = [];
+    if (rainObj) {
+      parts.push(rainOn ? this._t("rain.wet") : this._t("rain.dry"));
+    }
+    if (rate != null) {
+      const rateUnit = unit(rateObj || rainObj, "mm/h");
+      parts.push(`${round(rate, 1)} ${rateUnit}`);
+    }
+    if (today != null) {
+      const todayUnit = unit(todayObj, "mm");
+      parts.push(
+        `${this._t("rain.today")} ${round(today, 1)} ${todayUnit}`
+      );
+    }
+    return parts.length ? parts.join(" · ") : null;
   }
 
   _tile({ icon, iconOpts, label, value, sub, key, accent }) {
@@ -1386,6 +1443,10 @@ class WeatherStationCard extends LitElement {
       .hero-sub .muted {
         color: var(--wsc-muted-text, var(--secondary-text-color));
         opacity: 1;
+      }
+      .hero-sub .hero-rain {
+        display: inline-flex;
+        align-items: center;
       }
       .hero-minmax {
         display: flex;

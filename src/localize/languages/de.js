@@ -1,6 +1,8 @@
 export default {
   common: {
     card_title: "Wetterstation",
+    compass_title: "Kompass",
+    compass_configure: "Windrichtungs- / Windgeschwindigkeits-Entitäten zuweisen.",
     card_name: "Wetterstationskarte",
     card_description:
       "Eine moderne, von Mushroom inspirierte Wetterstationskarte.",
@@ -156,6 +158,7 @@ export default {
     show_pressure_trend: "Luftdrucktrend",
     show_interactions: "Interaktionen",
     compact_mode: "Kompaktmodus (nur Hero + Sonne)",
+    compass_only: "Nur Kompass (großes Einzelkompass)",
     night_palette: "Nachtpalette für Sonnendiagramm",
     lux_in_klux: "Lux-Sensor liefert Kilolux (0–200)",
     tile_order: "Kachelreihenfolge",

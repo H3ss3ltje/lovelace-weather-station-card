@@ -5,6 +5,7 @@ import {
   CARD_VERSION,
   CARD_NAME,
   EDITOR_NAME,
+  COMPASS_CARD_NAME,
   DEFAULT_SETTINGS,
   DEFAULT_TILE_ORDER,
   ENTITY_FIELDS,
@@ -66,6 +67,10 @@ class WeatherStationCard extends LitElement {
     }
     const settings = { ...DEFAULT_SETTINGS, ...(config.settings || {}) };
     settings.tile_order = this._normalizeTileOrder(settings.tile_order);
+    // Dedicated compass card type always forces compass-only layout.
+    if (config.type === `custom:${COMPASS_CARD_NAME}` || config.type === COMPASS_CARD_NAME) {
+      settings.compass_only = true;
+    }
     this._config = {
       ...config,
       settings,
@@ -106,6 +111,7 @@ class WeatherStationCard extends LitElement {
 
   getCardSize() {
     const s = this._config?.settings || {};
+    if (s.compass_only) return 4;
     if (s.compact_mode) return s.show_sun === false ? 2 : 3;
     return 6;
   }
@@ -440,6 +446,27 @@ class WeatherStationCard extends LitElement {
         : !this._config.title || this._config.title === "Weather Station"
           ? this._t("common.card_title")
           : this._config.title;
+
+    if (s.compass_only) {
+      const compassTitle =
+        this._config.title === ""
+          ? ""
+          : !this._config.title ||
+              this._config.title === "Weather Station" ||
+              this._config.title === "Compass"
+            ? this._t("common.compass_title")
+            : this._config.title;
+      return html`
+        <ha-card>
+          <div class="wsc compass-only">
+            ${compassTitle
+              ? html`<div class="title">${compassTitle}</div>`
+              : nothing}
+            ${this._renderCompassPanel()}
+          </div>
+        </ha-card>
+      `;
+    }
 
     return html`
       <ha-card>
@@ -934,7 +961,7 @@ class WeatherStationCard extends LitElement {
     `;
   }
 
-  _renderCompass(deg, compass) {
+  _renderCompass(deg, compass, { large = false } = {}) {
     // Labels use meteorological *from*; needle points where the wind blows *toward*.
     const needleDeg = ((Number(deg) + 180) % 360 + 360) % 360;
     this._needleTarget = needleDeg;
@@ -943,7 +970,10 @@ class WeatherStationCard extends LitElement {
     const initial =
       this._needleCurrent != null ? this._needleCurrent : needleDeg;
     return html`
-      <div class="compass" title="${compass || ""} (${round(deg, 0)}°)">
+      <div
+        class="compass ${large ? "lg" : ""}"
+        title="${compass || ""} (${round(deg, 0)}°)"
+      >
         <svg
           class="needle-svg"
           viewBox="0 0 100 100"
@@ -967,6 +997,81 @@ class WeatherStationCard extends LitElement {
         <span class="c-e">${this._t("compass.E")}</span>
         <span class="c-s">${this._t("compass.S")}</span>
         <span class="c-w">${this._t("compass.W")}</span>
+      </div>
+    `;
+  }
+
+  _renderCompassPanel() {
+    const s = this._config.settings || {};
+    const speedObj = this._stateObj("wind_speed_entity");
+    const dirDeg = windDirectionDegrees(
+      numericState(this._stateObj("wind_direction_entity")),
+      s.invert_wind_direction
+    );
+    if (dirDeg == null && !speedObj) {
+      this._needleTarget = null;
+      return html`<div class="compass-panel empty">
+        ${this._t("common.compass_configure")}
+      </div>`;
+    }
+    if (dirDeg == null) this._needleTarget = null;
+
+    const speed = numericState(speedObj);
+    const speedUnit = unit(speedObj, "m/s");
+    const compassKey = degToCompass(dirDeg);
+    const compass = compassKey ? this._t(`compass.${compassKey}`) : null;
+    const gustObj = this._stateObj("wind_gust_entity");
+    const gust = numericState(gustObj);
+    const gustUnit = unit(gustObj, speedUnit);
+    const bft = s.show_beaufort
+      ? beaufort(toMetersPerSecond(speed, speedUnit))
+      : null;
+    const showGust = s.show_wind_gust && gust != null;
+
+    const meta = [];
+    if (bft) meta.push(this._t("wind.beaufort", { value: bft.n }));
+    if (bft) meta.push(this._t(`beaufort.${bft.key}`));
+    if (showGust) {
+      meta.push(
+        this._t("wind.gust", {
+          value: round(gust, 0),
+          unit: gustUnit,
+        })
+      );
+    }
+
+    return html`
+      <div
+        class="compass-panel ${this._clickable("wind_direction_entity") ||
+        this._clickable("wind_speed_entity")
+          ? "tappable"
+          : ""}"
+        @click=${() =>
+          this._handleClick(
+            this._config.wind_direction_entity
+              ? "wind_direction_entity"
+              : "wind_speed_entity"
+          )}
+      >
+        ${dirDeg != null
+          ? this._renderCompass(dirDeg, compass, { large: true })
+          : html`<div class="compass lg placeholder"></div>`}
+        <div class="compass-panel-dir">${compass || "—"}</div>
+        <div class="compass-panel-deg">
+          ${dirDeg != null ? `${round(dirDeg, 0)}°` : "—"}
+        </div>
+        <div class="compass-panel-speed">
+          ${speed != null ? `${round(speed, 1)} ${speedUnit}` : "—"}
+        </div>
+        ${meta.length
+          ? html`<div class="compass-panel-meta">
+              ${meta.map(
+                (part, i) => html`${i
+                    ? html`<span class="dot">·</span>`
+                    : nothing}<span>${part}</span>`
+              )}
+            </div>`
+          : nothing}
       </div>
     `;
   }
@@ -1661,6 +1766,16 @@ class WeatherStationCard extends LitElement {
         color: var(--wsc-muted-text, var(--secondary-text-color));
         font-size: 0.6rem;
       }
+      .compass.lg {
+        width: min(70vw, 220px);
+        height: min(70vw, 220px);
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1.5px var(--divider-color, rgba(0, 0, 0, 0.18));
+      }
+      .compass.lg.placeholder {
+        opacity: 0.35;
+      }
       .compass .needle-svg {
         position: absolute;
         inset: 0;
@@ -1682,6 +1797,55 @@ class WeatherStationCard extends LitElement {
       .compass .c-s { top: 44px; left: 50%; }
       .compass .c-e { top: 50%; left: 44px; }
       .compass .c-w { top: 50%; left: 8px; }
+      .compass.lg .c-n { top: 18px; }
+      .compass.lg .c-s { top: calc(100% - 18px); }
+      .compass.lg .c-e { left: calc(100% - 18px); }
+      .compass.lg .c-w { left: 18px; }
+
+      .compass-only {
+        padding: 8px 12px 16px;
+      }
+      .compass-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 12px 8px 8px;
+        text-align: center;
+      }
+      .compass-panel.empty {
+        padding: 28px 16px;
+        color: var(--wsc-muted-text, var(--secondary-text-color));
+        font-size: 0.9rem;
+      }
+      .compass-panel-dir {
+        margin-top: 8px;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1.1;
+      }
+      .compass-panel-deg {
+        font-size: 1rem;
+        color: var(--wsc-muted-text, var(--secondary-text-color));
+      }
+      .compass-panel-speed {
+        margin-top: 4px;
+        font-size: 1.35rem;
+        font-weight: 650;
+      }
+      .compass-panel-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 6px;
+        font-size: 0.85rem;
+        color: var(--wsc-muted-text, var(--secondary-text-color));
+      }
+      .compass-panel-meta .dot {
+        opacity: 0.55;
+      }
 
       .tappable {
         cursor: pointer;
@@ -1698,12 +1862,55 @@ if (!customElements.get(CARD_NAME)) {
   customElements.define(CARD_NAME, WeatherStationCard);
 }
 
+class WeatherStationCompassCard extends WeatherStationCard {
+  static getStubConfig() {
+    return {
+      type: `custom:${COMPASS_CARD_NAME}`,
+      title: "Compass",
+      wind_direction_entity: "",
+      wind_speed_entity: "",
+      settings: {
+        compass_only: true,
+        show_beaufort: true,
+        show_wind_gust: true,
+        invert_wind_direction: false,
+        show_interactions: true,
+      },
+    };
+  }
+
+  setConfig(config) {
+    super.setConfig({
+      ...config,
+      type: config?.type || `custom:${COMPASS_CARD_NAME}`,
+      settings: {
+        ...(config?.settings || {}),
+        compass_only: true,
+      },
+    });
+  }
+}
+
+if (!customElements.get(COMPASS_CARD_NAME)) {
+  customElements.define(COMPASS_CARD_NAME, WeatherStationCompassCard);
+}
+
 window.customCards = window.customCards || [];
 if (!window.customCards.find((c) => c.type === CARD_NAME)) {
   window.customCards.push({
     type: CARD_NAME,
     name: "Weather Station Card",
     description: "A modern, Mushroom-inspired weather station card.",
+    preview: true,
+    documentationURL:
+      "https://github.com/H3ss3ltje/lovelace-weather-station-card",
+  });
+}
+if (!window.customCards.find((c) => c.type === COMPASS_CARD_NAME)) {
+  window.customCards.push({
+    type: COMPASS_CARD_NAME,
+    name: "Weather Station Compass",
+    description: "Large standalone wind compass with smooth needle.",
     preview: true,
     documentationURL:
       "https://github.com/H3ss3ltje/lovelace-weather-station-card",
@@ -1717,4 +1924,4 @@ console.info(
   "color: #03a9f4; background: white; font-weight: 700;"
 );
 
-export { WeatherStationCard };
+export { WeatherStationCard, WeatherStationCompassCard };

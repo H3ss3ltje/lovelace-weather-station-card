@@ -1,6 +1,8 @@
 export default {
   common: {
     card_title: "Weather Station",
+    compass_title: "Compass",
+    compass_configure: "Configure wind direction / speed entities.",
     card_name: "Weather Station Card",
     card_description: "A modern, Mushroom-inspired weather station card.",
   },
@@ -155,6 +157,7 @@ export default {
     show_pressure_trend: "Pressure trend",
     show_interactions: "Interactions",
     compact_mode: "Compact mode (hero + sun only)",
+    compass_only: "Compass only (large standalone compass)",
     night_palette: "Night palette for sun diagram",
     lux_in_klux: "Lux sensor reports kilolux (0–200)",
     tile_order: "Tile order",

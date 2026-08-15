@@ -1,6 +1,8 @@
 export default {
   common: {
     card_title: "Estación meteorológica",
+    compass_title: "Brújula",
+    compass_configure: "Configura las entidades de dirección / velocidad del viento.",
     card_name: "Tarjeta de estación meteorológica",
     card_description:
       "Una tarjeta moderna de estación meteorológica inspirada en Mushroom.",
@@ -156,6 +158,7 @@ export default {
     show_pressure_trend: "Tendencia de presión",
     show_interactions: "Interacciones",
     compact_mode: "Modo compacto (solo hero + sol)",
+    compass_only: "Solo brújula (brújula grande independiente)",
     night_palette: "Paleta nocturna del diagrama solar",
     lux_in_klux: "El sensor de lux reporta kilolux (0–200)",
     tile_order: "Orden de mosaicos",

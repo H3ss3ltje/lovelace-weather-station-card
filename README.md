@@ -5,7 +5,7 @@ A modern, minimalistic, **Mushroom-inspired** custom Lovelace card for Home Assi
 Everything is configurable through the UI or YAML — no entity IDs are hardcoded, and every section is optional and hides itself automatically when its entity is not configured.
 
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)
-![Version](https://img.shields.io/badge/version-1.7.15-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)
 
 ---
 
@@ -17,6 +17,7 @@ Everything is configurable through the UI or YAML — no entity IDs are hardcode
 - **Humidity** with an optional **dew point** (Magnus formula, off by default).
 - **Rain** detection + rate (mm/h).
 - **Wind** speed, compass direction with a **visual compass indicator**, and optional **gusts**.
+- **Standalone large compass card** (`weather-station-compass-card`) you can place separately on a dashboard.
 - **Light / Lux** interpreted as _Dark / Low light / Bright / Very bright_.
 - **UV index** with warning levels _Low → Extreme_.
 - **Pressure** with an optional **trend** indicator and configurable threshold.
@@ -68,6 +69,23 @@ title: Weather Station
 temperature_entity: sensor.temperature
 humidity_entity: sensor.humidity
 ```
+
+### Large compass only
+
+Add **Weather Station Compass** from the card picker, or:
+
+```yaml
+type: custom:weather-station-compass-card
+title: Kompas
+wind_direction_entity: sensor.weerstation_wind_direction
+wind_speed_entity: sensor.weerstation_wind_speed
+wind_gust_entity: sensor.weerstation_wind_gust
+settings:
+  show_beaufort: true
+  show_wind_gust: true
+```
+
+You can also enable `settings.compass_only: true` on the main weather station card.
 
 ### Full example
 
@@ -153,6 +171,7 @@ All entities are optional. A section is only rendered when its entity is set. Zi
 | `night_palette`              | boolean | `true`  | Stronger moon / night colours on the sun diagram.        |
 | `lux_in_klux`                | boolean | `false` | Set if `lux_entity` already reports kilolux (0–200).     |
 | `compact_mode`               | boolean | `false` | Hero + sun only (hide the sensor tile grid).             |
+| `compass_only`               | boolean | `false` | Large standalone compass layout (also used by `weather-station-compass-card`). |
 | `tile_order`                 | list    | see below | Order of tiles: `lux`, `temperature`, `feels_like`, `humidity`, `dewpoint`, `rain`, `wind`, `uv`, `pressure`, `heat_stress`, `battery`. |
 | `show_dewpoint`              | boolean | `true`  | Show dew point (entity or calculated).                   |
 | `show_feels_like`            | boolean | `true`  | Show feels-like (apparent / wind chill / humidex).       |

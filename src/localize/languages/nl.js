@@ -1,6 +1,8 @@
 export default {
   common: {
     card_title: "Weerstation",
+    compass_title: "Kompas",
+    compass_configure: "Koppel windrichting- / windsnelheid-entiteiten.",
     card_name: "Weerstationkaart",
     card_description: "Een moderne, Mushroom-geïnspireerde weerstationkaart.",
   },
@@ -155,6 +157,7 @@ export default {
     show_pressure_trend: "Luchtdruktrend",
     show_interactions: "Interacties",
     compact_mode: "Compacte modus (alleen hero + zon)",
+    compass_only: "Alleen kompas (groot los kompas)",
     night_palette: "Nachtpalet voor zondiagram",
     lux_in_klux: "Lux-sensor geeft kilolux (0–200)",
     tile_order: "Tegelvolgorde",

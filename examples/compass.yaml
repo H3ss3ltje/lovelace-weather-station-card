@@ -1,0 +1,10 @@
+# Standalone large wind compass
+type: custom:weather-station-compass-card
+title: Kompas
+wind_direction_entity: sensor.weerstation_wind_direction
+wind_speed_entity: sensor.weerstation_wind_speed
+wind_gust_entity: sensor.weerstation_wind_gust
+settings:
+  show_beaufort: true
+  show_wind_gust: true
+  invert_wind_direction: false

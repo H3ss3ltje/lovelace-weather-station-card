@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { fireEvent } from "custom-card-helpers";
 
-import { EDITOR_NAME, DEFAULT_SETTINGS, DEFAULT_TILE_ORDER } from "./const.js";
+import { EDITOR_NAME, DEFAULT_SETTINGS, DEFAULT_TILE_ORDER, COMPASS_CARD_NAME } from "./const.js";
 import { localize } from "./localize/localize.js";
 
 class WeatherStationCardEditor extends LitElement {
@@ -15,6 +15,12 @@ class WeatherStationCardEditor extends LitElement {
   setConfig(config) {
     const settings = { ...DEFAULT_SETTINGS, ...(config.settings || {}) };
     settings.tile_order = this._normalizeTileOrder(settings.tile_order);
+    if (
+      config.type === `custom:${COMPASS_CARD_NAME}` ||
+      config.type === COMPASS_CARD_NAME
+    ) {
+      settings.compass_only = true;
+    }
     this._config = {
       ...config,
       settings,
@@ -23,6 +29,14 @@ class WeatherStationCardEditor extends LitElement {
 
   _t(key, replace) {
     return localize(this.hass, key, replace);
+  }
+
+  _isCompassOnly() {
+    return !!(
+      this._config?.settings?.compass_only ||
+      this._config?.type === `custom:${COMPASS_CARD_NAME}` ||
+      this._config?.type === COMPASS_CARD_NAME
+    );
   }
 
   _normalizeTileOrder(order) {
@@ -42,6 +56,33 @@ class WeatherStationCardEditor extends LitElement {
   }
 
   _schema() {
+    if (this._isCompassOnly()) {
+      return [
+        { name: "title", selector: { text: {} } },
+        { name: "wind_direction_entity", selector: { entity: {} } },
+        { name: "wind_speed_entity", selector: { entity: {} } },
+        { name: "wind_gust_entity", selector: { entity: {} } },
+        {
+          type: "expandable",
+          name: "settings",
+          title: this._t("editor.settings"),
+          icon: "mdi:cog",
+          schema: [
+            {
+              name: "",
+              type: "grid",
+              schema: [
+                { name: "show_beaufort", selector: { boolean: {} } },
+                { name: "show_wind_gust", selector: { boolean: {} } },
+                { name: "invert_wind_direction", selector: { boolean: {} } },
+                { name: "show_interactions", selector: { boolean: {} } },
+              ],
+            },
+          ],
+        },
+      ];
+    }
+
     const showTrend = this._config?.settings?.show_pressure_trend;
     const dayNightOff = this._config?.settings?.show_daynight === false;
 
@@ -138,6 +179,7 @@ class WeatherStationCardEditor extends LitElement {
               { name: "show_sun", selector: { boolean: {} } },
               { name: "night_palette", selector: { boolean: {} } },
               { name: "compact_mode", selector: { boolean: {} } },
+              { name: "compass_only", selector: { boolean: {} } },
               { name: "lux_in_klux", selector: { boolean: {} } },
               { name: "show_dewpoint", selector: { boolean: {} } },
               { name: "show_feels_like", selector: { boolean: {} } },
@@ -202,14 +244,17 @@ class WeatherStationCardEditor extends LitElement {
     if (!this._config) return;
     const value = ev.detail.value;
     const prevOrder = this._config.settings?.tile_order;
+    const forceCompass = this._isCompassOnly();
     const config = {
       ...value,
+      type: this._config.type || value.type,
       settings: {
         ...DEFAULT_SETTINGS,
         ...(value.settings || {}),
         tile_order: this._normalizeTileOrder(
           value.settings?.tile_order || prevOrder
         ),
+        ...(forceCompass ? { compass_only: true } : {}),
       },
     };
     Object.keys(config).forEach((k) => {
@@ -250,7 +295,9 @@ class WeatherStationCardEditor extends LitElement {
   }
 
   _renderTileOrder() {
-    if (this._config?.settings?.compact_mode) return nothing;
+    if (this._config?.settings?.compact_mode || this._isCompassOnly()) {
+      return nothing;
+    }
     const order = this._normalizeTileOrder(this._config.settings?.tile_order);
     return html`
       <div class="tile-order">

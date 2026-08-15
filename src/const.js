@@ -1,7 +1,8 @@
-export const CARD_VERSION = "1.7.15";
+export const CARD_VERSION = "1.8.0";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
+export const COMPASS_CARD_NAME = "weather-station-compass-card";
 
 /**
  * Configuration keys for the entities the user can pick.
@@ -71,6 +72,7 @@ export const DEFAULT_SETTINGS = {
   show_heat_stress: true,
   invert_wind_direction: false,
   compact_mode: false,
+  compass_only: false,
   night_palette: true,
   lux_in_klux: false,
   tile_order: [...DEFAULT_TILE_ORDER],

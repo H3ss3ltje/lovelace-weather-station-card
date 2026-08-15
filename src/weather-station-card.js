@@ -75,6 +75,21 @@ class WeatherStationCard extends LitElement {
     this._tempHistoryKey = undefined;
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._needleRaf) {
+      cancelAnimationFrame(this._needleRaf);
+      this._needleRaf = null;
+    }
+    this._needleLastTs = null;
+  }
+
+  updated() {
+    if (this._needleTarget != null) {
+      this._startNeedleAnimation();
+    }
+  }
+
   _normalizeTileOrder(order) {
     const known = new Set(DEFAULT_TILE_ORDER);
     const seen = new Set();
@@ -923,13 +938,17 @@ class WeatherStationCard extends LitElement {
   _renderCompass(deg, compass) {
     // Labels use meteorological *from*; needle points where the wind blows *toward*.
     const needleDeg = ((Number(deg) + 180) % 360 + 360) % 360;
+    this._needleTarget = needleDeg;
     // Needle hub at viewBox center (50,50). Scale keeps tips clear of N/E/S/W.
+    // Rotation is applied in _startNeedleAnimation (smooth shortest-path easing).
+    const initial =
+      this._needleCurrent != null ? this._needleCurrent : needleDeg;
     return html`
       <div class="compass" title="${compass || ""} (${round(deg, 0)}°)">
         <svg
           class="needle-svg"
           viewBox="0 0 100 100"
-          style="transform: rotate(${needleDeg}deg) scale(0.7)"
+          style="transform: rotate(${initial}deg) scale(0.7)"
           aria-hidden="true"
         >
           <defs>
@@ -951,6 +970,63 @@ class WeatherStationCard extends LitElement {
         <span class="c-w">${this._t("compass.W")}</span>
       </div>
     `;
+  }
+
+  /** Shortest signed delta from one bearing to another (−180…180]. */
+  _shortestAngleDelta(from, to) {
+    const a = ((Number(from) % 360) + 360) % 360;
+    const b = ((Number(to) % 360) + 360) % 360;
+    return ((b - a + 540) % 360) - 180;
+  }
+
+  _applyNeedleTransform(deg) {
+    const el = this.renderRoot?.querySelector?.(".needle-svg");
+    if (el) {
+      el.style.transform = `rotate(${deg}deg) scale(0.7)`;
+    }
+  }
+
+  /**
+   * Ease the needle toward `_needleTarget` along the shortest arc.
+   * Exponential smoothing (~0.7s time constant) so noisy wind updates glide.
+   */
+  _startNeedleAnimation() {
+    if (this._needleRaf) return;
+    const tau = 700;
+    const step = (now) => {
+      const target = this._needleTarget;
+      if (target == null) {
+        this._needleRaf = null;
+        this._needleLastTs = null;
+        return;
+      }
+      if (this._needleCurrent == null) {
+        this._needleCurrent = target;
+        this._applyNeedleTransform(this._needleCurrent);
+        this._needleRaf = null;
+        this._needleLastTs = null;
+        return;
+      }
+
+      const prev = this._needleLastTs ?? now;
+      const dt = Math.min(48, Math.max(0, now - prev));
+      this._needleLastTs = now;
+
+      const delta = this._shortestAngleDelta(this._needleCurrent, target);
+      const alpha = 1 - Math.exp(-dt / tau);
+      this._needleCurrent += delta * alpha;
+      this._applyNeedleTransform(this._needleCurrent);
+
+      if (Math.abs(delta) > 0.2) {
+        this._needleRaf = requestAnimationFrame(step);
+      } else {
+        this._needleCurrent += delta;
+        this._applyNeedleTransform(this._needleCurrent);
+        this._needleRaf = null;
+        this._needleLastTs = null;
+      }
+    };
+    this._needleRaf = requestAnimationFrame(step);
   }
 
   _renderUv(uv) {
@@ -1583,10 +1659,10 @@ class WeatherStationCard extends LitElement {
         height: 100%;
         display: block;
         transform-origin: 50% 50%;
-        transition: transform 0.4s ease;
         pointer-events: none;
         overflow: visible;
         z-index: 1;
+        will-change: transform;
       }
       .compass span {
         position: absolute;

@@ -150,6 +150,7 @@ export default {
     show_heat_stress: "Estrés térmico",
     show_minmax: "Mín / máx de hoy",
     show_rain_today: "Precipitación / lluvia hoy",
+    show_rain_hero: "Estado de lluvia en el hero (junto a la temperatura)",
     show_beaufort: "Escala de Beaufort",
     show_wind_gust: "Ráfaga de viento",
     invert_wind_direction: "Invertir dirección (el sensor indica hacia dónde sopla)",

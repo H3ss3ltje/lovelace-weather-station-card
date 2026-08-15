@@ -150,6 +150,7 @@ export default {
     show_heat_stress: "Hitzestress",
     show_minmax: "Heute Min / Max",
     show_rain_today: "Niederschlag / Regen heute",
+    show_rain_hero: "Regenstatus im Hero (neben Temperatur)",
     show_beaufort: "Beaufort-Skala",
     show_wind_gust: "Windböe",
     invert_wind_direction: "Windrichtung umkehren (Sensor meldet Ziel-, nicht Herkunftsrichtung)",

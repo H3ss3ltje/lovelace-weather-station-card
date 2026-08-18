@@ -175,23 +175,49 @@ export function batteryIcon(pct) {
   return "battery_outline";
 }
 
+function kluxToLux(value, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  return n * 1000;
+}
+
+/**
+ * Resolve user lux bands (in klux) to lux thresholds for the hero icon.
+ * cloudy  < cloudyMax
+ * partly  < partlyMax
+ * sunny   < sunnyMax
+ * full sun ≥ sunnyMax
+ */
+export function resolveLuxBands(settings = {}) {
+  let cloudy = kluxToLux(settings.lux_cloudy_max_klux, 5000);
+  let partly = kluxToLux(settings.lux_partly_cloudy_max_klux, 20000);
+  let sunny = kluxToLux(settings.lux_sunny_max_klux, 150000);
+  if (partly <= cloudy) partly = cloudy + 1000;
+  if (sunny <= partly) sunny = partly + 1000;
+  return { cloudy, partly, sunny };
+}
+
 /**
  * Determine the weather condition icon + translation key.
- * Priority: rain > cloud (lux/uv low during day) > sun/night.
+ * Priority: rain > night > lux bands (cloudy / partly / sunny / full sun).
  */
-export function deriveCondition({ isDay, rainMm, rainOn, lux, uv }) {
+export function deriveCondition({ isDay, rainMm, rainOn, lux, uv, settings = {} }) {
   if (rainOn || (rainMm != null && rainMm > 0)) {
     return { icon: "rainy", labelKey: "rain" };
   }
-  // Outdoor lux: >20 klx is clearly bright daylight; <5 klx leans cloudy.
-  const bright = (lux != null && lux > 20000) || (uv != null && uv >= 3);
   if (!isDay) {
     return { icon: "night", labelKey: "clear_night" };
   }
-  if (lux != null && lux < 5000 && !bright) {
-    return { icon: "cloudy", labelKey: "cloudy" };
+
+  const bands = resolveLuxBands(settings);
+  if (lux != null && Number.isFinite(lux)) {
+    if (lux < bands.cloudy) return { icon: "cloudy", labelKey: "cloudy" };
+    if (lux < bands.partly) return { icon: "partly_cloudy", labelKey: "partly_cloudy" };
+    if (lux < bands.sunny) return { icon: "sunny", labelKey: "clear_sky" };
+    return { icon: "sunny", labelKey: "clear_sky" };
   }
-  if (bright) {
+
+  if (uv != null && uv >= 3) {
     return { icon: "sunny", labelKey: "clear_sky" };
   }
   return { icon: "partly_cloudy", labelKey: "partly_cloudy" };

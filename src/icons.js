@@ -31,15 +31,17 @@ function sun(className) {
             <stop offset="100%" stop-color="#FF9500"/>
           </linearGradient>
         </defs>
-        ${[0, 45, 90, 135, 180, 225, 270, 315].map(
-          (deg) => svg`
-            <rect x="29.5" y="4" width="5" height="11" rx="2.5"
-              fill="url(#${g}b)"
-              transform="rotate(${deg} 32 32)"/>
-          `
-        )}
-        <circle cx="32" cy="32" r="14" fill="url(#${g}a)"/>
-        <circle cx="27" cy="27" r="4.5" fill="#fff" opacity="0.35"/>
+        <g class="icon-spin" style="transform-origin: 32px 32px">
+          ${[0, 45, 90, 135, 180, 225, 270, 315].map(
+            (deg) => svg`
+              <rect x="29.5" y="4" width="5" height="11" rx="2.5"
+                fill="url(#${g}b)"
+                transform="rotate(${deg} 32 32)"/>
+            `
+          )}
+          <circle cx="32" cy="32" r="14" fill="url(#${g}a)"/>
+          <circle cx="27" cy="27" r="4.5" fill="#fff" opacity="0.35"/>
+        </g>
       </svg>
     `,
     className
@@ -82,12 +84,14 @@ function cloudy(className) {
             <stop offset="100%" stop-color="#A8B0BE"/>
           </linearGradient>
         </defs>
-        <ellipse cx="40" cy="30" rx="14" ry="10" fill="url(#${g}b)" opacity="0.85"/>
-        <path fill="url(#${g}a)"
-          d="M18 42c-6.6 0-12-5-12-11.2 0-5.4 3.8-10 9.1-11.2C16.6 13.4 22.8 9 30.2 9
-             c8.4 0 15.4 5.8 17 13.5 1.2-.3 2.4-.5 3.7-.5 7.4 0 13.4 5.8 13.4 13
-             0 7.2-6 13-13.4 13H18z"/>
-        <ellipse cx="26" cy="28" rx="8" ry="5" fill="#fff" opacity="0.18"/>
+        <g class="icon-drift">
+          <ellipse cx="40" cy="30" rx="14" ry="10" fill="url(#${g}b)" opacity="0.85"/>
+          <path fill="url(#${g}a)"
+            d="M18 42c-6.6 0-12-5-12-11.2 0-5.4 3.8-10 9.1-11.2C16.6 13.4 22.8 9 30.2 9
+               c8.4 0 15.4 5.8 17 13.5 1.2-.3 2.4-.5 3.7-.5 7.4 0 13.4 5.8 13.4 13
+               0 7.2-6 13-13.4 13H18z"/>
+          <ellipse cx="26" cy="28" rx="8" ry="5" fill="#fff" opacity="0.18"/>
+        </g>
       </svg>
     `,
     className
@@ -109,18 +113,22 @@ function partlyCloudy(className) {
             <stop offset="100%" stop-color="#8A94A4"/>
           </linearGradient>
         </defs>
-        <circle cx="22" cy="22" r="10" fill="url(#${g}s)"/>
-        ${[210, 240, 270, 300, 330].map(
-          (deg) => svg`
-            <rect x="19.5" y="3" width="5" height="8" rx="2.5"
-              fill="#FFB100" transform="rotate(${deg} 22 22)"/>
-          `
-        )}
-        <path fill="url(#${g}c)"
-          d="M16 46c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C14.6 21.4 19.8 18 26 18
-             c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
-             S49.6 50 43.4 50H16z"/>
-        <ellipse cx="28" cy="34" rx="7" ry="4" fill="#fff" opacity="0.16"/>
+        <g class="icon-spin icon-spin-slow" style="transform-origin: 22px 22px">
+          <circle cx="22" cy="22" r="10" fill="url(#${g}s)"/>
+          ${[210, 240, 270, 300, 330].map(
+            (deg) => svg`
+              <rect x="19.5" y="3" width="5" height="8" rx="2.5"
+                fill="#FFB100" transform="rotate(${deg} 22 22)"/>
+            `
+          )}
+        </g>
+        <g class="icon-drift">
+          <path fill="url(#${g}c)"
+            d="M16 46c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C14.6 21.4 19.8 18 26 18
+               c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
+               S49.6 50 43.4 50H16z"/>
+          <ellipse cx="28" cy="34" rx="7" ry="4" fill="#fff" opacity="0.16"/>
+        </g>
       </svg>
     `,
     className
@@ -142,13 +150,15 @@ function rainy(className) {
             <stop offset="100%" stop-color="#0A84FF"/>
           </linearGradient>
         </defs>
-        <path fill="url(#${g}c)"
-          d="M14 34c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C12.6 9.4 17.8 6 24 6
-             c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
-             S47.6 38 41.4 38H14z"/>
-        <rect x="18" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        <rect x="30" y="44" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        <rect x="42" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        <g class="icon-drift">
+          <path fill="url(#${g}c)"
+            d="M14 34c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C12.6 9.4 17.8 6 24 6
+               c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
+               S47.6 38 41.4 38H14z"/>
+        </g>
+        <rect class="icon-drop d1" x="18" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        <rect class="icon-drop d2" x="30" y="44" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        <rect class="icon-drop d3" x="42" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
       </svg>
     `,
     className
@@ -174,20 +184,24 @@ function partlyRainy(className) {
             <stop offset="100%" stop-color="#0A84FF"/>
           </linearGradient>
         </defs>
-        <circle cx="18" cy="18" r="8" fill="url(#${g}s)"/>
-        ${[225, 270, 315].map(
-          (deg) => svg`
-            <rect x="15.5" y="3" width="5" height="7" rx="2.5"
-              fill="#FFB100" transform="rotate(${deg} 18 18)"/>
-          `
-        )}
-        <path fill="url(#${g}c)"
-          d="M14 36c-5 0-9-3.8-9-8.5 0-4.1 2.9-7.5 6.9-8.4C12.8 13.6 17.5 10.5 23 10.5
-             c6.3 0 11.7 4.4 13 10.3.9-.2 1.8-.3 2.8-.3 5.6 0 10.1 4.4 10.1 9.8
-             S44.4 40 38.8 40H14z"/>
-        <rect x="18" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        <rect x="29" y="46" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        <rect x="40" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        <g class="icon-spin icon-spin-slow" style="transform-origin: 18px 18px">
+          <circle cx="18" cy="18" r="8" fill="url(#${g}s)"/>
+          ${[225, 270, 315].map(
+            (deg) => svg`
+              <rect x="15.5" y="3" width="5" height="7" rx="2.5"
+                fill="#FFB100" transform="rotate(${deg} 18 18)"/>
+            `
+          )}
+        </g>
+        <g class="icon-drift">
+          <path fill="url(#${g}c)"
+            d="M14 36c-5 0-9-3.8-9-8.5 0-4.1 2.9-7.5 6.9-8.4C12.8 13.6 17.5 10.5 23 10.5
+               c6.3 0 11.7 4.4 13 10.3.9-.2 1.8-.3 2.8-.3 5.6 0 10.1 4.4 10.1 9.8
+               S44.4 40 38.8 40H14z"/>
+        </g>
+        <rect class="icon-drop d1" x="18" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        <rect class="icon-drop d2" x="29" y="46" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        <rect class="icon-drop d3" x="40" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
       </svg>
     `,
     className
@@ -205,13 +219,15 @@ function snowy(className) {
             <stop offset="100%" stop-color="#8A94A4"/>
           </linearGradient>
         </defs>
-        <path fill="url(#${g}c)"
-          d="M14 34c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C12.6 9.4 17.8 6 24 6
-             c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
-             S47.6 38 41.4 38H14z"/>
-        <circle cx="20" cy="48" r="3" fill="#A8C0FF"/>
-        <circle cx="32" cy="52" r="3" fill="#A8C0FF"/>
-        <circle cx="44" cy="48" r="3" fill="#A8C0FF"/>
+        <g class="icon-drift">
+          <path fill="url(#${g}c)"
+            d="M14 34c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C12.6 9.4 17.8 6 24 6
+               c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
+               S47.6 38 41.4 38H14z"/>
+        </g>
+        <circle class="icon-drop d1" cx="20" cy="48" r="3" fill="#A8C0FF"/>
+        <circle class="icon-drop d2" cx="32" cy="52" r="3" fill="#A8C0FF"/>
+        <circle class="icon-drop d3" cx="44" cy="48" r="3" fill="#A8C0FF"/>
       </svg>
     `,
     className

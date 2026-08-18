@@ -433,9 +433,9 @@ class WeatherStationCard extends LitElement {
       };
       condition =
         map[this._config.settings.manual_condition] ||
-        deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv });
+        deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv, settings: s });
     } else {
-      condition = deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv });
+      condition = deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv, settings: s });
     }
 
     // Live rain sensors always win for the hero icon. Zigbee weather_condition
@@ -446,6 +446,17 @@ class WeatherStationCard extends LitElement {
         labelKey: "rain",
         raw: condition?.raw,
       };
+    } else if (isDay && lux != null) {
+      // User-tuned lux bands drive sky icons (cloudy / partly / sunny).
+      const fromLux = deriveCondition({
+        isDay,
+        rainMm: 0,
+        rainOn: false,
+        lux,
+        uv,
+        settings: s,
+      });
+      condition = { ...fromLux, raw: condition?.raw };
     }
 
     // Empty string hides the title. Missing / English default uses the
@@ -676,7 +687,7 @@ class WeatherStationCard extends LitElement {
         class="hero ${hasSide ? "has-side" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
-        ${wscIcon(condition.icon, "hero-icon")}
+        ${wscIcon(condition.icon, `hero-icon ${s.animate_icons !== false ? "animated" : ""}`)}
         <div class="hero-main">
           <div class="hero-condition">${conditionText}</div>
           <div class="hero-temp-row">
@@ -1382,6 +1393,42 @@ class WeatherStationCard extends LitElement {
         width: 56px;
         height: 56px;
         align-self: center;
+        overflow: visible;
+      }
+      .hero-icon.animated .icon-spin {
+        transform-box: view-box;
+        animation: wsc-spin 18s linear infinite;
+      }
+      .hero-icon.animated .icon-spin-slow {
+        animation-duration: 28s;
+      }
+      .hero-icon.animated .icon-drift {
+        animation: wsc-drift 5.5s ease-in-out infinite;
+      }
+      .hero-icon.animated .icon-drop {
+        animation: wsc-drop 1.15s linear infinite;
+      }
+      .hero-icon.animated .icon-drop.d2 { animation-delay: 0.28s; }
+      .hero-icon.animated .icon-drop.d3 { animation-delay: 0.56s; }
+      @keyframes wsc-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes wsc-drift {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(3px); }
+      }
+      @keyframes wsc-drop {
+        0% { transform: translateY(-6px); opacity: 0; }
+        18% { opacity: 1; }
+        100% { transform: translateY(10px); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-icon.animated .icon-spin,
+        .hero-icon.animated .icon-drift,
+        .hero-icon.animated .icon-drop {
+          animation: none;
+        }
       }
       .hero-main {
         display: flex;

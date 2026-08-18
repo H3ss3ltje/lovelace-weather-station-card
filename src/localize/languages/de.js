@@ -162,6 +162,10 @@ export default {
     compass_only: "Nur Kompass (großes Einzelkompass)",
     night_palette: "Nachtpalette für Sonnendiagramm",
     lux_in_klux: "Lux-Sensor liefert Kilolux (0–200)",
+    lux_cloudy_max_klux: "Bewölkt unter (klux)",
+    lux_partly_cloudy_max_klux: "Teilweise bewölkt unter (klux)",
+    lux_sunny_max_klux: "Sonnig unter (klux); darüber volle Sonne",
+    animate_icons: "Wetter-Icons animieren (Sonne / Wolke / Regen)",
     tile_order: "Kachelreihenfolge",
     tile_order_hint:
       "Reihenfolge der Sensorkacheln im Raster ändern. Fehlende Entitäten bleiben ausgeblendet.",

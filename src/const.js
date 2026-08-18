@@ -1,4 +1,4 @@
-export const CARD_VERSION = "1.8.3";
+export const CARD_VERSION = "1.8.4";
 
 export const CARD_NAME = "weather-station-card";
 export const EDITOR_NAME = "weather-station-card-editor";
@@ -76,6 +76,11 @@ export const DEFAULT_SETTINGS = {
   compass_only: false,
   night_palette: true,
   lux_in_klux: false,
+  animate_icons: true,
+  // Hero sky icons from lux (klux). Rain still overrides these bands.
+  lux_cloudy_max_klux: 5,
+  lux_partly_cloudy_max_klux: 20,
+  lux_sunny_max_klux: 150,
   tile_order: [...DEFAULT_TILE_ORDER],
   pressure_trend_threshold: 0.3, // hPa/h when using pressure_trend_entity
   manual_condition: "",

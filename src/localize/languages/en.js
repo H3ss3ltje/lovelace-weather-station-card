@@ -161,6 +161,10 @@ export default {
     compass_only: "Compass only (large standalone compass)",
     night_palette: "Night palette for sun diagram",
     lux_in_klux: "Lux sensor reports kilolux (0–200)",
+    lux_cloudy_max_klux: "Cloudy below (klux)",
+    lux_partly_cloudy_max_klux: "Partly cloudy below (klux)",
+    lux_sunny_max_klux: "Sunny below (klux); above = full sun",
+    animate_icons: "Animate weather icons (sun / cloud / rain)",
     tile_order: "Tile order",
     tile_order_hint:
       "Change the order of sensor tiles in the grid. Empty entities stay hidden.",

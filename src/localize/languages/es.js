@@ -162,6 +162,10 @@ export default {
     compass_only: "Solo brújula (brújula grande independiente)",
     night_palette: "Paleta nocturna del diagrama solar",
     lux_in_klux: "El sensor de lux reporta kilolux (0–200)",
+    lux_cloudy_max_klux: "Nublado por debajo de (klux)",
+    lux_partly_cloudy_max_klux: "Parcialmente nublado por debajo de (klux)",
+    lux_sunny_max_klux: "Soleado por debajo de (klux); por encima sol pleno",
+    animate_icons: "Animar iconos del tiempo (sol / nube / lluvia)",
     tile_order: "Orden de mosaicos",
     tile_order_hint:
       "Cambia el orden de los mosaicos de sensores en la cuadrícula. Las entidades vacías siguen ocultas.",

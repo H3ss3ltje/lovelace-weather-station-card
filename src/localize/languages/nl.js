@@ -161,6 +161,10 @@ export default {
     compass_only: "Alleen kompas (groot los kompas)",
     night_palette: "Nachtpalet voor zondiagram",
     lux_in_klux: "Lux-sensor geeft kilolux (0–200)",
+    lux_cloudy_max_klux: "Bewolkt onder (klux)",
+    lux_partly_cloudy_max_klux: "Gedeeltelijk bewolkt onder (klux)",
+    lux_sunny_max_klux: "Zonnig onder (klux); daarboven volle zon",
+    animate_icons: "Animeer weericonen (zon / wolk / regen)",
     tile_order: "Tegelvolgorde",
     tile_order_hint:
       "Wijzig de volgorde van sensortegels in het raster. Ontbrekende entiteiten blijven verborgen.",

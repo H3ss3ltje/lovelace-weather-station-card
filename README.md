@@ -5,7 +5,7 @@ A modern, minimalistic, **Mushroom-inspired** custom Lovelace card for Home Assi
 Everything is configurable through the UI or YAML — no entity IDs are hardcoded, and every section is optional and hides itself automatically when its entity is not configured.
 
 ![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)
-![Version](https://img.shields.io/badge/version-1.8.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.4-blue.svg)
 
 ---
 
@@ -170,6 +170,10 @@ All entities are optional. A section is only rendered when its entity is set. Zi
 | `show_sun`                   | boolean | `true`  | Show the sunrise / sunset path diagram.                  |
 | `night_palette`              | boolean | `true`  | Stronger moon / night colours on the sun diagram.        |
 | `lux_in_klux`                | boolean | `false` | Set if `lux_entity` already reports kilolux (0–200).     |
+| `lux_cloudy_max_klux`        | number  | `5`     | Hero icon is cloudy below this illuminance (klux).       |
+| `lux_partly_cloudy_max_klux` | number  | `20`    | Hero icon is partly cloudy below this (klux).            |
+| `lux_sunny_max_klux`         | number  | `150`   | Hero icon is sunny below this; above = full sun.         |
+| `animate_icons`              | boolean | `true`  | Spinning sun, drifting cloud, falling rain in the hero.  |
 | `compact_mode`               | boolean | `false` | Hero + sun only (hide the sensor tile grid).             |
 | `compass_only`               | boolean | `false` | Large standalone compass layout (also used by `weather-station-compass-card`). |
 | `tile_order`                 | list    | see below | Order of tiles: `lux`, `temperature`, `feels_like`, `humidity`, `dewpoint`, `rain`, `wind`, `uv`, `pressure`, `heat_stress`, `battery`. |
@@ -218,7 +222,20 @@ Supported actions: `more-info`, `navigate`, `url`, `call-service`, `toggle`, `no
 
 ## Interpretations
 
-**Lux → label** (outdoor 0–200 klx)
+**Hero sky icon from lux** (overridden by rain / night)
+
+Tune in the editor (`lux_*_max_klux`). Defaults:
+
+| klux        | Icon            |
+| ----------- | --------------- |
+| 0–5         | Cloudy          |
+| 5–20        | Partly cloudy   |
+| 20–150      | Sunny           |
+| 150+        | Full sun        |
+
+Rain status / rain rate still force the raining cloud. Enable `lux_in_klux` if the sensor already reports kilolux.
+
+**Lux tile labels** (outdoor 0–200 klx)
 
 | Lux (klx)     | Label       |
 | ------------- | ----------- |

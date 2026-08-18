@@ -194,7 +194,44 @@ class WeatherStationCardEditor extends LitElement {
               { name: "show_voltage", selector: { boolean: {} } },
               { name: "show_pressure_trend", selector: { boolean: {} } },
               { name: "show_interactions", selector: { boolean: {} } },
+              { name: "animate_icons", selector: { boolean: {} } },
             ],
+          },
+          {
+            name: "lux_cloudy_max_klux",
+            selector: {
+              number: {
+                min: 0.1,
+                max: 250,
+                step: 0.5,
+                unit_of_measurement: "klux",
+                mode: "box",
+              },
+            },
+          },
+          {
+            name: "lux_partly_cloudy_max_klux",
+            selector: {
+              number: {
+                min: 1,
+                max: 250,
+                step: 0.5,
+                unit_of_measurement: "klux",
+                mode: "box",
+              },
+            },
+          },
+          {
+            name: "lux_sunny_max_klux",
+            selector: {
+              number: {
+                min: 5,
+                max: 300,
+                step: 1,
+                unit_of_measurement: "klux",
+                mode: "box",
+              },
+            },
           },
           ...(dayNightOff
             ? [

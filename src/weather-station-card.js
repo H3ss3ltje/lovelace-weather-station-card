@@ -462,7 +462,9 @@ class WeatherStationCard extends LitElement {
     // Empty string hides the title. Missing / English default uses the
     // localized card name so existing YAML still follows HA language.
     const title =
-      this._config.title === ""
+      s.hide_title
+        ? ""
+        : this._config.title === ""
         ? ""
         : !this._config.title || this._config.title === "Weather Station"
           ? this._t("common.card_title")
@@ -470,7 +472,9 @@ class WeatherStationCard extends LitElement {
 
     if (s.compass_only) {
       const compassTitle =
-        this._config.title === ""
+        s.hide_title
+          ? ""
+          : this._config.title === ""
           ? ""
           : !this._config.title ||
               this._config.title === "Weather Station" ||

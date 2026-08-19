@@ -130,7 +130,12 @@ export function degToCompass(deg) {
 export function normalizeLux(raw, settings = {}) {
   if (raw == null || !Number.isFinite(Number(raw))) return null;
   const n = Number(raw);
-  return settings.lux_in_klux ? n * 1000 : n;
+  const base = settings.lux_in_klux ? n * 1000 : n;
+  const scale = Number(settings.lux_scale);
+  if (Number.isFinite(scale) && scale > 0) {
+    return base * scale;
+  }
+  return base;
 }
 
 /**

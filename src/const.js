@@ -57,6 +57,7 @@ export const DEFAULT_TILE_ORDER = [
  * Default values for the `settings` object.
  */
 export const DEFAULT_SETTINGS = {
+  hide_title: false,
   show_dewpoint: true,
   show_pressure_trend: true,
   show_battery: true,
@@ -76,6 +77,7 @@ export const DEFAULT_SETTINGS = {
   compass_only: false,
   night_palette: true,
   lux_in_klux: false,
+  lux_scale: 1,
   animate_icons: true,
   // Hero sky icons from lux (klux). Rain still overrides these bands.
   lux_cloudy_max_klux: 5,

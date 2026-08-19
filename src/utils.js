@@ -50,7 +50,10 @@ export function conditionFromText(text, isDay = true) {
   if (/rain|drizzle|shower|pour|wet/.test(t)) {
     return { icon: "rainy", labelKey: "rain", raw };
   }
-  if (/snow|sleet|blizzard|ice|hail/.test(t)) {
+  if (/sleet|wet.?snow|wintry|freezing.?rain/.test(t)) {
+    return { icon: "sleet", labelKey: "sleet", raw };
+  }
+  if (/snow|blizzard|ice|hail/.test(t)) {
     return { icon: "snowy", labelKey: "snow", raw };
   }
   if (/storm|thunder|lightning/.test(t)) {
@@ -220,7 +223,7 @@ export function tempToCelsius(temp, unitStr) {
 export function precipitationFromTemperature(tempC) {
   if (tempC == null || !Number.isFinite(tempC)) return null;
   if (tempC >= 3) return { icon: "rainy", labelKey: "rain" };
-  if (tempC >= 0) return { icon: "snowy", labelKey: "sleet" };
+  if (tempC >= 0) return { icon: "sleet", labelKey: "sleet" };
   return { icon: "snowy", labelKey: "snow" };
 }
 

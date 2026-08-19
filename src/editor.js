@@ -72,6 +72,7 @@ class WeatherStationCardEditor extends LitElement {
               name: "",
               type: "grid",
               schema: [
+                { name: "hide_title", selector: { boolean: {} } },
                 { name: "show_beaufort", selector: { boolean: {} } },
                 { name: "show_wind_gust", selector: { boolean: {} } },
                 { name: "invert_wind_direction", selector: { boolean: {} } },
@@ -176,11 +177,23 @@ class WeatherStationCardEditor extends LitElement {
             type: "grid",
             schema: [
               { name: "show_daynight", selector: { boolean: {} } },
+              { name: "hide_title", selector: { boolean: {} } },
               { name: "show_sun", selector: { boolean: {} } },
               { name: "night_palette", selector: { boolean: {} } },
               { name: "compact_mode", selector: { boolean: {} } },
               { name: "compass_only", selector: { boolean: {} } },
               { name: "lux_in_klux", selector: { boolean: {} } },
+              {
+                name: "lux_scale",
+                selector: {
+                  number: {
+                    min: 0.01,
+                    max: 100,
+                    step: 0.01,
+                    mode: "box",
+                  },
+                },
+              },
               { name: "show_dewpoint", selector: { boolean: {} } },
               { name: "show_feels_like", selector: { boolean: {} } },
               { name: "show_heat_stress", selector: { boolean: {} } },

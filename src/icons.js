@@ -104,24 +104,33 @@ function partlyCloudy(className) {
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="${g}s" cx="40%" cy="30%" r="70%">
+          <radialGradient id="${g}s" cx="35%" cy="30%" r="70%">
             <stop offset="0%" stop-color="#FFE56A"/>
-            <stop offset="100%" stop-color="#FF9500"/>
+            <stop offset="55%" stop-color="#FFB100"/>
+            <stop offset="100%" stop-color="#FF8A00"/>
           </radialGradient>
+          <linearGradient id="${g}b" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FFCC33"/>
+            <stop offset="100%" stop-color="#FF9500"/>
+          </linearGradient>
           <linearGradient id="${g}c" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#D8DEE8"/>
             <stop offset="100%" stop-color="#8A94A4"/>
           </linearGradient>
         </defs>
-        <g class="icon-spin icon-spin-slow" style="transform-origin: 22px 22px">
-          <circle cx="22" cy="22" r="10" fill="url(#${g}s)"/>
-          ${[210, 240, 270, 300, 330].map(
+        <!-- Full sun with all rays, spinning slowly, positioned upper-left -->
+        <g class="icon-spin icon-spin-slow" style="transform-origin: 21px 21px">
+          ${[0, 45, 90, 135, 180, 225, 270, 315].map(
             (deg) => svg`
-              <rect x="19.5" y="3" width="5" height="8" rx="2.5"
-                fill="#FFB100" transform="rotate(${deg} 22 22)"/>
+              <rect x="18.5" y="5" width="5" height="9" rx="2.5"
+                fill="url(#${g}b)"
+                transform="rotate(${deg} 21 21)"/>
             `
           )}
+          <circle cx="21" cy="21" r="11" fill="url(#${g}s)"/>
+          <circle cx="17" cy="17" r="3.5" fill="#fff" opacity="0.3"/>
         </g>
+        <!-- Cloud drifts in front of the sun -->
         <g class="icon-drift">
           <path fill="url(#${g}c)"
             d="M16 46c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C14.6 21.4 19.8 18 26 18

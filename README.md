@@ -166,10 +166,12 @@ All entities are optional. A section is only rendered when its entity is set. Zi
 | Option                       | Type    | Default | Description                                              |
 | ---------------------------- | ------- | ------- | -------------------------------------------------------- |
 | `show_daynight`              | boolean | `true`  | Use the sun entity (or lux) for day/night condition.     |
+| `hide_title`                | boolean | `false` | Hide the card title (works on normal + compass cards).   |
 | `manual_condition`           | string  | `""`    | When day/night is off: `sunny`/`cloudy`/`rainy`/`night`. |
 | `show_sun`                   | boolean | `true`  | Show the sunrise / sunset path diagram.                  |
 | `night_palette`              | boolean | `true`  | Stronger moon / night colours on the sun diagram.        |
 | `lux_in_klux`                | boolean | `false` | Set if `lux_entity` already reports kilolux (0–200).     |
+| `lux_scale`                  | number  | `1`     | Multiply incoming lux before icon/label thresholds.       |
 | `lux_cloudy_max_klux`        | number  | `5`     | Hero icon is cloudy below this illuminance (klux).       |
 | `lux_partly_cloudy_max_klux` | number  | `20`    | Hero icon is partly cloudy below this (klux).            |
 | `lux_sunny_max_klux`         | number  | `150`   | Hero icon is sunny below this; above = full sun.         |
@@ -233,7 +235,7 @@ Tune in the editor (`lux_*_max_klux`). Defaults:
 | 20–150      | Sunny           |
 | 150+        | Full sun        |
 
-Rain status / rain rate still force the raining cloud. Enable `lux_in_klux` if the sensor already reports kilolux.
+Rain status / rain rate still force the raining cloud. Enable `lux_in_klux` if the sensor already reports kilolux, and use `lux_scale` to calibrate sensors that read consistently high/low.
 
 **Lux tile labels** (outdoor 0–200 klx)
 

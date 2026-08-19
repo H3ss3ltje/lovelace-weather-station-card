@@ -15,6 +15,45 @@ function wrap(body, className = "") {
   return html`<span class="wsc-icon ${className}" aria-hidden="true">${body}</span>`;
 }
 
+/** Thin falling rain streaks with staggered timing so drops feel random. */
+function rainStreaks(gradientId, streaks) {
+  return streaks.map(
+    (s) => svg`
+      <g
+        class="icon-drop"
+        style="animation-delay:${s.delay}s;animation-duration:${s.dur}s"
+      >
+        <rect
+          x=${s.x}
+          y=${s.y}
+          width=${s.w ?? 2.4}
+          height=${s.h ?? 10}
+          rx="1.1"
+          fill="url(#${gradientId})"
+          opacity=${s.opacity ?? 0.9}
+        />
+      </g>
+    `
+  );
+}
+
+const RAIN_STREAKS = [
+  { x: 14, y: 39, delay: 0.05, dur: 0.92 },
+  { x: 22, y: 41, delay: 0.38, dur: 1.08 },
+  { x: 30, y: 40, delay: 0.17, dur: 0.98 },
+  { x: 37, y: 42, delay: 0.52, dur: 1.14 },
+  { x: 45, y: 39, delay: 0.24, dur: 0.86 },
+  { x: 51, y: 41, delay: 0.61, dur: 1.02 },
+];
+
+const PARTLY_RAIN_STREAKS = [
+  { x: 16, y: 41, delay: 0.08, dur: 0.94 },
+  { x: 25, y: 43, delay: 0.41, dur: 1.06 },
+  { x: 34, y: 42, delay: 0.19, dur: 0.9 },
+  { x: 42, y: 44, delay: 0.55, dur: 1.12 },
+  { x: 48, y: 41, delay: 0.28, dur: 0.88 },
+];
+
 function sun(className) {
   const g = uid("sun");
   return wrap(
@@ -167,15 +206,7 @@ function rainy(className) {
                c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
                S47.6 38 41.4 38H14z"/>
         </g>
-        <g class="icon-drop d1">
-          <rect x="18" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        </g>
-        <g class="icon-drop d2">
-          <rect x="30" y="44" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        </g>
-        <g class="icon-drop d3">
-          <rect x="42" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        </g>
+        ${rainStreaks(`${g}d`, RAIN_STREAKS)}
       </svg>
     `,
     className
@@ -216,15 +247,7 @@ function partlyRainy(className) {
                c6.3 0 11.7 4.4 13 10.3.9-.2 1.8-.3 2.8-.3 5.6 0 10.1 4.4 10.1 9.8
                S44.4 40 38.8 40H14z"/>
         </g>
-        <g class="icon-drop d1">
-          <rect x="18" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        </g>
-        <g class="icon-drop d2">
-          <rect x="29" y="46" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        </g>
-        <g class="icon-drop d3">
-          <rect x="40" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        </g>
+        ${rainStreaks(`${g}d`, PARTLY_RAIN_STREAKS)}
       </svg>
     `,
     className

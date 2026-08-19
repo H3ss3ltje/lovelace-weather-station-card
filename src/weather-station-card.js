@@ -25,6 +25,8 @@ import {
   conditionFromText,
   pressureTrendFromRate,
   isRainDetected,
+  precipitationFromTemperature,
+  tempToCelsius,
   round,
   unit,
   formatSunTime,
@@ -417,6 +419,9 @@ class WeatherStationCard extends LitElement {
     );
     const uv = numericState(this._stateObj("uv_entity"));
 
+    const tempC = tempToCelsius(temp, tempUnit);
+    const precipActive = rainOn || (rainRate != null && rainRate > 0);
+
     let condition;
     const conditionObj = this._stateObj("condition_entity");
     const fromText = conditionObj
@@ -433,17 +438,32 @@ class WeatherStationCard extends LitElement {
       };
       condition =
         map[this._config.settings.manual_condition] ||
-        deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv, settings: s });
+        deriveCondition({
+          isDay,
+          rainMm: rainRate,
+          rainOn,
+          lux,
+          uv,
+          settings: s,
+          tempC,
+        });
     } else {
-      condition = deriveCondition({ isDay, rainMm: rainRate, rainOn, lux, uv, settings: s });
+      condition = deriveCondition({
+        isDay,
+        rainMm: rainRate,
+        rainOn,
+        lux,
+        uv,
+        settings: s,
+        tempC,
+      });
     }
 
-    // Live rain sensors always win for the hero icon. Zigbee weather_condition
-    // can lag or stay "cloudy" while rain_status is already on.
-    if (rainOn || (rainRate != null && rainRate > 0)) {
+    // Live rain sensors win for the hero icon; use temperature to pick rain/sleet/snow.
+    if (precipActive) {
+      const fromTemp = precipitationFromTemperature(tempC);
       condition = {
-        icon: "rainy",
-        labelKey: "rain",
+        ...(fromTemp || { icon: "rainy", labelKey: "rain" }),
         raw: condition?.raw,
       };
     } else if (isDay && lux != null) {
@@ -519,7 +539,7 @@ class WeatherStationCard extends LitElement {
       feels_like: () => this._renderFeelsLike(tempUnit),
       humidity: () => this._renderHumidity(humidity),
       dewpoint: () => this._renderDewpoint(temp, tempUnit, humidity),
-      rain: () => this._renderRain(rainObj, rainOn, rainRate),
+      rain: () => this._renderRain(rainObj, rainOn, rainRate, temp, tempUnit),
       wind: () => this._renderWind(),
       uv: () => this._renderUv(uv),
       pressure: () => this._renderPressure(),
@@ -914,7 +934,7 @@ class WeatherStationCard extends LitElement {
     });
   }
 
-  _renderRain(rainObj, rainOn, rainRate) {
+  _renderRain(rainObj, rainOn, rainRate, temp, tempUnit) {
     const s = this._config.settings || {};
     const rateObj = this._stateObj("rain_rate_entity");
     const todayObj = s.show_rain_today ? this._precipToday() : null;
@@ -928,6 +948,11 @@ class WeatherStationCard extends LitElement {
         ? rainRate
         : numericState(rateObj);
     const rateText = rate != null ? `${round(rate, 1)} ${rateUnit}` : "";
+    const precipActive = rainOn || (rate != null && rate > 0);
+    const tempC = tempToCelsius(temp, tempUnit);
+    const precipIcon = precipActive
+      ? precipitationFromTemperature(tempC)?.icon || "rainy"
+      : "cloudy";
 
     let value;
     let statusText = "";
@@ -967,15 +992,12 @@ class WeatherStationCard extends LitElement {
           : "rain_today_entity";
 
     return this._tile({
-      icon: rainOn || (rate != null && rate > 0) ? "rainy" : "cloudy",
+      icon: precipIcon,
       label: this._t("sections.rain"),
       value,
       sub,
       key,
-      accent:
-        rainOn || (rate != null && rate > 0)
-          ? "var(--info-color, #2196f3)"
-          : undefined,
+      accent: precipActive ? "var(--info-color, #2196f3)" : undefined,
     });
   }
 

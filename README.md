@@ -235,7 +235,15 @@ Tune in the editor (`lux_*_max_klux`). Defaults:
 | 20–150      | Sunny           |
 | 150+        | Full sun        |
 
-Rain status / rain rate still force the raining cloud. Enable `lux_in_klux` if the sensor already reports kilolux, and use `lux_scale` to calibrate sensors that read consistently high/low.
+Rain status / rain rate still force the precipitation icon. When `temperature_entity` is configured, the hero icon is chosen from temperature:
+
+| Temperature | Precipitation active | Hero icon / label   |
+| ----------- | -------------------- | ------------------- |
+| ≥ 3 °C      | yes                  | Rain                |
+| 0–2 °C      | yes                  | Snow icon / Sleet   |
+| < 0 °C      | yes                  | Snow                |
+
+Without a temperature reading, active precipitation defaults to rain. Enable `lux_in_klux` if the sensor already reports kilolux, and use `lux_scale` to calibrate sensors that read consistently high/low.
 
 **Lux tile labels** (outdoor 0–200 klx)
 

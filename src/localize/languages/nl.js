@@ -11,6 +11,7 @@ export default {
     cloudy: "Bewolkt",
     rain: "Regen",
     snow: "Sneeuw",
+    sleet: "Natte sneeuw / mix",
     clear_night: "Heldere nacht",
     partly_cloudy: "Gedeeltelijk bewolkt",
   },

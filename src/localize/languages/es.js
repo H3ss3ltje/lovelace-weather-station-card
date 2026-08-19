@@ -12,6 +12,7 @@ export default {
     cloudy: "Nublado",
     rain: "Lluvia",
     snow: "Nieve",
+    sleet: "Aguanieve / mixta",
     clear_night: "Noche despejada",
     partly_cloudy: "Parcialmente nublado",
   },

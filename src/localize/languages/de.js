@@ -12,6 +12,7 @@ export default {
     cloudy: "Bewölkt",
     rain: "Regen",
     snow: "Schnee",
+    sleet: "Schneeregen / gemischt",
     clear_night: "Klare Nacht",
     partly_cloudy: "Teilweise bewölkt",
   },

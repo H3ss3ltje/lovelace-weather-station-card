@@ -54,6 +54,29 @@ const PARTLY_RAIN_STREAKS = [
   { x: 48, y: 41, delay: 0.28, dur: 0.88 },
 ];
 
+/** Falling snow flakes with slower, staggered timing. */
+function snowFlakes(flakes) {
+  return flakes.map(
+    (f) => svg`
+      <g
+        class="icon-drop"
+        style="animation-delay:${f.delay}s;animation-duration:${f.dur}s"
+      >
+        <circle cx=${f.x} cy=${f.y} r=${f.r ?? 2.2} fill="#A8C0FF" opacity=${f.opacity ?? 0.92}/>
+      </g>
+    `
+  );
+}
+
+const SNOW_FLAKES = [
+  { x: 15, y: 40, delay: 0.1, dur: 1.35 },
+  { x: 23, y: 42, delay: 0.45, dur: 1.55 },
+  { x: 31, y: 41, delay: 0.22, dur: 1.42 },
+  { x: 39, y: 43, delay: 0.58, dur: 1.28 },
+  { x: 47, y: 40, delay: 0.33, dur: 1.48 },
+  { x: 52, y: 42, delay: 0.68, dur: 1.38 },
+];
+
 function sun(className) {
   const g = uid("sun");
   return wrap(
@@ -271,15 +294,7 @@ function snowy(className) {
                c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
                S47.6 38 41.4 38H14z"/>
         </g>
-        <g class="icon-drop d1">
-          <circle cx="20" cy="48" r="3" fill="#A8C0FF"/>
-        </g>
-        <g class="icon-drop d2">
-          <circle cx="32" cy="52" r="3" fill="#A8C0FF"/>
-        </g>
-        <g class="icon-drop d3">
-          <circle cx="44" cy="48" r="3" fill="#A8C0FF"/>
-        </g>
+        ${snowFlakes(SNOW_FLAKES)}
       </svg>
     `,
     className

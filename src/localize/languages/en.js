@@ -11,6 +11,7 @@ export default {
     cloudy: "Cloudy",
     rain: "Rain",
     snow: "Snow",
+    sleet: "Sleet / mixed",
     clear_night: "Clear night",
     partly_cloudy: "Partly cloudy",
   },

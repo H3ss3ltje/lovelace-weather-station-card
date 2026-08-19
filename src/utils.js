@@ -203,11 +203,43 @@ export function resolveLuxBands(settings = {}) {
 }
 
 /**
+ * Convert a temperature reading to °C when the unit is Fahrenheit.
+ */
+export function tempToCelsius(temp, unitStr) {
+  if (temp == null || !Number.isFinite(Number(temp))) return null;
+  const n = Number(temp);
+  const u = String(unitStr || "").toLowerCase();
+  if (u.includes("f")) return ((n - 32) * 5) / 9;
+  return n;
+}
+
+/**
+ * Hero icon when precipitation is detected and temperature is known (°C).
+ * >= 3 °C rain · 0–2 °C sleet/mixed · < 0 °C snow
+ */
+export function precipitationFromTemperature(tempC) {
+  if (tempC == null || !Number.isFinite(tempC)) return null;
+  if (tempC >= 3) return { icon: "rainy", labelKey: "rain" };
+  if (tempC >= 0) return { icon: "snowy", labelKey: "sleet" };
+  return { icon: "snowy", labelKey: "snow" };
+}
+
+/**
  * Determine the weather condition icon + translation key.
  * Priority: rain > night > lux bands (cloudy / partly / sunny / full sun).
  */
-export function deriveCondition({ isDay, rainMm, rainOn, lux, uv, settings = {} }) {
+export function deriveCondition({
+  isDay,
+  rainMm,
+  rainOn,
+  lux,
+  uv,
+  settings = {},
+  tempC = null,
+}) {
   if (rainOn || (rainMm != null && rainMm > 0)) {
+    const fromTemp = precipitationFromTemperature(tempC);
+    if (fromTemp) return fromTemp;
     return { icon: "rainy", labelKey: "rain" };
   }
   if (!isDay) {

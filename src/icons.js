@@ -104,6 +104,7 @@ function partlyCloudy(className) {
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
+          <!-- Match sunny-state sun gradient exactly -->
           <radialGradient id="${g}s" cx="35%" cy="30%" r="70%">
             <stop offset="0%" stop-color="#FFE56A"/>
             <stop offset="55%" stop-color="#FFB100"/>
@@ -118,19 +119,22 @@ function partlyCloudy(className) {
             <stop offset="100%" stop-color="#8A94A4"/>
           </linearGradient>
         </defs>
-        <!-- Full sun with all rays, spinning slowly, positioned upper-left -->
-        <g class="icon-spin icon-spin-slow" style="transform-origin: 21px 21px">
+        <!-- Same sun shape as sunny state, shifted behind the cloud -->
+        <g
+          class="icon-spin icon-spin-slow"
+          style="transform-origin: 21px 21px"
+          transform="translate(-11 -11) scale(0.66)"
+        >
           ${[0, 45, 90, 135, 180, 225, 270, 315].map(
             (deg) => svg`
-              <rect x="18.5" y="5" width="5" height="9" rx="2.5"
+              <rect x="29.5" y="4" width="5" height="11" rx="2.5"
                 fill="url(#${g}b)"
-                transform="rotate(${deg} 21 21)"/>
+                transform="rotate(${deg} 32 32)"/>
             `
           )}
-          <circle cx="21" cy="21" r="11" fill="url(#${g}s)"/>
-          <circle cx="17" cy="17" r="3.5" fill="#fff" opacity="0.3"/>
+          <circle cx="32" cy="32" r="14" fill="url(#${g}s)"/>
+          <circle cx="27" cy="27" r="4.5" fill="#fff" opacity="0.35"/>
         </g>
-        <!-- Cloud drifts in front of the sun -->
         <g class="icon-drift">
           <path fill="url(#${g}c)"
             d="M16 46c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C14.6 21.4 19.8 18 26 18

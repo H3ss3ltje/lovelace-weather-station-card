@@ -1410,10 +1410,12 @@ class WeatherStationCard extends LitElement {
         animation: wsc-drift 5.5s ease-in-out infinite;
       }
       .hero-icon.animated .icon-drop {
-        animation: wsc-drop 1.15s linear infinite;
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: wsc-drop 1.1s linear infinite;
       }
-      .hero-icon.animated .icon-drop.d2 { animation-delay: 0.28s; }
-      .hero-icon.animated .icon-drop.d3 { animation-delay: 0.56s; }
+      .hero-icon.animated .icon-drop.d2 { animation-delay: 0.25s; }
+      .hero-icon.animated .icon-drop.d3 { animation-delay: 0.5s; }
       @keyframes wsc-spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
@@ -1423,9 +1425,9 @@ class WeatherStationCard extends LitElement {
         50% { transform: translateX(3px); }
       }
       @keyframes wsc-drop {
-        0% { transform: translateY(-6px); opacity: 0; }
-        18% { opacity: 1; }
-        100% { transform: translateY(10px); opacity: 0; }
+        0% { transform: translate(0, -12px); opacity: 0; }
+        12% { opacity: 1; }
+        100% { transform: translate(0, 16px); opacity: 0; }
       }
       @media (prefers-reduced-motion: reduce) {
         .hero-icon.animated .icon-spin,

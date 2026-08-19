@@ -104,7 +104,6 @@ function partlyCloudy(className) {
     svg`
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <!-- Match sunny-state sun gradient exactly -->
           <radialGradient id="${g}s" cx="35%" cy="30%" r="70%">
             <stop offset="0%" stop-color="#FFE56A"/>
             <stop offset="55%" stop-color="#FFB100"/>
@@ -119,21 +118,20 @@ function partlyCloudy(className) {
             <stop offset="100%" stop-color="#8A94A4"/>
           </linearGradient>
         </defs>
-        <!-- Same sun shape as sunny state, shifted behind the cloud -->
-        <g
-          class="icon-spin icon-spin-slow"
-          style="transform-origin: 21px 21px"
-          transform="translate(-11 -11) scale(0.66)"
-        >
-          ${[0, 45, 90, 135, 180, 225, 270, 315].map(
-            (deg) => svg`
-              <rect x="29.5" y="4" width="5" height="11" rx="2.5"
-                fill="url(#${g}b)"
-                transform="rotate(${deg} 32 32)"/>
-            `
-          )}
-          <circle cx="32" cy="32" r="14" fill="url(#${g}s)"/>
-          <circle cx="27" cy="27" r="4.5" fill="#fff" opacity="0.35"/>
+        <!-- Position/scale wrapper; spin lives on inner group so CSS rotate
+             does not overwrite translate/scale. -->
+        <g transform="translate(4 4) scale(0.55)">
+          <g class="icon-spin icon-spin-slow" style="transform-origin: 32px 32px">
+            ${[0, 45, 90, 135, 180, 225, 270, 315].map(
+              (deg) => svg`
+                <rect x="29.5" y="4" width="5" height="11" rx="2.5"
+                  fill="url(#${g}b)"
+                  transform="rotate(${deg} 32 32)"/>
+              `
+            )}
+            <circle cx="32" cy="32" r="14" fill="url(#${g}s)"/>
+            <circle cx="27" cy="27" r="4.5" fill="#fff" opacity="0.35"/>
+          </g>
         </g>
         <g class="icon-drift">
           <path fill="url(#${g}c)"
@@ -169,9 +167,15 @@ function rainy(className) {
                c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
                S47.6 38 41.4 38H14z"/>
         </g>
-        <rect class="icon-drop d1" x="18" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        <rect class="icon-drop d2" x="30" y="44" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
-        <rect class="icon-drop d3" x="42" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        <g class="icon-drop d1">
+          <rect x="18" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        </g>
+        <g class="icon-drop d2">
+          <rect x="30" y="44" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        </g>
+        <g class="icon-drop d3">
+          <rect x="42" y="42" width="5" height="14" rx="2.5" fill="url(#${g}d)"/>
+        </g>
       </svg>
     `,
     className
@@ -212,9 +216,15 @@ function partlyRainy(className) {
                c6.3 0 11.7 4.4 13 10.3.9-.2 1.8-.3 2.8-.3 5.6 0 10.1 4.4 10.1 9.8
                S44.4 40 38.8 40H14z"/>
         </g>
-        <rect class="icon-drop d1" x="18" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        <rect class="icon-drop d2" x="29" y="46" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
-        <rect class="icon-drop d3" x="40" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        <g class="icon-drop d1">
+          <rect x="18" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        </g>
+        <g class="icon-drop d2">
+          <rect x="29" y="46" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        </g>
+        <g class="icon-drop d3">
+          <rect x="40" y="44" width="4.5" height="12" rx="2.2" fill="url(#${g}d)"/>
+        </g>
       </svg>
     `,
     className
@@ -238,9 +248,15 @@ function snowy(className) {
                c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
                S47.6 38 41.4 38H14z"/>
         </g>
-        <circle class="icon-drop d1" cx="20" cy="48" r="3" fill="#A8C0FF"/>
-        <circle class="icon-drop d2" cx="32" cy="52" r="3" fill="#A8C0FF"/>
-        <circle class="icon-drop d3" cx="44" cy="48" r="3" fill="#A8C0FF"/>
+        <g class="icon-drop d1">
+          <circle cx="20" cy="48" r="3" fill="#A8C0FF"/>
+        </g>
+        <g class="icon-drop d2">
+          <circle cx="32" cy="52" r="3" fill="#A8C0FF"/>
+        </g>
+        <g class="icon-drop d3">
+          <circle cx="44" cy="48" r="3" fill="#A8C0FF"/>
+        </g>
       </svg>
     `,
     className

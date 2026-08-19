@@ -77,6 +77,20 @@ const SNOW_FLAKES = [
   { x: 52, y: 42, delay: 0.68, dur: 1.38 },
 ];
 
+const SLEET_RAIN_STREAKS = [
+  { x: 17, y: 40, delay: 0.06, dur: 0.9 },
+  { x: 28, y: 42, delay: 0.34, dur: 1.05 },
+  { x: 39, y: 41, delay: 0.18, dur: 0.96 },
+  { x: 48, y: 43, delay: 0.52, dur: 1.1 },
+];
+
+const SLEET_SNOW_FLAKES = [
+  { x: 22, y: 41, delay: 0.25, dur: 1.4 },
+  { x: 33, y: 43, delay: 0.48, dur: 1.55 },
+  { x: 44, y: 40, delay: 0.12, dur: 1.32 },
+  { x: 51, y: 42, delay: 0.62, dur: 1.45 },
+];
+
 function sun(className) {
   const g = uid("sun");
   return wrap(
@@ -295,6 +309,36 @@ function snowy(className) {
                S47.6 38 41.4 38H14z"/>
         </g>
         ${snowFlakes(SNOW_FLAKES)}
+      </svg>
+    `,
+    className
+  );
+}
+
+/** Mixed precipitation: rain streaks and snowflakes under one cloud. */
+function sleet(className) {
+  const g = uid("sl");
+  return wrap(
+    svg`
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${g}c" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#C8D0DC"/>
+            <stop offset="100%" stop-color="#6A7484"/>
+          </linearGradient>
+          <linearGradient id="${g}d" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#64D2FF"/>
+            <stop offset="100%" stop-color="#0A84FF"/>
+          </linearGradient>
+        </defs>
+        <g class="icon-drift">
+          <path fill="url(#${g}c)"
+            d="M14 34c-5.5 0-10-4.2-10-9.4 0-4.5 3.2-8.3 7.6-9.3C12.6 9.4 17.8 6 24 6
+               c7 0 12.9 4.8 14.3 11.4 1-.3 2-.4 3.1-.4 6.2 0 11.2 4.8 11.2 10.8
+               S47.6 38 41.4 38H14z"/>
+        </g>
+        ${rainStreaks(`${g}d`, SLEET_RAIN_STREAKS)}
+        ${snowFlakes(SLEET_SNOW_FLAKES)}
       </svg>
     `,
     className
@@ -748,6 +792,8 @@ export function wscIcon(name, className = "", opts = {}) {
       return rainy(className);
     case "partly_rainy":
       return partlyRainy(className);
+    case "sleet":
+      return sleet(className);
     case "snowy":
     case "snow":
       return snowy(className);

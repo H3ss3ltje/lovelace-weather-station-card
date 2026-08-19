@@ -240,7 +240,7 @@ Rain status / rain rate still force the precipitation icon. When `temperature_en
 | Temperature | Precipitation active | Hero icon / label   |
 | ----------- | -------------------- | ------------------- |
 | ≥ 3 °C      | yes                  | Rain                |
-| 0–2 °C      | yes                  | Snow icon / Sleet   |
+| 0–2 °C      | yes                  | Sleet / mixed       |
 | < 0 °C      | yes                  | Snow                |
 
 Without a temperature reading, active precipitation defaults to rain. Enable `lux_in_klux` if the sensor already reports kilolux, and use `lux_scale` to calibrate sensors that read consistently high/low.

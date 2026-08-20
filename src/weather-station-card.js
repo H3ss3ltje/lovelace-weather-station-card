@@ -717,7 +717,8 @@ class WeatherStationCard extends LitElement {
     this._needleTarget = null;
 
     const conditionText = this._t(`condition.${condition.labelKey}`);
-    const hasSide =
+    const showTime = s.show_hero_time !== false;
+    const hasStats =
       feels != null ||
       comfort != null ||
       dew != null ||
@@ -740,7 +741,7 @@ class WeatherStationCard extends LitElement {
 
     return html`
       <div
-        class="hero ${hasSide ? "has-side" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
+        class="hero ${showTime ? "has-time" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
         <div class="hero-icon-wrap">
@@ -748,16 +749,8 @@ class WeatherStationCard extends LitElement {
         </div>
         <div class="hero-main">
           <div class="hero-condition">${conditionText}</div>
-          <div class="hero-primary">
-            <div class="hero-temp">
-              ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
-            </div>
-            ${s.show_hero_time !== false
-              ? html`
-                  <span class="hero-primary-sep" aria-hidden="true"></span>
-                  <div class="hero-time">${formatNowTime(this.hass)}</div>
-                `
-              : nothing}
+          <div class="hero-temp">
+            ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
           </div>
           ${minmax
             ? html`<div class="hero-minmax">
@@ -771,43 +764,46 @@ class WeatherStationCard extends LitElement {
                 </span>
               </div>`
             : nothing}
-        </div>
-        ${hasSide
-          ? html`<div class="hero-side">
-              ${feels
-                ? html`<div class="hero-stat">
-                    <div class="hero-stat-label">${this._t("sections.feels_like")}</div>
-                    <div class="hero-stat-value">
-                      ${round(feels.value, 1)} ${tempUnit}
-                    </div>
-                  </div>`
-                : comfort
+          ${hasStats
+            ? html`<div class="hero-stats">
+                ${feels
                   ? html`<div class="hero-stat">
-                      <div class="hero-stat-value hero-stat-comfort">
-                        ${this._t(`comfort.${comfort}`)}
+                      <div class="hero-stat-label">${this._t("sections.feels_like")}</div>
+                      <div class="hero-stat-value">
+                        ${round(feels.value, 1)} ${tempUnit}
                       </div>
                     </div>`
+                  : comfort
+                    ? html`<div class="hero-stat">
+                        <div class="hero-stat-value hero-stat-comfort">
+                          ${this._t(`comfort.${comfort}`)}
+                        </div>
+                      </div>`
+                    : nothing}
+                ${dew != null
+                  ? html`<div class="hero-stat">
+                      <div class="hero-stat-label">${this._t("sections.dewpoint")}</div>
+                      <div class="hero-stat-value">${round(dew, 1)} ${tempUnit}</div>
+                    </div>`
                   : nothing}
-              ${dew != null
-                ? html`<div class="hero-stat">
-                    <div class="hero-stat-label">${this._t("sections.dewpoint")}</div>
-                    <div class="hero-stat-value">${round(dew, 1)} ${tempUnit}</div>
-                  </div>`
-                : nothing}
-              ${rain && (rain.rate || rain.today)
-                ? html`<div
-                    class="hero-stat hero-stat-rain ${rainTap ? "tappable" : ""}"
-                    @click=${rainClick}
-                  >
-                    ${rain.rate
-                      ? html`<div class="hero-stat-value">${rain.rate}</div>`
-                      : nothing}
-                    ${rain.today
-                      ? html`<div class="hero-stat-label">${rain.today}</div>`
-                      : nothing}
-                  </div>`
-                : nothing}
-            </div>`
+                ${rain && (rain.rate || rain.today)
+                  ? html`<div
+                      class="hero-stat hero-stat-rain ${rainTap ? "tappable" : ""}"
+                      @click=${rainClick}
+                    >
+                      ${rain.rate
+                        ? html`<div class="hero-stat-value">${rain.rate}</div>`
+                        : nothing}
+                      ${rain.today
+                        ? html`<div class="hero-stat-label">${rain.today}</div>`
+                        : nothing}
+                    </div>`
+                  : nothing}
+              </div>`
+            : nothing}
+        </div>
+        ${showTime
+          ? html`<div class="hero-time-col">${formatNowTime(this.hass)}</div>`
           : nothing}
       </div>
     `;
@@ -1415,15 +1411,15 @@ class WeatherStationCard extends LitElement {
       .hero {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
-        align-items: stretch;
+        align-items: center;
         gap: 16px 22px;
         padding: 18px 22px;
         border-radius: var(--wsc-radius);
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-      .hero.has-side {
-        grid-template-columns: auto minmax(0, 1.15fr) minmax(100px, 0.85fr);
+      .hero.has-time {
+        grid-template-columns: auto minmax(0, 1fr) auto;
       }
       .wsc-icon {
         display: inline-flex;
@@ -1502,14 +1498,7 @@ class WeatherStationCard extends LitElement {
         color: var(--wsc-muted-text, var(--secondary-text-color));
         margin-bottom: 2px;
       }
-      .hero-primary {
-        display: flex;
-        align-items: baseline;
-        width: 100%;
-        gap: 0;
-      }
       .hero-temp {
-        flex: 0 1 auto;
         font-size: 2.15rem;
         font-weight: 650;
         line-height: 1.05;
@@ -1517,25 +1506,18 @@ class WeatherStationCard extends LitElement {
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
       }
-      .hero-time {
+      .hero-time-col {
         flex: 0 0 auto;
-        margin-left: auto;
-        font-size: 2.55rem;
+        align-self: center;
+        padding-left: 12px;
+        font-size: 3rem;
         font-weight: 650;
-        line-height: 1.05;
+        line-height: 1;
         color: var(--primary-text-color);
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
         text-align: right;
-      }
-      .hero-primary-sep {
-        width: 1px;
-        height: 1.75rem;
-        align-self: center;
-        margin: 0 14px 0 16px;
-        background: var(--divider-color, rgba(0, 0, 0, 0.18));
-        opacity: 0.75;
-        flex: 0 0 auto;
+        white-space: nowrap;
       }
       .hero-minmax {
         display: flex;
@@ -1559,16 +1541,12 @@ class WeatherStationCard extends LitElement {
       .hero-minmax .mm-max {
         color: var(--warning-color, #ff9800);
       }
-      .hero-side {
+      .hero-stats {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-end;
-        gap: 10px;
-        min-width: 0;
-        text-align: right;
-        padding-left: 8px;
-        border-left: 1px solid var(--divider-color, rgba(0, 0, 0, 0.1));
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px 22px;
+        margin-top: 8px;
       }
       .hero-stat {
         display: flex;
@@ -1818,20 +1796,15 @@ class WeatherStationCard extends LitElement {
         }
       }
       @container wsc (max-width: 520px) {
-        .hero.has-side {
-          grid-template-columns: auto minmax(0, 1fr);
+        .hero.has-time {
+          grid-template-columns: auto minmax(0, 1fr) auto;
         }
-        .hero-side {
-          grid-column: 2;
-          flex-direction: row;
-          flex-wrap: wrap;
-          align-items: flex-start;
-          justify-content: flex-start;
-          text-align: left;
-          gap: 10px 18px;
-          padding-left: 0;
-          border-left: none;
-          padding-top: 2px;
+        .hero-time-col {
+          font-size: 2.35rem;
+          padding-left: 8px;
+        }
+        .hero-stats {
+          gap: 8px 16px;
         }
         .hero-stat {
           min-width: 72px;
@@ -1846,15 +1819,11 @@ class WeatherStationCard extends LitElement {
           width: 60px;
           height: 60px;
         }
-        .hero-time {
+        .hero-time-col {
           font-size: 2rem;
         }
         .hero-temp {
           font-size: 1.75rem;
-        }
-        .hero-primary-sep {
-          height: 1.35rem;
-          margin: 0 10px 0 12px;
         }
         .hero-stat-value {
           font-size: 0.95rem;

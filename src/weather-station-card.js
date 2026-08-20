@@ -1446,8 +1446,8 @@ class WeatherStationCard extends LitElement {
       }
 
       .hero-icon {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
         overflow: visible;
       }
       .hero-icon.animated .icon-spin {
@@ -1816,8 +1816,8 @@ class WeatherStationCard extends LitElement {
           padding: 14px 16px;
         }
         .hero-icon {
-          width: 90px;
-          height: 90px;
+          width: 75px;
+          height: 75px;
         }
         .hero-time-col {
           font-size: 3rem;

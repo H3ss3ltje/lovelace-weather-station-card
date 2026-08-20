@@ -815,8 +815,8 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
       }
 
       .hero-icon {
-        width: 80px;
-        height: 80px;
+        width: 120px;
+        height: 120px;
         overflow: visible;
       }
       .hero-icon.animated .icon-spin {
@@ -879,7 +879,7 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
         flex: 0 0 auto;
         align-self: center;
         padding-left: 12px;
-        font-size: 3rem;
+        font-size: 4.5rem;
         font-weight: 650;
         line-height: 1;
         color: var(--primary-text-color);
@@ -1169,7 +1169,7 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
           grid-template-columns: auto minmax(0, 1fr) auto;
         }
         .hero-time-col {
-          font-size: 2.35rem;
+          font-size: 3.5rem;
           padding-left: 8px;
         }
         .hero-stats {
@@ -1185,11 +1185,11 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
           padding: 14px 16px;
         }
         .hero-icon {
-          width: 60px;
-          height: 60px;
+          width: 90px;
+          height: 90px;
         }
         .hero-time-col {
-          font-size: 2rem;
+          font-size: 3rem;
         }
         .hero-temp {
           font-size: 1.75rem;
@@ -1381,4 +1381,4 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(ye)||customElements.define(ye,St);class At extends St{static getStubConfig(){return{type:`custom:${fe}`,title:"Compass",wind_direction_entity:"",wind_speed_entity:"",settings:{compass_only:!0,show_beaufort:!0,show_wind_gust:!0,invert_wind_direction:!1,show_interactions:!0}}}setConfig(e){super.setConfig({...e,type:e?.type||`custom:${fe}`,settings:{...e?.settings||{},compass_only:!0}})}}customElements.get(fe)||customElements.define(fe,At),window.customCards=window.customCards||[],window.customCards.find(e=>e.type===ye)||window.customCards.push({type:ye,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),window.customCards.find(e=>e.type===fe)||window.customCards.push({type:fe,name:"Weather Station Compass",description:"Large standalone wind compass with smooth needle.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.8.13 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{St as WeatherStationCard,At as WeatherStationCompassCard};
+    `}}customElements.get(ye)||customElements.define(ye,St);class At extends St{static getStubConfig(){return{type:`custom:${fe}`,title:"Compass",wind_direction_entity:"",wind_speed_entity:"",settings:{compass_only:!0,show_beaufort:!0,show_wind_gust:!0,invert_wind_direction:!1,show_interactions:!0}}}setConfig(e){super.setConfig({...e,type:e?.type||`custom:${fe}`,settings:{...e?.settings||{},compass_only:!0}})}}customElements.get(fe)||customElements.define(fe,At),window.customCards=window.customCards||[],window.customCards.find(e=>e.type===ye)||window.customCards.push({type:ye,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),window.customCards.find(e=>e.type===fe)||window.customCards.push({type:fe,name:"Weather Station Compass",description:"Large standalone wind compass with smooth needle.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.8.14 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{St as WeatherStationCard,At as WeatherStationCompassCard};

@@ -1446,8 +1446,8 @@ class WeatherStationCard extends LitElement {
       }
 
       .hero-icon {
-        width: 80px;
-        height: 80px;
+        width: 120px;
+        height: 120px;
         overflow: visible;
       }
       .hero-icon.animated .icon-spin {
@@ -1510,7 +1510,7 @@ class WeatherStationCard extends LitElement {
         flex: 0 0 auto;
         align-self: center;
         padding-left: 12px;
-        font-size: 3rem;
+        font-size: 4.5rem;
         font-weight: 650;
         line-height: 1;
         color: var(--primary-text-color);
@@ -1800,7 +1800,7 @@ class WeatherStationCard extends LitElement {
           grid-template-columns: auto minmax(0, 1fr) auto;
         }
         .hero-time-col {
-          font-size: 2.35rem;
+          font-size: 3.5rem;
           padding-left: 8px;
         }
         .hero-stats {
@@ -1816,11 +1816,11 @@ class WeatherStationCard extends LitElement {
           padding: 14px 16px;
         }
         .hero-icon {
-          width: 60px;
-          height: 60px;
+          width: 90px;
+          height: 90px;
         }
         .hero-time-col {
-          font-size: 2rem;
+          font-size: 3rem;
         }
         .hero-temp {
           font-size: 1.75rem;

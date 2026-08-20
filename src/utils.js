@@ -331,6 +331,20 @@ export function formatSunTime(hass, iso) {
   return date.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
 }
 
+/** Current local time formatted for the user's Home Assistant locale. */
+export function formatNowTime(hass) {
+  const lang =
+    hass?.locale?.language || hass?.language || hass?.selectedLanguage || undefined;
+  const tf = hass?.locale?.time_format;
+  const hour12 =
+    tf === "12" ? true : tf === "24" ? false : undefined;
+  return new Date().toLocaleTimeString(lang, {
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(hour12 != null ? { hour12 } : {}),
+  });
+}
+
 /**
  * Point on a cubic Bezier at t ∈ [0, 1].
  */

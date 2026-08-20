@@ -30,6 +30,7 @@ import {
   round,
   unit,
   formatSunTime,
+  formatNowTime,
   sunDiagramPosition,
   sunCurveDots,
   toMetersPerSecond,
@@ -80,11 +81,18 @@ class WeatherStationCard extends LitElement {
     this._pressureHistory = this._pressureHistory || [];
     this._tempStats = this._tempStats || null;
     this._tempHistoryKey = undefined;
+    this._startHeroClock();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._stopNeedleAnimation();
+    this._stopHeroClock();
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._startHeroClock();
   }
 
   updated() {
@@ -93,6 +101,30 @@ class WeatherStationCard extends LitElement {
     } else {
       this._stopNeedleAnimation();
     }
+  }
+
+  _stopHeroClock() {
+    if (this._clockTimeout) {
+      clearTimeout(this._clockTimeout);
+      this._clockTimeout = null;
+    }
+    if (this._clockInterval) {
+      clearInterval(this._clockInterval);
+      this._clockInterval = null;
+    }
+  }
+
+  _startHeroClock() {
+    this._stopHeroClock();
+    if ((this._config?.settings || {}).show_hero_time === false) return;
+    const tick = () => this.requestUpdate();
+    const now = new Date();
+    const msToNextMinute =
+      (60 - now.getSeconds()) * 1000 - now.getMilliseconds() + 50;
+    this._clockTimeout = setTimeout(() => {
+      tick();
+      this._clockInterval = setInterval(tick, 60000);
+    }, Math.max(100, msToNextMinute));
   }
 
   _normalizeTileOrder(order) {
@@ -711,22 +743,21 @@ class WeatherStationCard extends LitElement {
         class="hero ${hasSide ? "has-side" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
-        ${wscIcon(condition.icon, `hero-icon ${s.animate_icons !== false ? "animated" : ""}`)}
+        <div class="hero-icon-wrap">
+          ${wscIcon(condition.icon, `hero-icon ${s.animate_icons !== false ? "animated" : ""}`)}
+        </div>
         <div class="hero-main">
           <div class="hero-condition">${conditionText}</div>
-          <div class="hero-temp-row">
+          <div class="hero-primary">
+            ${s.show_hero_time !== false
+              ? html`
+                  <div class="hero-time">${formatNowTime(this.hass)}</div>
+                  <span class="hero-primary-sep" aria-hidden="true"></span>
+                `
+              : nothing}
             <div class="hero-temp">
               ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
             </div>
-            ${rain?.status
-              ? html`<span
-                  class="hero-rain-status ${rain.wet ? "wet" : "dry"} ${rainTap
-                    ? "tappable"
-                    : ""}"
-                  @click=${rainClick}
-                  >${rain.status}</span
-                >`
-              : nothing}
           </div>
           ${minmax
             ? html`<div class="hero-minmax">
@@ -782,7 +813,7 @@ class WeatherStationCard extends LitElement {
     `;
   }
 
-  /** Rain pieces for the hero: status beside temp, rate/today on the side. */
+  /** Rain rate / today for the hero side panel (not the dry/wet pill). */
   _heroRainParts(rainOn, rainRate) {
     const s = this._config.settings || {};
     if (s.show_rain_hero === false) return null;
@@ -793,17 +824,11 @@ class WeatherStationCard extends LitElement {
     const today = numericState(todayObj);
     const rate = rainRate != null ? rainRate : numericState(rateObj);
 
-    if (!rainObj && rate == null && today == null) return null;
+    if (rate == null && today == null) return null;
 
     const rateUnit = unit(rateObj || rainObj, "mm/h");
     const todayUnit = unit(todayObj, "mm");
     return {
-      wet: !!rainOn,
-      status: rainObj
-        ? rainOn
-          ? this._t("rain.wet")
-          : this._t("rain.dry")
-        : null,
       rate: rate != null ? `${round(rate, 1)} ${rateUnit}` : null,
       today:
         today != null
@@ -1391,14 +1416,14 @@ class WeatherStationCard extends LitElement {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
         align-items: center;
-        gap: 14px 18px;
-        padding: 18px 20px;
+        gap: 16px 22px;
+        padding: 18px 22px;
         border-radius: var(--wsc-radius);
         background: var(--ha-card-background, var(--card-background-color, #fff));
         box-shadow: inset 0 0 0 1px var(--divider-color, rgba(0, 0, 0, 0.08));
       }
       .hero.has-side {
-        grid-template-columns: auto minmax(0, 1.2fr) minmax(110px, 0.9fr);
+        grid-template-columns: auto minmax(0, 1.15fr) minmax(100px, 0.85fr);
       }
       .wsc-icon {
         display: inline-flex;
@@ -1415,10 +1440,18 @@ class WeatherStationCard extends LitElement {
         overflow: visible;
       }
 
+      .hero-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        align-self: stretch;
+        padding: 2px 4px 2px 0;
+      }
+
       .hero-icon {
-        width: 56px;
-        height: 56px;
-        align-self: center;
+        width: 80px;
+        height: 80px;
         overflow: visible;
       }
       .hero-icon.animated .icon-spin {
@@ -1467,36 +1500,30 @@ class WeatherStationCard extends LitElement {
       .hero-condition {
         font-size: 0.95rem;
         color: var(--wsc-muted-text, var(--secondary-text-color));
+        margin-bottom: 2px;
       }
-      .hero-temp-row {
+      .hero-primary {
         display: flex;
         align-items: baseline;
         flex-wrap: wrap;
-        gap: 8px 14px;
+        gap: 10px 14px;
       }
+      .hero-time,
       .hero-temp {
         font-size: 2.15rem;
         font-weight: 650;
         line-height: 1.05;
         color: var(--primary-text-color);
         letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
       }
-      .hero-rain-status {
-        font-size: 1rem;
-        font-weight: 650;
-        line-height: 1.2;
-        padding: 3px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
-        color: var(--primary-text-color);
-      }
-      .hero-rain-status.wet {
-        color: var(--info-color, #2196f3);
-        border-color: color-mix(in srgb, var(--info-color, #2196f3) 45%, transparent);
-        background: color-mix(in srgb, var(--info-color, #2196f3) 14%, transparent);
-      }
-      .hero-rain-status.dry {
-        color: var(--wsc-muted-text, var(--secondary-text-color));
+      .hero-primary-sep {
+        width: 1px;
+        height: 1.65rem;
+        align-self: center;
+        background: var(--divider-color, rgba(0, 0, 0, 0.18));
+        opacity: 0.75;
+        flex: 0 0 auto;
       }
       .hero-minmax {
         display: flex;
@@ -1800,19 +1827,19 @@ class WeatherStationCard extends LitElement {
       }
       @container wsc (max-width: 420px) {
         .hero {
-          gap: 10px 12px;
-          padding: 14px;
+          gap: 12px 14px;
+          padding: 14px 16px;
         }
         .hero-icon {
-          width: 44px;
-          height: 44px;
+          width: 60px;
+          height: 60px;
         }
+        .hero-time,
         .hero-temp {
           font-size: 1.75rem;
         }
-        .hero-rain-status {
-          font-size: 0.88rem;
-          padding: 2px 8px;
+        .hero-primary-sep {
+          height: 1.35rem;
         }
         .hero-stat-value {
           font-size: 0.95rem;

@@ -749,15 +749,15 @@ class WeatherStationCard extends LitElement {
         <div class="hero-main">
           <div class="hero-condition">${conditionText}</div>
           <div class="hero-primary">
-            ${s.show_hero_time !== false
-              ? html`
-                  <div class="hero-time">${formatNowTime(this.hass)}</div>
-                  <span class="hero-primary-sep" aria-hidden="true"></span>
-                `
-              : nothing}
             <div class="hero-temp">
               ${temp != null ? `${round(temp, 1)} ${tempUnit}` : "—"}
             </div>
+            ${s.show_hero_time !== false
+              ? html`
+                  <span class="hero-primary-sep" aria-hidden="true"></span>
+                  <div class="hero-time">${formatNowTime(this.hass)}</div>
+                `
+              : nothing}
           </div>
           ${minmax
             ? html`<div class="hero-minmax">
@@ -1415,7 +1415,7 @@ class WeatherStationCard extends LitElement {
       .hero {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
-        align-items: center;
+        align-items: stretch;
         gap: 16px 22px;
         padding: 18px 22px;
         border-radius: var(--wsc-radius);
@@ -1446,7 +1446,7 @@ class WeatherStationCard extends LitElement {
         justify-content: center;
         flex: 0 0 auto;
         align-self: stretch;
-        padding: 2px 4px 2px 0;
+        padding: 0 4px 0 0;
       }
 
       .hero-icon {
@@ -1505,11 +1505,11 @@ class WeatherStationCard extends LitElement {
       .hero-primary {
         display: flex;
         align-items: baseline;
-        flex-wrap: wrap;
-        gap: 10px 14px;
+        width: 100%;
+        gap: 0;
       }
-      .hero-time,
       .hero-temp {
+        flex: 0 1 auto;
         font-size: 2.15rem;
         font-weight: 650;
         line-height: 1.05;
@@ -1517,10 +1517,22 @@ class WeatherStationCard extends LitElement {
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
       }
+      .hero-time {
+        flex: 0 0 auto;
+        margin-left: auto;
+        font-size: 2.55rem;
+        font-weight: 650;
+        line-height: 1.05;
+        color: var(--primary-text-color);
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
       .hero-primary-sep {
         width: 1px;
-        height: 1.65rem;
+        height: 1.75rem;
         align-self: center;
+        margin: 0 14px 0 16px;
         background: var(--divider-color, rgba(0, 0, 0, 0.18));
         opacity: 0.75;
         flex: 0 0 auto;
@@ -1834,12 +1846,15 @@ class WeatherStationCard extends LitElement {
           width: 60px;
           height: 60px;
         }
-        .hero-time,
+        .hero-time {
+          font-size: 2rem;
+        }
         .hero-temp {
           font-size: 1.75rem;
         }
         .hero-primary-sep {
           height: 1.35rem;
+          margin: 0 10px 0 12px;
         }
         .hero-stat-value {
           font-size: 0.95rem;

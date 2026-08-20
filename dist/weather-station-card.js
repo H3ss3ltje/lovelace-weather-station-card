@@ -613,13 +613,13 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
         <div class="hero-main">
           <div class="hero-condition">${h}</div>
           <div class="hero-primary">
-            ${!1!==o.show_hero_time?G`
-                  <div class="hero-time">${function(e){const t=e?.locale?.language||e?.language||e?.selectedLanguage||void 0,i=e?.locale?.time_format,n="12"===i||"24"!==i&&void 0;return(new Date).toLocaleTimeString(t,{hour:"2-digit",minute:"2-digit",...null!=n?{hour12:n}:{}})}(this.hass)}</div>
-                  <span class="hero-primary-sep" aria-hidden="true"></span>
-                `:V}
             <div class="hero-temp">
               ${null!=t?`${je(t,1)} ${i}`:"—"}
             </div>
+            ${!1!==o.show_hero_time?G`
+                  <span class="hero-primary-sep" aria-hidden="true"></span>
+                  <div class="hero-time">${function(e){const t=e?.locale?.language||e?.language||e?.selectedLanguage||void 0,i=e?.locale?.time_format,n="12"===i||"24"!==i&&void 0;return(new Date).toLocaleTimeString(t,{hour:"2-digit",minute:"2-digit",...null!=n?{hour12:n}:{}})}(this.hass)}</div>
+                `:V}
           </div>
           ${d?G`<div class="hero-minmax">
                 <span class="mm mm-min">
@@ -785,7 +785,7 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
       .hero {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
-        align-items: center;
+        align-items: stretch;
         gap: 16px 22px;
         padding: 18px 22px;
         border-radius: var(--wsc-radius);
@@ -816,7 +816,7 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
         justify-content: center;
         flex: 0 0 auto;
         align-self: stretch;
-        padding: 2px 4px 2px 0;
+        padding: 0 4px 0 0;
       }
 
       .hero-icon {
@@ -875,11 +875,11 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
       .hero-primary {
         display: flex;
         align-items: baseline;
-        flex-wrap: wrap;
-        gap: 10px 14px;
+        width: 100%;
+        gap: 0;
       }
-      .hero-time,
       .hero-temp {
+        flex: 0 1 auto;
         font-size: 2.15rem;
         font-weight: 650;
         line-height: 1.05;
@@ -887,10 +887,22 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
       }
+      .hero-time {
+        flex: 0 0 auto;
+        margin-left: auto;
+        font-size: 2.55rem;
+        font-weight: 650;
+        line-height: 1.05;
+        color: var(--primary-text-color);
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
       .hero-primary-sep {
         width: 1px;
-        height: 1.65rem;
+        height: 1.75rem;
         align-self: center;
+        margin: 0 14px 0 16px;
         background: var(--divider-color, rgba(0, 0, 0, 0.18));
         opacity: 0.75;
         flex: 0 0 auto;
@@ -1204,12 +1216,15 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
           width: 60px;
           height: 60px;
         }
-        .hero-time,
+        .hero-time {
+          font-size: 2rem;
+        }
         .hero-temp {
           font-size: 1.75rem;
         }
         .hero-primary-sep {
           height: 1.35rem;
+          margin: 0 10px 0 12px;
         }
         .hero-stat-value {
           font-size: 0.95rem;
@@ -1398,4 +1413,4 @@ const e=globalThis,t=e.ShadowRoot&&(void 0===e.ShadyCSS||e.ShadyCSS.nativeShadow
       .tappable:hover {
         background: var(--divider-color, rgba(0, 0, 0, 0.08));
       }
-    `}}customElements.get(ye)||customElements.define(ye,St);class At extends St{static getStubConfig(){return{type:`custom:${fe}`,title:"Compass",wind_direction_entity:"",wind_speed_entity:"",settings:{compass_only:!0,show_beaufort:!0,show_wind_gust:!0,invert_wind_direction:!1,show_interactions:!0}}}setConfig(e){super.setConfig({...e,type:e?.type||`custom:${fe}`,settings:{...e?.settings||{},compass_only:!0}})}}customElements.get(fe)||customElements.define(fe,At),window.customCards=window.customCards||[],window.customCards.find(e=>e.type===ye)||window.customCards.push({type:ye,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),window.customCards.find(e=>e.type===fe)||window.customCards.push({type:fe,name:"Weather Station Compass",description:"Large standalone wind compass with smooth needle.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.8.11 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{St as WeatherStationCard,At as WeatherStationCompassCard};
+    `}}customElements.get(ye)||customElements.define(ye,St);class At extends St{static getStubConfig(){return{type:`custom:${fe}`,title:"Compass",wind_direction_entity:"",wind_speed_entity:"",settings:{compass_only:!0,show_beaufort:!0,show_wind_gust:!0,invert_wind_direction:!1,show_interactions:!0}}}setConfig(e){super.setConfig({...e,type:e?.type||`custom:${fe}`,settings:{...e?.settings||{},compass_only:!0}})}}customElements.get(fe)||customElements.define(fe,At),window.customCards=window.customCards||[],window.customCards.find(e=>e.type===ye)||window.customCards.push({type:ye,name:"Weather Station Card",description:"A modern, Mushroom-inspired weather station card.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),window.customCards.find(e=>e.type===fe)||window.customCards.push({type:fe,name:"Weather Station Compass",description:"Large standalone wind compass with smooth needle.",preview:!0,documentationURL:"https://github.com/H3ss3ltje/lovelace-weather-station-card"}),console.info("%c WEATHER-STATION-CARD %c v1.8.12 ","color: white; background: #03a9f4; font-weight: 700;","color: #03a9f4; background: white; font-weight: 700;");export{St as WeatherStationCard,At as WeatherStationCompassCard};

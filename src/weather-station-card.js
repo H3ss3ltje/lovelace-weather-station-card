@@ -718,6 +718,7 @@ class WeatherStationCard extends LitElement {
 
     const conditionText = this._t(`condition.${condition.labelKey}`);
     const showTime = s.show_hero_time !== false;
+    const hideTimeMobile = s.hide_hero_time_mobile === true;
     const hasStats =
       feels != null ||
       comfort != null ||
@@ -741,7 +742,7 @@ class WeatherStationCard extends LitElement {
 
     return html`
       <div
-        class="hero ${showTime ? "has-time" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
+        class="hero ${showTime ? "has-time" : ""} ${hideTimeMobile ? "hide-time-mobile" : ""} ${this._clickable("temperature_entity") ? "tappable" : ""}"
         @click=${() => this._handleClick("temperature_entity")}
       >
         <div class="hero-icon-wrap">
@@ -1798,6 +1799,12 @@ class WeatherStationCard extends LitElement {
       @container wsc (max-width: 520px) {
         .hero.has-time {
           grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+        .hero.has-time.hide-time-mobile {
+          grid-template-columns: auto minmax(0, 1fr);
+        }
+        .hero.hide-time-mobile .hero-time-col {
+          display: none;
         }
         .hero-time-col {
           font-size: 3.5rem;

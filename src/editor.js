@@ -201,6 +201,7 @@ class WeatherStationCardEditor extends LitElement {
               { name: "show_rain_today", selector: { boolean: {} } },
               { name: "show_rain_hero", selector: { boolean: {} } },
               { name: "show_hero_time", selector: { boolean: {} } },
+              { name: "hide_hero_time_mobile", selector: { boolean: {} } },
               { name: "show_beaufort", selector: { boolean: {} } },
               { name: "show_wind_gust", selector: { boolean: {} } },
               { name: "invert_wind_direction", selector: { boolean: {} } },

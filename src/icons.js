@@ -28,7 +28,7 @@ function rainStreaks(gradientId, streaks) {
           y=${s.y}
           width=${s.w ?? 2.4}
           height=${s.h ?? 10}
-          rx="1.1"
+          rx=${s.rx ?? 1.1}
           fill="url(#${gradientId})"
           opacity=${s.opacity ?? 0.9}
         />
@@ -52,6 +52,15 @@ const PARTLY_RAIN_STREAKS = [
   { x: 34, y: 42, delay: 0.19, dur: 0.9 },
   { x: 42, y: 44, delay: 0.55, dur: 1.12 },
   { x: 48, y: 41, delay: 0.28, dur: 0.88 },
+];
+
+/** Thinner/shorter drops for the sunshower icon. */
+const SUNNY_RAIN_STREAKS = [
+  { x: 18, y: 42, w: 1.5, h: 6.5, rx: 0.75, delay: 0.08, dur: 0.94 },
+  { x: 26, y: 44, w: 1.5, h: 7, rx: 0.75, delay: 0.41, dur: 1.06 },
+  { x: 34, y: 43, w: 1.4, h: 6.5, rx: 0.7, delay: 0.19, dur: 0.9 },
+  { x: 41, y: 45, w: 1.5, h: 7, rx: 0.75, delay: 0.55, dur: 1.12 },
+  { x: 48, y: 42, w: 1.4, h: 6.5, rx: 0.7, delay: 0.28, dur: 0.88 },
 ];
 
 /** Falling snow flakes with slower, staggered timing. */
@@ -335,7 +344,7 @@ function sunnyRain(className) {
                c5.4 0 9.9 3.7 11 8.7.7-.2 1.5-.3 2.3-.3 4.7 0 8.5 3.6 8.5 8.1S45.4 43 40.7 43H20z"
             opacity="0.92"/>
         </g>
-        ${rainStreaks(`${g}d`, PARTLY_RAIN_STREAKS)}
+        ${rainStreaks(`${g}d`, SUNNY_RAIN_STREAKS)}
       </svg>
     `,
     className

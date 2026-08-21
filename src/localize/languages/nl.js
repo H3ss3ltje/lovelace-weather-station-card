@@ -10,6 +10,7 @@ export default {
     clear_sky: "Heldere lucht",
     cloudy: "Bewolkt",
     rain: "Regen",
+    sun_rain: "Zonnige regen",
     snow: "Sneeuw",
     sleet: "Natte sneeuw / mix",
     clear_night: "Heldere nacht",
@@ -169,6 +170,7 @@ export default {
     lux_cloudy_max_klux: "Bewolkt onder (klux)",
     lux_partly_cloudy_max_klux: "Gedeeltelijk bewolkt onder (klux)",
     lux_sunny_max_klux: "Zonnig onder (klux); daarboven volle zon",
+    lux_sun_rain_min_klux: "Zonnige regen vanaf (klux) bij regen",
     animate_icons: "Animeer weericonen (zon / wolk / regen)",
     tile_order: "Tegelvolgorde",
     tile_order_hint:

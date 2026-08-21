@@ -25,7 +25,7 @@ import {
   conditionFromText,
   pressureTrendFromRate,
   isRainDetected,
-  precipitationFromTemperature,
+  precipitationCondition,
   tempToCelsius,
   round,
   unit,
@@ -491,11 +491,15 @@ class WeatherStationCard extends LitElement {
       });
     }
 
-    // Live rain sensors win for the hero icon; use temperature to pick rain/sleet/snow.
+    // Live rain sensors win for the hero icon; temp + lux pick rain/sleet/snow/sunshower.
     if (precipActive) {
-      const fromTemp = precipitationFromTemperature(tempC);
       condition = {
-        ...(fromTemp || { icon: "rainy", labelKey: "rain" }),
+        ...precipitationCondition({
+          tempC,
+          lux,
+          isDay,
+          settings: s,
+        }),
         raw: condition?.raw,
       };
     } else if (isDay && lux != null) {
@@ -571,7 +575,7 @@ class WeatherStationCard extends LitElement {
       feels_like: () => this._renderFeelsLike(tempUnit),
       humidity: () => this._renderHumidity(humidity),
       dewpoint: () => this._renderDewpoint(temp, tempUnit, humidity),
-      rain: () => this._renderRain(rainObj, rainOn, rainRate, temp, tempUnit),
+      rain: () => this._renderRain(rainObj, rainOn, rainRate, temp, tempUnit, lux),
       wind: () => this._renderWind(),
       uv: () => this._renderUv(uv),
       pressure: () => this._renderPressure(),
@@ -956,7 +960,7 @@ class WeatherStationCard extends LitElement {
     });
   }
 
-  _renderRain(rainObj, rainOn, rainRate, temp, tempUnit) {
+  _renderRain(rainObj, rainOn, rainRate, temp, tempUnit, lux = null) {
     const s = this._config.settings || {};
     const rateObj = this._stateObj("rain_rate_entity");
     const todayObj = s.show_rain_today ? this._precipToday() : null;
@@ -973,7 +977,12 @@ class WeatherStationCard extends LitElement {
     const precipActive = rainOn || (rate != null && rate > 0);
     const tempC = tempToCelsius(temp, tempUnit);
     const precipIcon = precipActive
-      ? precipitationFromTemperature(tempC)?.icon || "rainy"
+      ? precipitationCondition({
+          tempC,
+          lux,
+          isDay: this._isDay(),
+          settings: s,
+        }).icon
       : "cloudy";
 
     let value;

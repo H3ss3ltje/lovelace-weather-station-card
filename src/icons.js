@@ -291,6 +291,57 @@ function partlyRainy(className) {
   );
 }
 
+/** Bright sun with rain — for sunshowers (high lux while raining). */
+function sunnyRain(className) {
+  const g = uid("sr");
+  return wrap(
+    svg`
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="${g}s" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#FFE56A"/>
+            <stop offset="55%" stop-color="#FFB100"/>
+            <stop offset="100%" stop-color="#FF8A00"/>
+          </radialGradient>
+          <linearGradient id="${g}b" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FFCC33"/>
+            <stop offset="100%" stop-color="#FF9500"/>
+          </linearGradient>
+          <linearGradient id="${g}c" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#D8DEE8"/>
+            <stop offset="100%" stop-color="#8A94A4"/>
+          </linearGradient>
+          <linearGradient id="${g}d" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#64D2FF"/>
+            <stop offset="100%" stop-color="#0A84FF"/>
+          </linearGradient>
+        </defs>
+        <g transform="translate(2 2) scale(0.62)">
+          <g class="icon-spin" style="transform-origin: 32px 32px">
+            ${[0, 45, 90, 135, 180, 225, 270, 315].map(
+              (deg) => svg`
+                <rect x="29.5" y="4" width="5" height="11" rx="2.5"
+                  fill="url(#${g}b)"
+                  transform="rotate(${deg} 32 32)"/>
+              `
+            )}
+            <circle cx="32" cy="32" r="14" fill="url(#${g}s)"/>
+            <circle cx="27" cy="27" r="4.5" fill="#fff" opacity="0.35"/>
+          </g>
+        </g>
+        <g class="icon-drift">
+          <path fill="url(#${g}c)"
+            d="M20 40c-4.2 0-7.6-3.2-7.6-7.2 0-3.4 2.4-6.3 5.7-7.1C19 21.2 22.8 18.5 27.4 18.5
+               c5.4 0 9.9 3.7 11 8.7.7-.2 1.5-.3 2.3-.3 4.7 0 8.5 3.6 8.5 8.1S45.4 43 40.7 43H20z"
+            opacity="0.92"/>
+        </g>
+        ${rainStreaks(`${g}d`, PARTLY_RAIN_STREAKS)}
+      </svg>
+    `,
+    className
+  );
+}
+
 function snowy(className) {
   const g = uid("sn");
   return wrap(
@@ -792,6 +843,9 @@ export function wscIcon(name, className = "", opts = {}) {
       return rainy(className);
     case "partly_rainy":
       return partlyRainy(className);
+    case "sunny_rain":
+    case "sun_rain":
+      return sunnyRain(className);
     case "sleet":
       return sleet(className);
     case "snowy":

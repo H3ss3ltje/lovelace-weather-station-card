@@ -11,6 +11,7 @@ export default {
     clear_sky: "Cielo despejado",
     cloudy: "Nublado",
     rain: "Lluvia",
+    sun_rain: "Lluvia con sol",
     snow: "Nieve",
     sleet: "Aguanieve / mixta",
     clear_night: "Noche despejada",
@@ -170,6 +171,7 @@ export default {
     lux_cloudy_max_klux: "Nublado por debajo de (klux)",
     lux_partly_cloudy_max_klux: "Parcialmente nublado por debajo de (klux)",
     lux_sunny_max_klux: "Soleado por debajo de (klux); por encima sol pleno",
+    lux_sun_rain_min_klux: "Lluvia con sol desde (klux) al llover",
     animate_icons: "Animar iconos del tiempo (sol / nube / lluvia)",
     tile_order: "Orden de mosaicos",
     tile_order_hint:

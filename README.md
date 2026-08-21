@@ -175,6 +175,7 @@ All entities are optional. A section is only rendered when its entity is set. Zi
 | `lux_cloudy_max_klux`        | number  | `5`     | Hero icon is cloudy below this illuminance (klux).       |
 | `lux_partly_cloudy_max_klux` | number  | `20`    | Hero icon is partly cloudy below this (klux).            |
 | `lux_sunny_max_klux`         | number  | `150`   | Hero icon is sunny below this; above = full sun.         |
+| `lux_sun_rain_min_klux`      | number  | `20`    | While raining, show sunshower icon from this lux (klux). |
 | `animate_icons`              | boolean | `true`  | Spinning sun, drifting cloud, falling rain in the hero.  |
 | `compact_mode`               | boolean | `false` | Hero + sun only (hide the sensor tile grid).             |
 | `compass_only`               | boolean | `false` | Large standalone compass layout (also used by `weather-station-compass-card`). |

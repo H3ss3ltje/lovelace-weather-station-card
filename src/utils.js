@@ -48,6 +48,9 @@ export function conditionFromText(text, isDay = true) {
   const raw = String(text);
   const t = raw.toLowerCase();
   if (/rain|drizzle|shower|pour|wet/.test(t)) {
+    if (/sun|clear|fair/.test(t)) {
+      return { icon: "sunny_rain", labelKey: "sun_rain", raw };
+    }
     return { icon: "rainy", labelKey: "rain", raw };
   }
   if (/sleet|wet.?snow|wintry|freezing.?rain/.test(t)) {
@@ -219,6 +222,8 @@ export function tempToCelsius(temp, unitStr) {
 /**
  * Hero icon when precipitation is detected and temperature is known (°C).
  * >= 3 °C rain · 0–2 °C sleet/mixed · < 0 °C snow
+ * When raining (not sleet/snow) and lux ≥ lux_sun_rain_min_klux (default 20 klux),
+ * show the sunshower (sunny + rain) icon.
  */
 export function precipitationFromTemperature(tempC) {
   if (tempC == null || !Number.isFinite(tempC)) return null;
@@ -228,8 +233,28 @@ export function precipitationFromTemperature(tempC) {
 }
 
 /**
+ * Resolve precipitation icon, upgrading rain to sunshower at high lux.
+ */
+export function precipitationCondition({
+  tempC = null,
+  lux = null,
+  isDay = true,
+  settings = {},
+} = {}) {
+  const fromTemp =
+    precipitationFromTemperature(tempC) || { icon: "rainy", labelKey: "rain" };
+  if (fromTemp.icon !== "rainy") return fromTemp;
+  if (!isDay || lux == null || !Number.isFinite(lux)) return fromTemp;
+  const minLux = kluxToLux(settings.lux_sun_rain_min_klux, 20000);
+  if (lux >= minLux) {
+    return { icon: "sunny_rain", labelKey: "sun_rain" };
+  }
+  return fromTemp;
+}
+
+/**
  * Determine the weather condition icon + translation key.
- * Priority: rain > night > lux bands (cloudy / partly / sunny / full sun).
+ * Priority: rain (sunshower when bright) > night > lux bands.
  */
 export function deriveCondition({
   isDay,
@@ -241,9 +266,7 @@ export function deriveCondition({
   tempC = null,
 }) {
   if (rainOn || (rainMm != null && rainMm > 0)) {
-    const fromTemp = precipitationFromTemperature(tempC);
-    if (fromTemp) return fromTemp;
-    return { icon: "rainy", labelKey: "rain" };
+    return precipitationCondition({ tempC, lux, isDay, settings });
   }
   if (!isDay) {
     return { icon: "night", labelKey: "clear_night" };

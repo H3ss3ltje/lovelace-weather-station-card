@@ -11,6 +11,7 @@ export default {
     clear_sky: "Klarer Himmel",
     cloudy: "Bewölkt",
     rain: "Regen",
+    sun_rain: "Regenschauer bei Sonne",
     snow: "Schnee",
     sleet: "Schneeregen / gemischt",
     clear_night: "Klare Nacht",
@@ -170,6 +171,7 @@ export default {
     lux_cloudy_max_klux: "Bewölkt unter (klux)",
     lux_partly_cloudy_max_klux: "Teilweise bewölkt unter (klux)",
     lux_sunny_max_klux: "Sonnig unter (klux); darüber volle Sonne",
+    lux_sun_rain_min_klux: "Sonnenschauer ab (klux) bei Regen",
     animate_icons: "Wetter-Icons animieren (Sonne / Wolke / Regen)",
     tile_order: "Kachelreihenfolge",
     tile_order_hint:

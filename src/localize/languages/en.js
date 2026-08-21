@@ -10,6 +10,7 @@ export default {
     clear_sky: "Clear sky",
     cloudy: "Cloudy",
     rain: "Rain",
+    sun_rain: "Sunshower",
     snow: "Snow",
     sleet: "Sleet / mixed",
     clear_night: "Clear night",
@@ -169,6 +170,7 @@ export default {
     lux_cloudy_max_klux: "Cloudy below (klux)",
     lux_partly_cloudy_max_klux: "Partly cloudy below (klux)",
     lux_sunny_max_klux: "Sunny below (klux); above = full sun",
+    lux_sun_rain_min_klux: "Sunshower from (klux) while raining",
     animate_icons: "Animate weather icons (sun / cloud / rain)",
     tile_order: "Tile order",
     tile_order_hint:

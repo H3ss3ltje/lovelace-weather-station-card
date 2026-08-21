@@ -248,6 +248,18 @@ class WeatherStationCardEditor extends LitElement {
               },
             },
           },
+          {
+            name: "lux_sun_rain_min_klux",
+            selector: {
+              number: {
+                min: 1,
+                max: 300,
+                step: 0.5,
+                unit_of_measurement: "klux",
+                mode: "box",
+              },
+            },
+          },
           ...(dayNightOff
             ? [
                 {

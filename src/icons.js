@@ -38,29 +38,29 @@ function rainStreaks(gradientId, streaks) {
 }
 
 const RAIN_STREAKS = [
-  { x: 14, y: 39, delay: 0.05, dur: 0.92 },
-  { x: 22, y: 41, delay: 0.38, dur: 1.08 },
+  { x: 18, y: 39, delay: 0.05, dur: 0.92 },
+  { x: 24, y: 41, delay: 0.38, dur: 1.08 },
   { x: 30, y: 40, delay: 0.17, dur: 0.98 },
-  { x: 37, y: 42, delay: 0.52, dur: 1.14 },
-  { x: 45, y: 39, delay: 0.24, dur: 0.86 },
-  { x: 51, y: 41, delay: 0.61, dur: 1.02 },
+  { x: 35, y: 42, delay: 0.52, dur: 1.14 },
+  { x: 40, y: 39, delay: 0.24, dur: 0.86 },
+  { x: 44, y: 41, delay: 0.61, dur: 1.02 },
 ];
 
 const PARTLY_RAIN_STREAKS = [
-  { x: 16, y: 41, delay: 0.08, dur: 0.94 },
-  { x: 25, y: 43, delay: 0.41, dur: 1.06 },
-  { x: 34, y: 42, delay: 0.19, dur: 0.9 },
-  { x: 42, y: 44, delay: 0.55, dur: 1.12 },
-  { x: 48, y: 41, delay: 0.28, dur: 0.88 },
+  { x: 20, y: 41, delay: 0.08, dur: 0.94 },
+  { x: 26, y: 43, delay: 0.41, dur: 1.06 },
+  { x: 32, y: 42, delay: 0.19, dur: 0.9 },
+  { x: 37, y: 44, delay: 0.55, dur: 1.12 },
+  { x: 42, y: 41, delay: 0.28, dur: 0.88 },
 ];
 
 /** Thinner/shorter drops for the sunshower icon. */
 const SUNNY_RAIN_STREAKS = [
-  { x: 18, y: 42, w: 1.5, h: 6.5, rx: 0.75, delay: 0.08, dur: 0.94 },
-  { x: 26, y: 44, w: 1.5, h: 7, rx: 0.75, delay: 0.41, dur: 1.06 },
-  { x: 34, y: 43, w: 1.4, h: 6.5, rx: 0.7, delay: 0.19, dur: 0.9 },
-  { x: 41, y: 45, w: 1.5, h: 7, rx: 0.75, delay: 0.55, dur: 1.12 },
-  { x: 48, y: 42, w: 1.4, h: 6.5, rx: 0.7, delay: 0.28, dur: 0.88 },
+  { x: 22, y: 42, w: 1.5, h: 6.5, rx: 0.75, delay: 0.08, dur: 0.94 },
+  { x: 28, y: 44, w: 1.5, h: 7, rx: 0.75, delay: 0.41, dur: 1.06 },
+  { x: 33, y: 43, w: 1.4, h: 6.5, rx: 0.7, delay: 0.19, dur: 0.9 },
+  { x: 38, y: 45, w: 1.5, h: 7, rx: 0.75, delay: 0.55, dur: 1.12 },
+  { x: 42, y: 42, w: 1.4, h: 6.5, rx: 0.7, delay: 0.28, dur: 0.88 },
 ];
 
 /** Falling snow flakes with slower, staggered timing. */
@@ -78,26 +78,26 @@ function snowFlakes(flakes) {
 }
 
 const SNOW_FLAKES = [
-  { x: 15, y: 40, delay: 0.1, dur: 1.35 },
-  { x: 23, y: 42, delay: 0.45, dur: 1.55 },
-  { x: 31, y: 41, delay: 0.22, dur: 1.42 },
-  { x: 39, y: 43, delay: 0.58, dur: 1.28 },
-  { x: 47, y: 40, delay: 0.33, dur: 1.48 },
-  { x: 52, y: 42, delay: 0.68, dur: 1.38 },
+  { x: 18, y: 40, delay: 0.1, dur: 1.35 },
+  { x: 24, y: 42, delay: 0.45, dur: 1.55 },
+  { x: 30, y: 41, delay: 0.22, dur: 1.42 },
+  { x: 35, y: 43, delay: 0.58, dur: 1.28 },
+  { x: 40, y: 40, delay: 0.33, dur: 1.48 },
+  { x: 44, y: 42, delay: 0.68, dur: 1.38 },
 ];
 
 const SLEET_RAIN_STREAKS = [
-  { x: 17, y: 40, delay: 0.06, dur: 0.9 },
+  { x: 20, y: 40, delay: 0.06, dur: 0.9 },
   { x: 28, y: 42, delay: 0.34, dur: 1.05 },
-  { x: 39, y: 41, delay: 0.18, dur: 0.96 },
-  { x: 48, y: 43, delay: 0.52, dur: 1.1 },
+  { x: 35, y: 41, delay: 0.18, dur: 0.96 },
+  { x: 42, y: 43, delay: 0.52, dur: 1.1 },
 ];
 
 const SLEET_SNOW_FLAKES = [
-  { x: 22, y: 41, delay: 0.25, dur: 1.4 },
-  { x: 33, y: 43, delay: 0.48, dur: 1.55 },
-  { x: 44, y: 40, delay: 0.12, dur: 1.32 },
-  { x: 51, y: 42, delay: 0.62, dur: 1.45 },
+  { x: 24, y: 41, delay: 0.25, dur: 1.4 },
+  { x: 30, y: 43, delay: 0.48, dur: 1.55 },
+  { x: 36, y: 40, delay: 0.12, dur: 1.32 },
+  { x: 41, y: 42, delay: 0.62, dur: 1.45 },
 ];
 
 function sun(className) {
